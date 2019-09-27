@@ -1,0 +1,426 @@
+#!/usr/bin/python
+import xml.etree.ElementTree as ET
+import yaml
+import re
+import argparse
+import logging
+import os
+import sys
+from collections import OrderedDict
+import susemanager.retail.log as retail_log
+
+log = logging.getLogger(__name__)
+
+# custom ordering in yaml
+class UnsortableList(list):
+    def sort(self, *args, **kwargs):
+        pass
+
+class UnsortableOrderedDict(OrderedDict):
+    def items(self, *args, **kwargs):
+        return UnsortableList(OrderedDict.items(self, *args, **kwargs))
+
+yaml.add_representer(UnsortableOrderedDict, yaml.representer.SafeRepresenter.represent_dict)
+
+
+# xml namespace
+ns = {'pos': 'http://www.suse.com/SLEPOS'};
+
+out_yaml = {
+    'branches': {},
+    'hwtypes': {}
+}
+
+mapping = {
+    'images': {},
+    'groups': {}
+}
+
+def dn_to_dns(dn):
+    comps = dn.split(',')
+    return '.'.join([c.split('=')[1] for c in comps])
+
+def dn_to_prefix(dn):
+    comps = dn.split(',')
+    return '.'.join([c.split('=')[1] for c in comps if c.startswith('cn=') or c.startswith('ou=')])
+
+def find_text(e, dn, query):
+    v = e.find(query, ns)
+    if v is not None:
+        return v.text.strip()
+    else:
+        raise RuntimeError("Missing {} in {}".format(query, dn))
+
+def find_optional_text(e, query):
+    v = e.find(query, ns)
+    if v is not None:
+        return v.text.strip()
+    else:
+        return None
+
+
+def partitions_to_pillar(partitions, device, raid, image):
+    if not raid:
+        res = {
+            'partitioning': {
+                'disk1': {
+                    'type': 'DISK',
+                    'device': device,
+                    'disklabel': 'msdos',
+                    'partitions': {}
+                }
+            }
+        }
+        for i, part in enumerate(partitions):
+            p = 'p{}'.format(i + 1)
+            res['partitioning']['disk1']['partitions'][p] = {}
+            if part['size'] and part['size'] != 'x':
+                res['partitioning']['disk1']['partitions'][p]['size_MiB'] = int(part['size'])
+            if part['mount'] and part['mount'] != 'x':
+                res['partitioning']['disk1']['partitions'][p]['mountpoint'] = part['mount']
+
+            if part.get('fs') == 'swap' or part.get('type') == '82' or part['mount'] == 'swap':
+                res['partitioning']['disk1']['partitions'][p]['flags'] = 'swap'
+                res['partitioning']['disk1']['partitions'][p]['format'] = 'swap'
+            elif part['mount'] == '/':
+                res['partitioning']['disk1']['partitions'][p]['image'] = image
+            else:
+                if part.get('fs') or (part['mount'] and part['mount'] != 'x'):
+                    res['partitioning']['disk1']['partitions'][p]['format'] = part.get('fs', 'ext4')
+    else:
+        level, dev1, dev2 = raid.split(' ')
+        res = {
+            'partitioning': {
+                'disk1': {
+                    'type': 'DISK',
+                    'device': dev1,
+                    'disklabel': 'msdos',
+                    'partitions': {}
+                },
+                'disk2': {
+                    'type': 'DISK',
+                    'device': dev2,
+                    'disklabel': 'msdos',
+                    'partitions': {}
+                },
+            }
+        }
+        for i, part in enumerate(partitions):
+            p = 'p{}'.format(i + 1)
+            res['partitioning']['disk1']['partitions'][p] = {
+                'flags': 'raid'
+            }
+            res['partitioning']['disk2']['partitions'][p] = {
+                'flags': 'raid'
+            }
+
+            if part['size'] and part['size'] != 'x':
+                res['partitioning']['disk1']['partitions'][p]['size_MiB'] = int(part['size'])
+                res['partitioning']['disk2']['partitions'][p]['size_MiB'] = int(part['size'])
+
+            md = 'md{}'.format(i)
+            res['partitioning'][md] = {
+                'type': 'RAID',
+                'disklabel': 'none',
+                'level': 1,
+                'devices': [
+                    'disk1' + p,
+                    'disk2' + p
+                ],
+            }
+            if part['mount'] and part['mount'] != 'x':
+                res['partitioning'][md]['mountpoint'] = part['mount']
+            if part.get('fs') == 'swap' or part['mount'] == 'swap':
+                res['partitioning'][md]['format'] = 'swap'
+            elif part['mount'] == '/':
+                res['partitioning'][md]['image'] = image
+            else:
+                if part.get('fs') or (part['mount'] and part['mount'] != 'x'):
+                    res['partitioning'][md]['format'] = part.get('fs', 'ext4')
+
+
+    return res
+
+def parse_cash_register(cr, dn):
+    try:
+        container = dn_to_prefix(dn)
+        dn = cr.attrib.get('dn') + ',' + dn
+
+        log.debug("Parsing scCashRegister " + dn)
+
+        hwtype = find_text(cr, dn, "./pos:attributes/pos:scCashRegisterName")
+        hwtype = re.sub('[^A-Za-z0-9_-]', '', hwtype)
+
+        image = find_text(cr, dn, "./pos:attributes/pos:scPosImageDn")
+        image = dn_to_dns(image)
+
+        if image in mapping['images']:
+            image = mapping['images'][image]
+        else:
+            mapping['images'][image] = image
+
+        if cr.find("./pos:scRamDisk", ns) is not None:
+            raise RuntimeError("Ramdisk migration is not supported ({})".format(dn))
+
+        device = find_text(cr, dn, "./pos:scHarddisk/pos:attributes/pos:scDevice")
+        if cr.find("./pos:scHarddisk/pos:attributes/pos:scPartitionsTable", ns) is not None:
+            part_t = cr.find("./pos:scHarddisk/pos:attributes/pos:scPartitionsTable", ns).text
+            partitions = []
+            for p in part_t.split(';'):
+                p_split = p.split(' ')
+                if len(p_split) == 4:
+                    partitions.append({
+                        'size':  p_split[0],
+                        'type':  p_split[1],
+                        'mount': p_split[2],
+                        'fs':    p_split[3]
+                    })
+                elif len(p_split) == 3:
+                    partitions.append({
+                        'size':  p_split[0],
+                        'type':  p_split[1],
+                        'mount': p_split[2]
+                    })
+                elif p and not p.isspace():
+                    raise RuntimeError('Unknown partitioning scheme "{}"'.format(part_t))
+
+        elif cr.find("./pos:scHarddisk/pos:scPartition", ns) is not None:
+            partitions = []
+            for p in cr.findall("./pos:scHarddisk/pos:scPartition", ns):
+                part = {}
+                if p.find("./pos:attributes/pos:scPassword", ns) is not None:
+                    part['password'] = p.find("./pos:attributes/pos:scPassword", ns).text
+                if p.find("./pos:attributes/pos:scPartSize", ns) is not None:
+                    part['size'] = p.find("./pos:attributes/pos:scPartSize", ns).text
+                if p.find("./pos:attributes/pos:scPartMount", ns) is not None:
+                    part['mount'] = p.find("./pos:attributes/pos:scPartMount", ns).text
+                if p.find("./pos:attributes/pos:scPartType", ns) is not None:
+                    part['type'] = p.find("./pos:attributes/pos:scPartType", ns).text
+                partitions.append(part)
+        else:
+            raise RuntimeError("no scPartitionsTable nor scPartition in {}".format(dn))
+
+        raid = None
+        if cr.find("./pos:attributes/pos:scRaidScheme", ns) is not None:
+            raid = cr.find("./pos:attributes/pos:scRaidScheme", ns).text
+
+        group = dn_to_dns(dn)
+        if group in mapping['groups']:
+            group = mapping['groups'][group]
+        else:
+            if container == 'global':
+                mapping['groups'][group] = hwtype
+                group = hwtype
+            else:
+                mapping['groups'][group] = group
+
+        if len(group) > 56:
+                log.warn("Group name '{}' is too long, please adjust it in mapping file.".format(group))
+
+        out_yaml['hwtypes'][group] = {
+            'saltboot': partitions_to_pillar(partitions, device, raid, image)
+        }
+
+    except Exception as e:
+        log.error(e)
+        log.debug(e, exc_info=True)
+
+def parse_role(r, dn):
+    try:
+        dn = r.attrib.get('dn') + ',' + dn
+        log.debug("Parsing scRole " + dn)
+
+        for cr in r.findall("pos:scCashRegister", ns):
+            parse_cash_register(cr, dn)
+
+    except Exception as e:
+        log.error(e)
+        log.debug(e, exc_info=True)
+
+def parse_ref_object_container(ro, dn):
+    try:
+        dn = ro.attrib.get('dn') + ',' + dn
+        log.debug("Parsing scRefObjectContainer " + dn)
+
+        for r in ro.findall("pos:scRole", ns):
+            parse_role(r, dn)
+
+        for cr in ro.findall("pos:scCashRegister", ns):
+            parse_cash_register(cr, dn)
+
+    except Exception as e:
+        log.error(e)
+        log.debug(e, exc_info=True)
+
+def parse_workstation(ws, dn, term_dict):
+    try:
+        dn = ws.attrib.get('dn') + ',' + dn
+
+        log.debug("Parsing scWorkstation " + dn)
+
+        term = {}
+        name = ws.attrib.get('dn').split('=')[1]
+        term['hwAddress'] = find_text(ws, dn, "./pos:attributes/pos:macAddress")
+        term['IP'] = find_text(ws, dn, "./pos:attributes/pos:ipHostNumber")
+
+        ref_cr = find_text(ws, dn, "./pos:attributes/pos:scRefPcDn")
+        ref_cr_container = re.sub('^[^,]*,', '', ref_cr)
+        ref_cr_container = dn_to_prefix(ref_cr_container)
+
+        group = dn_to_dns(ref_cr)
+        if group in mapping['groups']:
+            group = mapping['groups'][group]
+            term['hwtype'] = group
+        else:
+            mapping['groups'][group] = 'unknown'
+
+        term_dict[name] = term
+
+    except Exception as e:
+        log.error(e)
+        log.debug(e, exc_info=True)
+
+def parse_location(loc, dn = None):
+    try:
+        if dn is None:
+            dn = loc.attrib.get('dn')
+        else:
+            dn = loc.attrib.get('dn') + ',' + dn
+
+        log.debug("Parsing scLocation " + dn)
+
+        for ro in loc.findall("pos:scRefObjectContainer", ns):
+            parse_ref_object_container(ro, dn)
+
+        branch = {}
+
+        branch['branch_prefix'] = dn_to_prefix(dn)
+        branch_server = loc.find("./pos:scServerContainer/pos:scBranchServer", ns)
+
+        if branch_server is None:
+            raise RuntimeError("scBranchServer not found in scLocation {}".format(dn))
+
+        branch['server_name'] = branch_server.attrib.get('dn').split('=')[1]
+        fqdn = branch['server_name'] + '.' + dn_to_dns(dn)
+
+        nic = branch_server.find("./pos:scNetworkcard", ns)
+        if nic is not None:
+            branch['nic'] = nic.attrib.get('dn').split('=')[1]
+            branch['dedicated_nic'] = True
+            branch['branch_ip'] = find_text(nic, dn, "./pos:attributes/pos:ipHostNumber")
+            branch['netmask'] = find_text(loc, dn, "./pos:attributes/pos:ipNetmaskNumber")
+        else:
+            branch['dedicated_nic'] = False
+
+        exclude_formulas = []
+
+        dhcpService = branch_server.find("./pos:scService[@dn='cn=dhcp']", ns)
+        dhcpExtern = find_optional_text(loc, "./pos:attributes/pos:scDhcpExtern")
+        if (dhcpExtern == 'TRUE' or
+            dhcpService is None or find_optional_text(dhcpService, "./pos:attributes/pos:scServiceStatus") == 'FALSE'):
+            exclude_formulas.append('dhcpd')
+
+        dnsService = branch_server.find("./pos:scService[@dn='cn=dns']", ns)
+        if dnsService is None or find_optional_text(dnsService, "./pos:attributes/pos:scServiceStatus") == 'FALSE':
+            exclude_formulas.append('bind')
+
+        ftpService = branch_server.find("./pos:scService[@dn='cn=ftp']", ns)
+        if ftpService is None or find_optional_text(ftpService, "./pos:attributes/pos:scServiceStatus") == 'FALSE':
+            exclude_formulas.append('vsftpd')
+
+        tftpService = branch_server.find("./pos:scService[@dn='cn=tftp']", ns)
+        if tftpService is None or find_optional_text(tftpService, "./pos:attributes/pos:scServiceStatus") == 'FALSE':
+            exclude_formulas.append('tftpd')
+
+        if exclude_formulas:
+            branch['exclude_formulas'] = exclude_formulas
+
+        branch['dyn_range'] = [ip.strip() for ip in find_text(loc, dn, "./pos:attributes/pos:scDhcpRange").split(',')]
+        out_yaml['branches'][fqdn] = branch
+
+        term_dict = {}
+        for ws in loc.findall("pos:scWorkstation", ns):
+            parse_workstation(ws, dn, term_dict)
+        if term_dict:
+            branch['terminals'] = term_dict
+
+    except Exception as e:
+        log.error(e)
+        log.debug(e, exc_info=True)
+
+def parse_organization(e, dn = None):
+    if dn is None:
+        dn = e.attrib.get('dn')
+    else:
+        dn = e.attrib.get('dn') + ',' + dn
+
+    log.debug("Parsing organization/organizationalUnit " + dn)
+
+    for ro in e.findall("pos:scRefObjectContainer", ns):
+        parse_ref_object_container(ro, dn)
+
+    for org in e.findall("pos:organizationalUnit", ns):
+        parse_organization(org, dn)
+
+    for loc in e.findall("pos:scLocation", ns):
+        parse_location(loc, dn)
+
+parser = argparse.ArgumentParser(description='Initialize Branch Server')
+
+parser.add_argument('xml', help='SLEPOS xml file')
+parser.add_argument('yaml', nargs='?', help='output yaml file')
+parser.add_argument('--save-mapping', help='generate mapping file template')
+parser.add_argument('--mapping', help='use mapping file')
+
+parser.add_argument('--log-level', default='INFO', dest='log_level',
+                    type=retail_log.log_level_string_to_int, nargs='?',
+                    help='Set the logging output level. {0}'.format(retail_log.LOG_LEVEL_STRINGS))
+parser.add_argument('--log-file', help='save log to file')
+
+args = parser.parse_args()
+
+retail_log.init_logging(args.log_level, os.path.basename(__file__), args.log_file)
+
+try:
+    if args.mapping:
+        with open(args.mapping, 'r') as infile:
+            mapping = yaml.safe_load(infile)
+        if 'images' not in mapping or not isinstance(mapping['images'], dict):
+            mapping['images'] = {}
+        if 'groups' not in mapping or not isinstance(mapping['groups'], dict):
+            mapping['groups'] = {}
+
+    tree = ET.parse(args.xml)
+    root = tree.getroot()
+
+    org = root.find("pos:organization", ns)
+
+    parse_organization(org)
+
+    for branch in out_yaml['branches']:
+        for t in out_yaml['branches'][branch].get('terminals', {}):
+            terminal = out_yaml['branches'][branch]['terminals'][t]
+            if terminal.get('hwtype') not in out_yaml['hwtypes']:
+                terminal['hwtype'] = 'default'
+
+    # sort by domain name
+    out_yaml['branches'] = UnsortableOrderedDict(sorted(out_yaml['branches'].items(), key=lambda b: b[0].split('.')[::-1]))
+    out_yaml['hwtypes'] = UnsortableOrderedDict(sorted(out_yaml['hwtypes'].items(), key=lambda b: b[0].split('.')[::-1]))
+    mapping['groups'] = UnsortableOrderedDict(sorted(mapping['groups'].items(), key=lambda b: b[0].split('.')[::-1]))
+    mapping['images'] = UnsortableOrderedDict(sorted(mapping['images'].items(), key=lambda b: b[0].split('.')[::-1]))
+
+    if args.yaml:
+        with open(args.yaml, 'w') as outfile:
+            yaml.dump(out_yaml, outfile, default_flow_style=False)
+
+    if args.save_mapping:
+        with open(args.save_mapping, 'w') as outfile:
+            yaml.dump(mapping, outfile, default_flow_style=False)
+
+except Exception as e:
+    log.error(e)
+    log.debug(e, exc_info=True)
+    retail_log.print_logfile_info()
+    sys.exit(1)
+
+retail_log.print_logfile_info()

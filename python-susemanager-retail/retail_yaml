@@ -1,0 +1,71 @@
+#!/usr/bin/python
+import susemanager.retail
+import re
+import sys
+import os
+import argparse
+import logging
+import susemanager.retail.log as retail_log
+
+log = logging.getLogger(__name__)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Initialize Branch Server')
+
+
+    parser.add_argument('--api-host', default='localhost', help='API host')
+    parser.add_argument('--api-user', default='admin', help='API user')
+    parser.add_argument('--api-pass', help='API password')
+
+    parser.add_argument('--from-yaml', help='initialize retail system from YAML file')
+    parser.add_argument('--to-yaml', help='save structure of retail system to YAML file')
+
+    parser.add_argument('--branch', help='use with --from-yaml to import only specified branch and global settings')
+    parser.add_argument('--only-new', action='store_true', help='use with --from-yaml to import only new systems and groups, do not touch existing ones')
+
+    parser.add_argument('--log-level', default='INFO', dest='log_level',
+                        type=retail_log.log_level_string_to_int, nargs='?',
+                        help='Set the logging output level. {0}'.format(retail_log.LOG_LEVEL_STRINGS))
+    parser.add_argument('--log-file', help='save log to file')
+
+    args = parser.parse_args()
+    if not args.from_yaml and not args.to_yaml:
+       print('Missing one of --from-yaml, --to-yaml arguments.')
+       sys.exit(1)
+
+    retail_log.init_logging(args.log_level, os.path.basename(__file__), args.log_file)
+
+    yaml_structure = susemanager.retail.YAMLstructure()
+
+    try:
+        client, key = susemanager.retail.connect(args)
+    except Exception as e:
+        log.error(e)
+        log.debug(e, exc_info=True)
+        retail_log.print_logfile_info()
+        sys.exit(1)
+
+    if args.from_yaml:
+        try:
+            yaml_structure.loadFile(args.from_yaml)
+            yaml_structure.upload(client, key, only_branch=args.branch, only_new=args.only_new)
+            susemanager.retail.statistics.print_stats()
+        except Exception as e:
+            log.error(e)
+            log.debug(e, exc_info=True)
+            susemanager.retail.statistics.print_stats()
+            retail_log.print_logfile_info()
+            sys.exit(1)
+
+    elif args.to_yaml:
+        try:
+            yaml_structure.download(client, key)
+            yaml_structure.saveFile(args.to_yaml)
+        except Exception as e:
+            log.error(e)
+            log.debug(e, exc_info=True)
+            retail_log.print_logfile_info()
+            sys.exit(1)
+
+    retail_log.print_logfile_info()
+    sys.exit(0)

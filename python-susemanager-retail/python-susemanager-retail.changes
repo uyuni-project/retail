@@ -1,0 +1,119 @@
+-------------------------------------------------------------------
+Tue Sep 24 14:00:24 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Allow bind options to be stored to and edited by retail_yaml
+  (bsc#1150657) 
+
+-------------------------------------------------------------------
+Wed Jul 31 15:31:30 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1568808472.be9f236
+- Parse parition type 82 as swap in SLEPOS migration (bsc#1136959)
+
+-------------------------------------------------------------------
+Mon Jul 29 13:20:46 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Allow kernel command line for branches to be set as an option to
+  retail_branch_init CLI
+- Automatically calculate dhcp dynamic range from branch ip if not
+  set
+
+-------------------------------------------------------------------
+Thu Jul 25 15:26:46 UTC 2019 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Update to version 0.1.1564399963.cf19a13
+- Initialize filename_efi in dhcpd formula (bsc#1143204)
+
+-------------------------------------------------------------------
+Thu May 23 13:54:24 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Updated copyrights and bug reporting link
+- Update to version 0.1.1558613789.64ba093
+
+-------------------------------------------------------------------
+Mon Apr  8 12:42:33 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Version update to 1.0.1555335519.abf24f8
+- Fix python3 related xmlrpclib rename to xmlrpl_client
+  (bsc#1131681)
+
+-------------------------------------------------------------------
+Mon Jan 28 12:10:47 UTC 2019 - nadvornik@suse.com
+
+- Add retail_create_delta tool
+
+-------------------------------------------------------------------
+Mon Dec 10 16:12:43 UTC 2018 - Ondrej Holecek <oholecek@suse.com>
+
+- Force one python version for SLE12 (python2) and SLE15 (python3)
+
+-------------------------------------------------------------------
+Fri Nov 23 10:04:10 UTC 2018 - nadvornik@suse.com
+
+- Add disklabel: none to migrated RAID
+
+-------------------------------------------------------------------
+Mon Nov 19 14:14:18 UTC 2018 - nadvornik@suse.com
+
+- Improve error reporting on duplicate systems
+
+-------------------------------------------------------------------
+Mon Nov 19 09:22:26 UTC 2018 - nadvornik@suse.com
+
+- Output partition size as int (bsc#1116517)
+- Start partition numbers from 1
+- Warn on long group names
+
+-------------------------------------------------------------------
+Mon Nov 12 16:20:24 UTC 2018 - nadvornik@suse.com
+
+- Improved logging support
+
+-------------------------------------------------------------------
+Thu Oct 25 08:48:10 UTC 2018 - nadvornik@suse.com
+
+- Add retail_yaml --only-new option
+- Print import summary (bsc#1112754)
+
+-------------------------------------------------------------------
+Thu Oct 18 15:30:26 UTC 2018 - nadvornik@suse.com
+
+- Add retail_migration tool
+
+-------------------------------------------------------------------
+Mon Oct 15 13:27:39 UTC 2018 - nadvornik@suse.com
+
+- Check for duplicate addresses in yaml (bsc#1111497)
+
+-------------------------------------------------------------------
+Mon Sep 24 13:44:24 UTC 2018 - nadvornik@suse.com
+
+- Extended yaml to support terminals
+- Updated branch network formula
+
+-------------------------------------------------------------------
+Mon Sep 24 09:06:02 UTC 2018 - Ondrej Holecek <oholecek@suse.com>
+
+- Use provided macros instead of custom python version hacks
+
+-------------------------------------------------------------------
+Mon Sep 17 07:52:53 UTC 2018 - Ondrej Holecek <oholecek@suse.com>
+
+- Do not use alternatives in single spec package, determine what
+  python version to use by OS release
+
+-------------------------------------------------------------------
+Tue Sep 11 12:53:18 UTC 2018 - Ondrej Holecek <oholecek@suse.com>
+
+- Split package to base with libraries and subpackage with executables
+
+-------------------------------------------------------------------
+Tue Aug 14 13:48:29 UTC 2018 - nadvornik@suse.com
+
+- adapt to changed API
+
+-------------------------------------------------------------------
+Thu Jul 26 12:42:51 UTC 2018 - psladek@suse.com
+
+- new package 
+

@@ -1,0 +1,118 @@
+{%- if salt['pillar.get']('branch_network:dedicated_NIC') %}
+add_nic_to_internal:
+  firewalld.present:
+    - name: internal
+    - interfaces:
+      - {{ nic }}
+    - prune_services: False
+    - services:
+      - dhcp
+      - dns
+      - tftp
+      - ftp
+      - http
+      - https
+      - salt-master
+    - require:
+      - service: firewalld_service
+
+{%- else %}
+# shared NIC - services for terminals
+shared_network_services:
+  firewalld.present:
+    - name: public
+    - prune_services: False
+    - services:
+{%- if salt['pillar.get']('branch_network:firewall:open_dhcp_port') %}
+      - dhcp
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_dns_port') %}
+      - dns
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_tftp_port') %}
+      - tftp
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_ftp_port') %}
+      - ftp
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_http_port') %}
+      - http
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_https_port') %}
+      - https
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_salt_ports') %}
+      - salt-master
+{%- endif %}
+
+{%- endif %}
+# common services
+
+common_services:
+  firewalld.present:
+    - name: public
+    - prune_services: False
+    - services:
+{%- if salt['pillar.get']('branch_network:firewall:open_ssh_port') %}
+        - ssh
+{%- endif %}
+{%- if salt['pillar.get']('branch_network:firewall:open_xmpp_server_port') %}
+        - xmpp-server
+{%- endif %}
+{%- if salt['pillar.get']('branch_network:firewall:open_xmpp_client_port') %}
+        - xmpp-client
+{%- endif %}
+{%- if salt['pillar.get']('branch_network:firewall:enable_NAT') %}
+    - masquerade: True
+  {%- else %}
+    - masquerade: False
+  {%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:enable_NAT') %}
+net.ipv4.conf.all.forwarding:
+  sysctl.present:
+    - value: 1
+{%- else %}
+net.ipv4.conf.all.forwarding:
+  sysctl.present:
+    - value: 0
+{%- endif %}
+
+{%- set ip6ifaces = salt['grains.get']('ip6_interfaces').keys()|reject('eq', 'lo') %}
+{%- if salt['pillar.get']('branch_network:dedicated_NIC') %}
+  {%- set ip6ifaces = ip6ifaces|reject('eq', nic ) %}
+{%- endif %}
+{%- set ra_list = ip6ifaces|list %}
+{%- do ra_list.append('all') %}
+
+{%- if salt['pillar.get']('branch_network:firewall:enable_SLAAC_with_routing') %}
+  {%- for iface in ra_list %}
+net.ipv6.conf.{{ iface }}.accept_ra:
+  sysctl.present:
+    - value: 2
+  {%- endfor %}
+{%- else %}
+  {%- for iface in ra_list %}
+net.ipv6.conf.{{ iface }}.accept_ra:
+  sysctl.present:
+    - value: 1
+  {%- endfor %}
+{%- endif %}
+
+
+firewalld_installed:
+  pkg.installed:
+    - name: firewalld
+
+firewalld_service:
+  service.running:
+    - name: firewalld
+    - enable: True
+    - require:
+      - pkg: firewalld_installed

@@ -1,0 +1,148 @@
+#!/usr/bin/python
+import os
+import sys
+import yaml
+import re
+import tempfile
+import tarfile
+import subprocess
+import shutil
+import salt.utils.dictupdate
+import argparse
+import logging
+import susemanager.retail.log as retail_log
+
+log = logging.getLogger(__name__)
+
+# OS images path:
+MANAGER_PILLAR_DATA_PATH = '/srv/susemanager/pillar_data'
+IMAGES_DATA_PATH = os.path.join(MANAGER_PILLAR_DATA_PATH, 'images')
+
+def image_pillars():
+    '''
+    Load image pillars
+
+    Image pillars are automatically created after image build and are available to all minions
+    '''
+    ret = {}
+    for pillar in os.listdir(IMAGES_DATA_PATH):
+        pillar_path = os.path.join(IMAGES_DATA_PATH, pillar)
+        if os.path.isfile(pillar_path) and pillar.endswith('.sls'):
+            try:
+                with open(pillar_path) as p:
+                    ret = salt.utils.dictupdate.merge(ret, yaml.load(p.read()), strategy='recurse')
+            except Exception as error:
+                log.error('Error loading data for image "{image}": {message}'.format(image=pillar.path(), message=str(error)))
+
+    return ret
+
+def bundle_path(url):
+    return re.sub(r"^.*/os-images/", "/srv/www/os-images/", url)
+
+
+def generate_delta(src_pillar, target_pillar, args):
+    tmpdir = tempfile.mkdtemp()
+    try:
+        src_bundle = bundle_path(src_pillar.get('sync', {}).get('bundle_url'))
+        target_url = target_pillar.get('sync', {}).get('bundle_url')
+        target_bundle = bundle_path(target_url)
+
+        tar = tarfile.open(src_bundle, "r")
+        tar.extractall(tmpdir)
+        tar.close()
+
+        out_file = target_bundle + '-' + os.path.basename(src_bundle) + '.delta'
+        delta_url = target_url + '-' + os.path.basename(src_bundle) + '.delta'
+
+        extra_args = ''
+        if args.B is not None:
+            extra_args += "-B " + args.B
+
+        subprocess.check_call("zcat '{}' | xdelta3 -e {} -s '{}' > '{}'".format(target_bundle, extra_args, os.path.join(tmpdir, src_pillar.get('filename')), out_file), shell=True)
+    finally:
+        shutil.rmtree(tmpdir)
+    return out_file, delta_url
+
+def generate_pillar(src_name, src_version, target_name, target_version, delta_file, delta_url):
+
+    size = os.path.getsize(delta_file)
+
+    pillar = {
+        'images': {
+            target_name: {
+                target_version: {
+                    'sync': {
+                        'bundle_delta': {
+                            src_name: {
+                                src_version: {
+                                    'url': delta_url,
+                                    'size': size
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    name = os.path.join(IMAGES_DATA_PATH, os.path.basename(delta_file) + '.sls')
+    with open(name, 'w') as outfile:
+        yaml.safe_dump(pillar, outfile, default_flow_style=False)
+
+
+
+parser = argparse.ArgumentParser(description='Generate delta image')
+
+parser.add_argument('target', help='Target image (Name-Version)')
+parser.add_argument('source', help='Source image (Name-Version)')
+parser.add_argument('-B', metavar='bytes', help='Passed to xdelta3')
+
+parser.add_argument('--log-level', default='INFO', dest='log_level',
+                    type=retail_log.log_level_string_to_int, nargs='?',
+                    help='Set the logging output level. {0}'.format(retail_log.LOG_LEVEL_STRINGS))
+
+
+args = parser.parse_args()
+logging.basicConfig(level=args.log_level)
+
+namever_re = re.compile(r'^(.*)-([0-9+]\.[0-9+]\.[0-9+])$')
+
+match = namever_re.match(args.target)
+if match:
+    target_name = match.group(1)
+    target_version = match.group(2)
+else:
+    log.error("Target is not given as 'name-version': '{}'".format(args.target))
+    sys.exit(1)
+
+match = namever_re.match(args.source)
+if match:
+    src_name = match.group(1)
+    src_version = match.group(2)
+else:
+    log.error("Source is not given as 'name-version': '{}'".format(args.source))
+    sys.exit(1)
+
+
+try:
+    pillars = image_pillars()
+
+    try:
+        target_pillar = pillars['images'][target_name][target_version]
+    except KeyError:
+        raise RuntimeError("Target image is not in pillar")
+
+    try:
+        src_pillar = pillars['images'][src_name][src_version]
+    except KeyError:
+        raise RuntimeError("Source image is not in pillar")
+
+    delta_file, delta_url = generate_delta(src_pillar, target_pillar, args)
+    generate_pillar(src_name, src_version, target_name, target_version, delta_file, delta_url)
+
+except Exception as e:
+    log.error(e)
+    sys.exit(1)
+
+sys.exit(0)

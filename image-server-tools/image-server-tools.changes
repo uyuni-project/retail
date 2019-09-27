@@ -1,0 +1,16 @@
+-------------------------------------------------------------------
+Thu May 23 13:54:24 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Updated copyrights and bug reporting link
+- Update to version 0.1.1558613789.64ba093
+
+-------------------------------------------------------------------
+Thu May 10 12:15:38 UTC 2018 - oholecek@suse.com
+
+- Do not specify repo type and let kiwi autodetect
+
+-------------------------------------------------------------------
+Wed Jun  7 14:56:43 UTC 2017 - nadvornik@suse.com
+
+- new package
+

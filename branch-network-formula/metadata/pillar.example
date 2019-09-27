@@ -1,0 +1,4 @@
+branch_network:
+  nic: eth1
+  ip: 192.168.128.1
+  netmask: 255.255.255.0

@@ -1,0 +1,1 @@
+../../suse-SLES12/root/saltboot.sh

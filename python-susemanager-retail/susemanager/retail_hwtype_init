@@ -1,0 +1,65 @@
+#!/usr/bin/python
+import susemanager.retail
+import re
+import sys
+import argparse
+import logging
+import susemanager.retail.log as retail_log
+
+log = logging.getLogger(__name__)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Initialize Hardware Type Group with recommended values', usage=
+        '%(prog)s <hwtype> --image <image_name> [--swap [size_in_GB]] [--localboot [--efi]] [--service-partition [size_in_GB]] [--data-partition [size_in_GB]] [--raid]'
+    )
+
+    parser.add_argument('hwtype', help='Hardware Type string in format "System Manufacturer-Product"')
+
+    parser.add_argument('--api-host', default='localhost', help='API host')
+    parser.add_argument('--api-user', default='admin', help='API user')
+    parser.add_argument('--api-pass', help='API password')
+
+    parser.add_argument('--image', help='Image name to be deployed on system partition')
+    parser.add_argument('--swap', help='Include swap partition')
+    parser.add_argument('--localboot', help='Include boot partition to allow terminal local boot')
+    parser.add_argument('--efi', help='Prepare boot partition for EFI boot system')
+    parser.add_argument('--service-partition', help='Include system partition "/srv/saltboot" to allow background image downloads')
+    parser.add_argument('--data-partition', help='Include data partition "/data" for persistant data storage')
+    parser.add_argument('--raid', help='Prepare partitioning in a RAID1 mode')
+
+    parser.add_argument('--log-level', default='INFO', dest='log_level',
+                        type=retail_log.log_level_string_to_int, nargs='?',
+                        help='Set the logging output level. {0}'.format(retail_log.LOG_LEVEL_STRINGS))
+
+    args = parser.parse_args()
+    logging.basicConfig(level=args.log_level)
+
+    if args.image is None:
+      log.error('Missing image name for deployment')
+      sys.exit(1)
+
+    try:
+        client, key = susemanager.retail.connect(args)
+    except Exception as e:
+        log.error(e)
+    	sys.exit(1)
+
+    groups = susemanager.retail.HWtypes()
+    groups.connect(client, key)
+    groups.download()
+
+    try:
+
+    except Exception as e:
+        log.error(e)
+        log.debug(e, exc_info=True)
+        sys.exit(1)
+
+    try:
+        groups.upload()
+    except Exception as e:
+        log.error(e)
+        log.debug(e, exc_info=True)
+        sys.exit(1)
+
+    sys.exit(0)

@@ -1,0 +1,43 @@
+images:
+  JeOS:
+    5.0.0:
+        url: ftp://ftp/POS_Image_JeOS5.x86_64-5.0.0.gz
+        name: POS_Image_JeOS5
+        compressed: gzip
+        compressed_hash: 41b957c8def0ff0b8fef0e2d1f1cc4df
+        fstype: ext3
+        size: 1121976320
+        hash: b8fef0e2d1f1cc4df41b957c8def0ff0
+        boot_image: default
+        sync:
+            # salt supports http(s):, ftp:, salt:
+            url: http://salt/pub/POS_Image_JeOS5.x86_64-5.0.0.gz
+            #local_path: ~
+
+boot_images:
+    # "default" boot image is symlinked to "linux" and "initrd.gz" in default pxe boot entry
+    default:
+        name: initrd-netboot-suse-SLES12
+        initrd:
+            version: 2.1.1
+            hash: b8fef0e2d1f1cc4df41b957c8def0ff0
+            url: ftp://ftp/default/initrd-netboot-suse-SLES12.x86_64.splash.gz
+        kernel:
+            version: 4.4.74-92.29-default
+            hash: f1cc4df41b957c8def0ff0b8fef0e2d1
+            url: ftp://ftp/default/initrd-netboot-suse-SLES12.x86_64-2.1.1.kernel.4.4.74-92.29-default
+        sync:
+            initrd_url: http://salt/initrd-netboot-suse-SLES12.x86_64.splash.gz
+            kernel_url: http://salt/initrd-netboot-suse-SLES12.x86_64-2.1.1.kernel.4.4.74-92.29-default
+            local_path: default
+
+# hash is identified by length
+# see https://docs.saltstack.com/en/latest/ref/states/all/salt.states.file.html#salt.states.file.managed
+# Type    Length
+# ======  ======
+# sha512     128
+# sha384      96
+# sha256      64
+# sha224      56
+# sha1        40
+# md5         32

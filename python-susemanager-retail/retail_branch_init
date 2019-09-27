@@ -1,0 +1,111 @@
+#!/usr/bin/python
+import susemanager.retail
+import re
+import sys
+import argparse
+import logging
+from netaddr import IPNetwork
+import susemanager.retail.log as retail_log
+
+log = logging.getLogger(__name__)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Initialize Branch Server', usage=
+        '%(prog)s <branch_name> --dedicated-nic <NIC> [--branch-ip <ip>] [--netmask <netmask>] [--dyn-range <from IP> <to IP>] [--server-name <name>] [--server-domain <domain>]\n' +
+        '%(prog)s <branch_name> [--server-name <name>] [--server-domain <domain>] [--salt-cname <cname>]'
+    )
+
+    parser.add_argument('branch_name', help='Branch Server name (Salt ID)')
+
+    parser.add_argument('--api-host', default='localhost', help='API host')
+    parser.add_argument('--api-user', default='admin', help='API user')
+    parser.add_argument('--api-pass', help='API password')
+
+    parser.add_argument('--dedicated-nic', help='NIC connected to terminal network')
+    parser.add_argument('--branch-ip', help='Branch Server IP address on terminal network')
+    parser.add_argument('--netmask', help='Netmask of terminal network')
+
+    parser.add_argument('--dyn-range', nargs=2, help='DHCP dynamic range')
+
+    parser.add_argument('--server-name', help='Branch Server hostname')
+    parser.add_argument('--server-domain', help='Branch Server domain')
+    parser.add_argument('--salt-cname', help='SUSE Manager hostname if not using Salt broker on Branch server')
+    parser.add_argument('--contact', help='Contact mail for zone file')
+
+    parser.add_argument('--branch-prefix', help='Short prefix to identify branch in terminal ID')
+    parser.add_argument('--hw-address', help='Hardware address (MAC) of one of brach server NIC, used to identify pre-configured entry')
+
+    parser.add_argument('--pxe-extra-kernel-parameters', help='Additional kernel command line parameters passed to terminal via PXE')
+
+    parser.add_argument('--log-level', default='INFO', dest='log_level',
+                        type=retail_log.log_level_string_to_int, nargs='?',
+                        help='Set the logging output level. {0}'.format(retail_log.LOG_LEVEL_STRINGS))
+
+
+    args = parser.parse_args()
+    logging.basicConfig(level=args.log_level)
+
+    if args.server_name is None:
+        args.server_name = re.compile('\..*$').sub('', args.branch_name)
+
+    if args.server_domain is None:
+        args.server_domain = re.compile('^[^.]*\.').sub('', args.branch_name)
+
+    if args.branch_prefix is None:
+        args.branch_prefix = re.compile('\..*$').sub('', args.server_domain)
+
+    try:
+        client, key = susemanager.retail.connect(args)
+    except Exception as e:
+        log.error(e)
+        sys.exit(1)
+
+    branch = susemanager.retail.Branch(args.branch_name, hwAddress=args.hw_address)
+    if not branch.connect(client, key):
+        log.error("'%s' does not exist.", args.branch_name)
+        log.debug(e, exc_info=True)
+        sys.exit(1)
+
+    try:
+        if args.dedicated_nic:
+            if args.branch_ip is None:
+                args.branch_ip = '192.168.1.1'
+            if args.netmask is None:
+                args.netmask = '255.255.255.0'
+            if args.dyn_range is None:
+                branch_network = IPNetwork(args.branch_ip + '/' + args.netmask)
+                # increase the prefix by 1 bit so we use half of the range for dynamic addresses
+                prefixlen = branch_network.prefixlen +1
+                if prefixlen > 30:
+                    log.error("Branch network prefix is too limiting for auto assignement. Please provide DHCP dynamic range manually")
+                    sys.exit(1)
+                # do not use the subnet with branch ip in it
+                for subnet in branch_network.subnet(prefixlen):
+                    if not args.branch_ip in subnet:
+                        # make sure lower ip address is not network address and high ip address is not broadcast address
+                        args.dyn_range = [str(subnet[1]), str(subnet[-2])]
+                        break
+
+            branch.configure_dedicated_nic(args.dedicated_nic, ip=args.branch_ip, netmask=args.netmask)
+            branch.configure_dhcp(args.server_domain, nic=args.dedicated_nic, ip=args.branch_ip, netmask=args.netmask, dyn_range=args.dyn_range)
+            branch.configure_bind(args.server_name, args.server_domain, branch_ip=args.branch_ip, salt_cname=args.salt_cname, contact=args.contact)
+        else:
+            branch.configure_default_nic()
+            branch.configure_bind(args.server_name, args.server_domain, branch_ip=args.branch_ip, salt_cname=args.salt_cname, contact=args.contact)
+
+        branch.configure_vsftpd()
+        branch.configure_tftpd()
+        branch.configure_pxe(args.server_domain, args.branch_prefix, args.pxe_extra_kernel_parameters, kernel_parameters_append=True)
+    except Exception as e:
+        log.error(e)
+        log.debug(e, exc_info=True)
+        sys.exit(1)
+
+    try:
+        branch.upload()
+    except Exception as e:
+        log.error(e)
+        log.debug(e, exc_info=True)
+        sys.exit(1)
+
+    sys.exit(0)

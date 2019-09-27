@@ -1,0 +1,71 @@
+-------------------------------------------------------------------
+Mon Aug 19 12:31:44 UTC 2019 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Update to version 0.1.1568808472.be9f236
+- Handle Kiwi NG image bundle
+
+-------------------------------------------------------------------
+Thu May 23 13:54:24 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Updated copyrights and bug reporting link
+- Update to version 0.1.1558613789.64ba093
+
+-------------------------------------------------------------------
+Wed May  8 11:44:50 UTC 2019 - nadvornik@suse.com
+
+- Update to version 0.1.1557760069.e3d27d9
+- Allow configuring default boot image
+
+-------------------------------------------------------------------
+Thu May  2 14:24:24 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1555335519.abf24f8
+
+-------------------------------------------------------------------
+Wed Apr 10 14:53:15 UTC 2019 - nadvornik@suse.com
+
+- Fix non-bundle sync
+
+-------------------------------------------------------------------
+Mon Feb 25 12:53:24 UTC 2019 - nadvornik@suse.com
+
+- Store list of synced images in grains
+- Delete images not referenced in pillar
+
+-------------------------------------------------------------------
+Thu Feb 14 14:31:05 UTC 2019 - nadvornik@suse.com
+
+- Add image whitelist
+- Add form under name "image-synchronize"
+
+-------------------------------------------------------------------
+Mon Jan 28 12:10:03 UTC 2019 - nadvornik@suse.com
+
+- Support delta images
+
+-------------------------------------------------------------------
+Thu Oct  4 15:04:36 UTC 2018 - nadvornik@suse.com
+
+- Handle empty images pillar (bsc#1105359)
+
+-------------------------------------------------------------------
+Tue May 29 14:39:34 UTC 2018 - oholecek@suse.com
+
+- Translate source_hash from ':' separated to be '=' separated
+
+-------------------------------------------------------------------
+Wed Mar 21 16:06:08 UTC 2018 - nadvornik@suse.com
+
+- Support for bundle images
+
+-------------------------------------------------------------------
+Sun Mar 18 16:07:20 UTC 2018 - oholecek@suse.com
+
+- Change iteritems to iter to be compatible with python3
+- Configurable service directory for pxe and imagesync
+
+-------------------------------------------------------------------
+Thu Aug 24 09:19:12 UTC 2017 - nadvornik@suse.com
+
+- new package
+

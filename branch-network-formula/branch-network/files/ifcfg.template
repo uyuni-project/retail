@@ -1,0 +1,5 @@
+STARTMODE='auto'
+BOOTPROTO='static'
+IPADDR='{{ pillar['branch_network']['ip'] }}'
+NETMASK='{{ pillar['branch_network']['netmask'] }}'
+ZONE='internal'

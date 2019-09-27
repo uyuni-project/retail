@@ -1,0 +1,93 @@
+-------------------------------------------------------------------
+Wed Aug 21 14:25:51 UTC 2019 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Workaround for dig writing error messages to stdout
+
+-------------------------------------------------------------------
+Tue Aug  6 09:28:09 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Fix incompatibility of dig with SLE12SP3 version (bsc#1136667)
+
+-------------------------------------------------------------------
+Mon Jul 22 14:58:42 UTC 2019 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Update to version 0.1.1564399963.cf19a13
+- Fix incompatibility with Microsoft DNS (bsc#1136667)
+
+-------------------------------------------------------------------
+Thu May 23 13:54:24 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Updated copyrights and bug reporting link
+- Update to version 0.1.1558613789.64ba093
+
+-------------------------------------------------------------------
+Thu May  2 14:00:58 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1556553492.2bfae0b
+
+-------------------------------------------------------------------
+Thu Apr 25 11:57:52 UTC 2019 - nadvornik@suse.com
+
+- Refactor kernel check and kexec functionality - make sure
+  that preinit is called with correct kernel
+
+-------------------------------------------------------------------
+Wed Apr 10 14:01:27 UTC 2019 - nadvornik@suse.com
+
+- Support for SLES11
+
+-------------------------------------------------------------------
+Fri Mar 29 12:02:14 UTC 2019 - nadvornik@suse.com
+
+- add nls modules for vfat
+
+-------------------------------------------------------------------
+Wed Mar 27 12:18:16 UTC 2019 - nadvornik@suse.com
+
+- Fallback to previously installed image if SUMA is offline
+
+-------------------------------------------------------------------
+Tue Mar 26 14:21:43 UTC 2019 - nadvornik@suse.com
+
+- add tools to create efi partition
+- add nvme drivers
+
+-------------------------------------------------------------------
+Wed Oct 31 15:16:20 UTC 2018 - nadvornik@suse.com
+
+- Add more options to generate Salt ID (bsc#1111348)
+
+-------------------------------------------------------------------
+Mon Sep 17 15:03:20 UTC 2018 - Ondrej Holecek <oholecek@suse.com>
+
+- Remove activation key grain from imported salt configuration 
+
+-------------------------------------------------------------------
+Thu Sep  6 14:42:00 UTC 2018 - nadvornik@suse.com
+
+- Resolve salt cname
+
+-------------------------------------------------------------------
+Sun Mar 18 16:08:46 UTC 2018 - oholecek@suse.com
+
+- Use newline in saltboot info message
+- Add kexec-tools to saltboot image
+- Wireless profile for saltboot
+- Setup ttf font for plymouth label-ft module
+
+-------------------------------------------------------------------
+Tue Jan 16 10:54:06 UTC 2018 - oholecek@suse.com
+
+- add kiwi-boot:saltboot provides
+
+-------------------------------------------------------------------
+Mon Jan 15 15:17:47 UTC 2018 - oholecek@suse.com
+
+- repackage files to distri-version subfolder to be OBS build
+  script compatible
+
+-------------------------------------------------------------------
+Wed May 31 16:16:52 UTC 2017 - nadvornik@suse.com
+
+- new package
+

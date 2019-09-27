@@ -1,0 +1,274 @@
+{%- if salt['pillar.get']('branch_network:dedicated_NIC') %}
+add_nic_to_internal:
+  sysconfig.options_set:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_DEV_INT: {{ nic }}
+    - watch_in:
+      - service: SuSEfirewall2_service
+
+{%- if salt['pillar.get']('branch_network:firewall:enable_route') %}
+enable_route:
+  sysconfig.options_set:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_ROUTE: "yes"
+    - watch_in:
+      - service: SuSEfirewall2_service
+
+{%- else %}
+disable_route:
+  sysconfig.options_set:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_ROUTE: "no"
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:enable_NAT') %}
+enable_masquerade:
+  sysconfig.options_set:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_MASQUERADE: "yes"
+    - watch_in:
+      - service: SuSEfirewall2_service
+
+{%- else %}
+disable_masquerade:
+  sysconfig.options_set:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_MASQUERADE: "no"
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- else %}
+# shared NIC - services for terminals
+{%- if salt['pillar.get']('branch_network:firewall:open_dhcp_port') %}
+open_dhcp:
+  sysconfig.options_present:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_UDP:
+          - bootps
+        FW_SERVICES_EXT_BROADCAST:
+          - bootps
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- else %}
+close_dhcp:
+  sysconfig.options_absent:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_UDP:
+          - bootps
+        FW_SERVICES_EXT_BROADCAST:
+          - bootps
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_dns_port') %}
+open_dns:
+  sysconfig.options_present:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - domain
+        FW_SERVICES_EXT_UDP:
+          - domain
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- else %}
+close_dns:
+  sysconfig.options_absent:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - domain
+        FW_SERVICES_EXT_UDP:
+          - domain
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_tftp_port') %}
+open_tftp:
+  sysconfig.options_present:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_UDP:
+          - tftp
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- else %}
+close_tftp:
+  sysconfig.options_absent:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_UDP:
+          - tftp
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_ftp_port') %}
+open_ftp:
+  sysconfig.options_present:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - ftp
+          - 30000:30100
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- else %}
+close_ftp:
+  sysconfig.options_absent:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - ftp
+          - 30000:30100
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_http_port') %}
+open_http:
+  sysconfig.options_present:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - http
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- else %}
+close_http:
+  sysconfig.options_absent:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - http
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_https_port') %}
+open_https:
+  sysconfig.options_present:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - https
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- else %}
+close_https:
+  sysconfig.options_absent:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - https
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_salt_ports') %}
+open_salt:
+  sysconfig.options_present:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - "4505"
+          - "4506"
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- else %}
+close_salt:
+  sysconfig.options_absent:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - "4505"
+          - "4506"
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- endif %}
+# common services
+
+{%- if salt['pillar.get']('branch_network:firewall:open_ssh_port') %}
+open_ssh:
+  sysconfig.options_present:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - ssh
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- else %}
+close_ssh:
+  sysconfig.options_absent:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - ssh
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_xmpp_server_port') %}
+open_xmpp_server:
+  sysconfig.options_present:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - "xmpp-server"
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- else %}
+close_xmpp_server:
+  sysconfig.options_absent:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - "xmpp-server"
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+{%- if salt['pillar.get']('branch_network:firewall:open_xmpp_client_port') %}
+open_xmpp_client:
+  sysconfig.options_present:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - "xmpp-client"
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- else %}
+close_xmpp_client:
+  sysconfig.options_absent:
+    - name: /etc/sysconfig/SuSEfirewall2
+    - options:
+        FW_SERVICES_EXT_TCP:
+          - "xmpp-client"
+    - watch_in:
+      - service: SuSEfirewall2_service
+{%- endif %}
+
+SuSEfirewall2_installed:
+  pkg.installed:
+    - name: SuSEfirewall2
+
+SuSEfirewall2_service:
+  service.running:
+    - name: SuSEfirewall2
+    - enable: True
+    - require:
+      - pkg: SuSEfirewall2_installed

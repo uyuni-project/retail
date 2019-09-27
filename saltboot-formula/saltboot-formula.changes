@@ -1,0 +1,204 @@
+-------------------------------------------------------------------
+Mon Aug 19 12:34:25 UTC 2019 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Update to version 0.1.1568808472.be9f236
+- Make sure ImageVersion is written during deployment
+
+-------------------------------------------------------------------
+Wed Jul 24 11:11:29 UTC 2019 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Update to version 0.1.1564399963.cf19a13
+- Fix rounding errors at the end of disk (bsc#1136857)
+
+-------------------------------------------------------------------
+Thu May 23 13:54:24 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Updated copyrights and bug reporting link
+- Update to version 0.1.1558613789.64ba093
+
+-------------------------------------------------------------------
+Mon May  6 09:24:06 UTC 2019 - nadvornik@suse.com
+
+- Update to version 0.1.1557760069.e3d27d9
+- Make sure the moutpoints exist
+
+-------------------------------------------------------------------
+Fri May  3 13:50:41 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Adapt urlparse import to work with python3
+
+-------------------------------------------------------------------
+Fri May  3 13:07:12 UTC 2019 - nadvornik@suse.com
+
+- Allow setting saltboot kernel action in pillar
+
+-------------------------------------------------------------------
+Thu May  2 14:25:01 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1555335519.abf24f8
+
+-------------------------------------------------------------------
+Wed Apr 10 14:54:22 UTC 2019 - nadvornik@suse.com
+
+- Support for SLES11
+
+-------------------------------------------------------------------
+Fri Mar 29 12:19:48 UTC 2019 - nadvornik@suse.com
+
+- Allow creating EFI partition
+
+-------------------------------------------------------------------
+Wed Mar 27 12:24:19 UTC 2019 - nadvornik@suse.com
+
+- Use "root" option on kernel commandline
+
+-------------------------------------------------------------------
+Wed Jan 16 15:27:56 UTC 2019 - nadvornik@suse.com
+
+- Merge verify_boot_image and boot_system states
+  to fix failed entries in event log
+
+-------------------------------------------------------------------
+Fri Jan  4 11:15:55 UTC 2019 - nadvornik@suse.com
+
+- Force swap formatting on each boot
+
+-------------------------------------------------------------------
+Thu Jan  3 15:02:50 UTC 2019 - nadvornik@suse.com
+
+- First support for image cache on service partition
+
+-------------------------------------------------------------------
+Wed Jan  2 13:36:02 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Use FTP active mode for image download
+- Always deploy image when image is specified in partitioning
+  pillar (bsc#1119807)
+
+-------------------------------------------------------------------
+Fri Nov 23 14:27:53 UTC 2018 - nadvornik@suse.com
+
+- Call blockdev.formatted with force=True
+
+-------------------------------------------------------------------
+Mon Nov 19 17:43:04 UTC 2018 - Ondrej Holecek <oholecek@suse.com>
+
+- Allow RAID images to be defined by saltboot formula
+  - image information can be provided directly for disk
+  - allow "none"  disk label in formula and in that case
+    hide partitioning information
+
+-------------------------------------------------------------------
+Tue Oct 16 12:11:27 UTC 2018 - nadvornik@suse.com
+
+- Send pxe_update by external command to make sure it is finished
+  (bsc#1111387)
+
+-------------------------------------------------------------------
+Thu Oct  4 11:39:26 UTC 2018 - nadvornik@suse.com
+
+- Better error message on missing partitioning pillar (bsc#1110625)
+
+-------------------------------------------------------------------
+Tue Sep 25 14:01:56 UTC 2018 - Ondrej Holecek <oholecek@suse.com>
+
+- Form disk and partition id clarifications
+- Placeholder now provides help instead of appearing
+  as default value
+
+-------------------------------------------------------------------
+Mon Sep 24 15:15:41 UTC 2018 - Ondrej Holecek <oholecek@suse.com>
+
+- Rename 'initrd' grain to 'saltboot_initrd'
+
+-------------------------------------------------------------------
+Fri Sep 21 12:23:02 UTC 2018 - Ondrej Holecek <oholecek@suse.com>
+
+- Unify event naming with the rest of SUSE Manager events
+
+-------------------------------------------------------------------
+Mon Sep 17 11:31:31 UTC 2018 - nadvornik@suse.com
+
+- Use full path to saltboot-reactor
+
+-------------------------------------------------------------------
+Wed Sep  5 12:04:47 UTC 2018 - nadvornik@suse.com
+
+- dropped saltboot registration files, this is now
+  handled in SUSE Manager code
+
+-------------------------------------------------------------------
+Tue Aug 21 13:46:21 UTC 2018 - nadvornik@suse.com
+
+- Use visibleIf tag where appropriate
+
+-------------------------------------------------------------------
+Mon Aug 13 14:26:34 UTC 2018 - nadvornik@suse.com
+
+- Do not use orchestrate for pxe update
+
+-------------------------------------------------------------------
+Tue Aug  7 12:34:36 UTC 2018 - nadvornik@suse.com
+
+- Use branch ID as a Saltboot branch identification
+
+-------------------------------------------------------------------
+Tue Jun 12 08:44:20 UTC 2018 - oholecek@suse.com
+
+- Readd partitioning:device pillar
+
+-------------------------------------------------------------------
+Mon Jun  4 15:50:08 UTC 2018 - oholecek@suse.com
+
+- Adapt saltboot partitioning form to edit-group
+
+-------------------------------------------------------------------
+Thu May 31 16:11:07 UTC 2018 - oholecek@suse.com
+
+- Rewrite registration runner to use spacewalk.api runner
+
+-------------------------------------------------------------------
+Thu Apr 26 15:20:40 UTC 2018 - nadvornik@suse.com
+
+- Adjusted metadata to use SUSE Manager Retail group
+
+-------------------------------------------------------------------
+Mon Mar 26 13:02:05 UTC 2018 - oholecek@suse.com
+
+- Add yaml format filter where dict is passed to jinja
+
+-------------------------------------------------------------------
+Wed Mar 21 16:02:43 UTC 2018 - nadvornik@suse.com
+
+- Simplify pillar structure: image versions are simple dict
+
+-------------------------------------------------------------------
+Sun Mar 18 16:35:03 UTC 2018 - oholecek@suse.com
+
+- Check kernel version and reboot or run kexec
+- Use orchestrate with queue=True consistently
+  - This might fix the races during terminal boot.
+- RAID improvements
+  - copied and extended raid.present() salt/states/mdadm.py
+  - handle inactive RAIDs in _try_umount_device
+  - improved dependencies
+- Support RAID in saltboot
+- Skip saltboot in system image
+  - SUMA adds saltboot formula to highstate, so it is safer
+    to explicitly exclude it.
+- Orchestrate boot of a terminal
+- Saltboot fixes
+  - add dependencies so salt does not exit if there are errors
+  - use parted --wipesignatures
+  - added checks for various error conditions
+
+-------------------------------------------------------------------
+Wed May 31 11:17:19 UTC 2017 - nadvornik@suse.com
+
+- add custom state module
+
+-------------------------------------------------------------------
+Tue May 23 14:25:21 UTC 2017 - nadvornik@suse.com
+
+- new package
+
