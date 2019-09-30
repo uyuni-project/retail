@@ -5,7 +5,6 @@ if [ -z "$root" ] ; then
 fi
 
 rootok=1
-NEEDNET=1
 
 # If we don't have a server, we need dhcp
 if [ -z "$server" ] ; then
