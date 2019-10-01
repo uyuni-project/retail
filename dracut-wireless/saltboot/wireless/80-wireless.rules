@@ -1,0 +1,2 @@
+# use name 00-wireless-* to execute it before ifup-* from network module
+ACTION=="add", SUBSYSTEM=="net", KERNEL=="wlan*", RUN+="/sbin/initqueue --name 00-wireless_up-$env{INTERFACE} --unique --onetime /sbin/wireless_up $env{INTERFACE}"
