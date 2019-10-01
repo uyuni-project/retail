@@ -1,0 +1,15 @@
+# Example hook that allows modification of image
+# from initrd
+
+# The image is mounted under $NEWROOT
+{% set root = salt['environ.get']('NEWROOT') %}
+
+{{ root }}/etc/sysconfig/network/ifcfg-wlan0:
+  file.managed:
+    - source:
+      - salt://any/file
+    - require:
+      - saltboot: saltboot_fstab
+    - require_in:
+      - saltboot: boot_system
+
