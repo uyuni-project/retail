@@ -99,6 +99,12 @@ boot_system:
     - boot_images: {{ boot_images|yaml }}
     - action: {{ salt['pillar.get']('saltboot:kernel_action', 'kexec') }}
 
+# state.sls_exists is available since salt 2019.2
+{% if salt.get('state.sls_exists') and salt['state.sls_exists']('saltboot_hook') -%}
+include:
+  - saltboot_hook
+{% endif %}
+
 {% endif %}
 
 {% endif %}
