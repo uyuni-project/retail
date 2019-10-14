@@ -36,8 +36,9 @@ install() {
                      lsblk partprobe mdadm dcounter mkswap curl head md5sum resize2fs mkfs mkfs.btrfs \
                      mkfs.ext2 mkfs.ext3 mkfs.ext4 mkfs.fat mkfs.vfat mkfs.xfs sync cryptsetup busybox
 
-    inst_hook pre-udev 1 "$moddir/saltboot-network.sh"
     inst_hook cmdline 91 "$moddir/saltboot-root.sh"
     inst_hook pre-mount 99 "$moddir/saltboot.sh"
+
+    echo "rd.neednet=1" > "${initdir}/etc/cmdline.d/50saltboot.conf"
 }
 

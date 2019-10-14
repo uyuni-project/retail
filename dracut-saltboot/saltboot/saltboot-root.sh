@@ -2,10 +2,13 @@
 
 if [ -z "$root" ] ; then
   root=saltboot
+else
+  # we have root, we can eventually continue without network after timeout
+  # the timeout is controlled by rd.retry option
+  echo "rm -f -- $hookdir/initqueue/finished/wait-network.sh" > $hookdir/initqueue/timeout/saltboot-network.sh
 fi
 
 rootok=1
-NEEDNET=1
 
 # If we don't have a server, we need dhcp
 if [ -z "$server" ] ; then
