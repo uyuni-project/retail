@@ -8,6 +8,7 @@ check() {
 # called by dracut
 depends() {
     echo network
+    echo crypt
     return 0
 }
 
@@ -18,9 +19,11 @@ installkernel() {
 
 # called by dracut
 install() {
-    inst_multiple -o wpa_supplicant wpa_passphrase
+    inst_multiple -o wpa_supplicant wpa_passphrase wpa_cli
     inst_rules "$moddir/80-wireless.rules"
     inst_script "$moddir/wireless_up.sh" "/sbin/wireless_up"
+    inst_script "$moddir/wireless_ask_password.sh" "/sbin/wireless_ask_password"
+    inst_script "$moddir/wireless_ask_password_wrapper.sh" "/sbin/wireless_ask_password_wrapper"
 
     # include wlan configuration for wifi credentials, even in no-hostonly mode
     # if there is initrd-ifcfg-wlan*, prefer it over ifcfg-wlan*

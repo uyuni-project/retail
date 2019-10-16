@@ -26,12 +26,18 @@ if getarg WIRELESS_WPA_DRIVER= >/dev/null ; then
     WIRELESS_WPA_DRIVER=$(getarg WIRELESS_WPA_DRIVER=)
 fi
 
-if [ -n "$WIRELESS_WPA_PSK" -a -n "$WIRELESS_ESSID" ]; then
+if [ -n "$WIRELESS_ESSID" ]; then
     mkdir -p /etc/wpa_supplicant
     #try to write wpa configuration using cmdline args
     echo "ctrl_interface=/var/run/wpa_supplicant"         > /etc/wpa_supplicant/wpa_supplicant.conf
     echo "ctrl_interface_group=wheel"                    >> /etc/wpa_supplicant/wpa_supplicant.conf
-    wpa_passphrase "$WIRELESS_ESSID" "$WIRELESS_WPA_PSK" >>/etc/wpa_supplicant/wpa_supplicant.conf
+    if [ -n "$WIRELESS_WPA_PSK" ]; then
+        wpa_passphrase "$WIRELESS_ESSID" "$WIRELESS_WPA_PSK" >>/etc/wpa_supplicant/wpa_supplicant.conf
+    else
+        echo "network={"                    >>/etc/wpa_supplicant/wpa_supplicant.conf
+        echo "    ssid=\"$WIRELESS_ESSID\"" >>/etc/wpa_supplicant/wpa_supplicant.conf
+        echo "}"                            >>/etc/wpa_supplicant/wpa_supplicant.conf
+    fi
     echo "WIRELESS_ESSID=$WIRELESS_ESSID" > /tmp/wireless-$WLAN_DEV
     echo "WIRELESS_WPA_PSK=$WIRELESS_WPA_PSK" >> /tmp/wireless-$WLAN_DEV
 fi
@@ -97,4 +103,12 @@ if [ -z "$WIRELESS_WPA_DRIVER" ]; then
 fi
 busybox ip link set "$WLAN_DEV" up
 wpa_supplicant -i "$WLAN_DEV" -D "$WIRELESS_WPA_DRIVER" -c /etc/wpa_supplicant/wpa_supplicant.conf -B -P "/tmp/wpa_supplicant_$WLAN_DEV.pid"
-sleep 5
+sleep 5 # enough time for ethernet devices to appear
+if ! wpa_cli status | grep wpa_state=COMPLETED ; then
+
+    # can't run ifup now, it will be eventually called by wireless_ask_password
+    rm -f -- "$hookdir/initqueue/ifup-$WLAN_DEV.sh"
+
+    # run after any ethX
+    /sbin/initqueue --name "zz-wireless_pw-$WLAN_DEV" --unique --onetime /sbin/wireless_ask_password_wrapper $WLAN_DEV
+fi
