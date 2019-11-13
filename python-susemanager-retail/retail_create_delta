@@ -66,6 +66,7 @@ def generate_delta(src_pillar, target_pillar, args):
 def generate_pillar(src_name, src_version, target_name, target_version, delta_file, delta_url):
 
     size = os.path.getsize(delta_file)
+    delta_hash = subprocess.check_output(['sha512sum', delta_file]).decode().split(' ')[0]
 
     pillar = {
         'images': {
@@ -76,7 +77,8 @@ def generate_pillar(src_name, src_version, target_name, target_version, delta_fi
                             src_name: {
                                 src_version: {
                                     'url': delta_url,
-                                    'size': size
+                                    'size': size,
+                                    'delta_hash': delta_hash
                                 }
                             }
                         }

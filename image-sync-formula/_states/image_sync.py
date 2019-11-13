@@ -24,7 +24,7 @@ def _get_bundle_delta(rootdir, image_data, images):
     return None
 
 def _apply_bundle_delta(bundle_delta, tmpdir):
-    delta = __salt__['cp.get_url'](bundle_delta.get('url'))
+    delta = __salt__['cp.get_url'](bundle_delta.get('url'), source_hash=bundle_delta.get('delta_hash'))
 
     res = __salt__['cmd.run_all']("xdelta3 -d -s {} {} {}" . format(bundle_delta['source'], delta, tmpdir + '/bundle.tar'))
     if res['retcode'] != 0:
@@ -34,7 +34,7 @@ def _apply_bundle_delta(bundle_delta, tmpdir):
 def _download_bundle(image_data):
     if 'bundle_url' not in image_data['sync']:
         return None
-    return __salt__['cp.get_url'](image_data['sync']['bundle_url'])
+    return __salt__['cp.get_url'](image_data['sync']['bundle_url'], source_hash=image_data['sync'].get('bundle_hash'))
 
 def image_synced(name, rootdir, image_data):
     ret = {
