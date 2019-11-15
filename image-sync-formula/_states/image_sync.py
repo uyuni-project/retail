@@ -75,8 +75,6 @@ def image_synced(name, rootdir, image_data):
        if temp_dir:
            __salt__['file.remove'](temp_dir)
 
-       __salt__['file.remove'](bundle)
-
        return ret
 
     ret = __states__['file.managed'](name=local_file, source=image_data['sync']['url'], source_hash=image_hash, makedirs=True, force=True)
