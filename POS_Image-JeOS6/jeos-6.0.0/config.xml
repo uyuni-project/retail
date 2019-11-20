@@ -7,7 +7,7 @@
         <specification>SUSE Linux Enterprise 12 SP3 JeOS</specification>
     </description>
     <preferences>
-        <version>6.0.0</version>
+        <version>6.0.1</version>
         <packagemanager>zypper</packagemanager>
         <bootsplash-theme>SLE</bootsplash-theme>
         <bootloader-theme>SLE</bootloader-theme>
