@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov 20 14:37:09 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
+
+- Include swapon in saltboot initrd
+
+-------------------------------------------------------------------
 Mon Aug 19 12:36:13 UTC 2019 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Updated for SLES15
