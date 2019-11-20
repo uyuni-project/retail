@@ -1352,7 +1352,7 @@ def image_deployed(name, partitioning, images):
 
             checkdevice = _luks_open(device, luks_pass)
             res = __salt__['cmd.run_all'](
-                'e2fsck -y {0} ; resize2fs {0}'.format(checkdevice), python_shell=True)
+                'e2fsck -y -f {0} ; resize2fs {0}'.format(checkdevice), python_shell=True)
             if res['retcode'] > 0:
                 ret['comment'] += 'Unable to resize image {0}-{1} on {2}.\n'.format(image['name'], image_version, name) + res['stdout'] + res['stderr']
                 ret['result'] = False
