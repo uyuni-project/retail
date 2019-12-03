@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec  2 10:16:50 UTC 2019 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Enable install-local-bootloader.service (bsc#1158032)
+
+-------------------------------------------------------------------
 Tue Oct 22 12:13:34 UTC 2019 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Comment out plymouth-plugin-label-ft which is not
