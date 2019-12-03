@@ -18,6 +18,12 @@ log = logging.getLogger(__name__)
 MANAGER_PILLAR_DATA_PATH = '/srv/susemanager/pillar_data'
 IMAGES_DATA_PATH = os.path.join(MANAGER_PILLAR_DATA_PATH, 'images')
 
+_cat_list = {
+    'tar': 'cat',
+    'tgz': 'zcat',
+    'tar.xz': 'xzcat'
+}
+
 def image_pillars():
     '''
     Load image pillars
@@ -46,6 +52,7 @@ def generate_delta(src_pillar, target_pillar, args):
         src_bundle = bundle_path(src_pillar.get('sync', {}).get('bundle_url'))
         target_url = target_pillar.get('sync', {}).get('bundle_url')
         target_bundle = bundle_path(target_url)
+        cat = _cat_list[next(filter(lambda x: target_bundle.endswith(x), _cat_list.keys()))]
 
         tar = tarfile.open(src_bundle, "r")
         tar.extractall(tmpdir)
@@ -58,7 +65,7 @@ def generate_delta(src_pillar, target_pillar, args):
         if args.B is not None:
             extra_args += "-B " + args.B
 
-        subprocess.check_call("zcat '{}' | xdelta3 -e {} -s '{}' > '{}'".format(target_bundle, extra_args, os.path.join(tmpdir, src_pillar.get('filename')), out_file), shell=True)
+        subprocess.check_call("{} '{}' | xdelta3 -e {} -s '{}' > '{}'".format(cat, target_bundle, extra_args, os.path.join(tmpdir, src_pillar.get('filename')), out_file), shell=True)
     finally:
         shutil.rmtree(tmpdir)
     return out_file, delta_url
