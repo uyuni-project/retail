@@ -18,16 +18,17 @@ def _sort_images(image_list):
             if (image_id, image_version) in done:
                 continue
             num_deltas = 0
-            for dep_name, dep_versions in image_data.get('sync', {}).get('bundle_delta', {}).items():
-                for dep_version, dep_data in dep_versions.items():
-                    if (dep_name, dep_version) not in todo:
-                        continue # ignore unresolvable deltas
-                    num_deltas += 1
-                    if (dep_name, dep_version) in done:
-                        res.append(i)
-                        done.add((image_id, image_version))
-                        changed = True
-                        log.debug("Can use delta {} {} -> {} {}".format(dep_name, dep_version, image_id, image_version))
+            if __grains__.get('osfullname') != 'SLES' or __grains__.get('osmajorrelease') != 12:
+                for dep_name, dep_versions in image_data.get('sync', {}).get('bundle_delta', {}).items():
+                    for dep_version, dep_data in dep_versions.items():
+                        if (dep_name, dep_version) not in todo:
+                            continue # ignore unresolvable deltas
+                        num_deltas += 1
+                        if (dep_name, dep_version) in done:
+                            res.append(i)
+                            done.add((image_id, image_version))
+                            changed = True
+                            log.debug("Can use delta {} {} -> {} {}".format(dep_name, dep_version, image_id, image_version))
             if num_deltas == 0: # no deltas available
                 res.append(i)
                 done.add((image_id, image_version))
