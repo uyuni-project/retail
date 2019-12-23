@@ -61,10 +61,11 @@ def image_synced(name, rootdir, image_data):
 
     bundle = None
     temp_dir = None
-    bundle_delta = _get_bundle_delta(rootdir, image_data, images)
-    if bundle_delta:
-        temp_dir = __salt__['temp.dir']()
-        bundle = _apply_bundle_delta(bundle_delta, temp_dir)
+    if __grains__.get('osfullname') != 'SLES' or __grains__.get('osmajorrelease') != 12:
+        bundle_delta = _get_bundle_delta(rootdir, image_data, images)
+        if bundle_delta:
+            temp_dir = __salt__['temp.dir']()
+            bundle = _apply_bundle_delta(bundle_delta, temp_dir)
     if not bundle:
         bundle = _download_bundle(image_data)
 
