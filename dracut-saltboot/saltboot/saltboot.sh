@@ -114,14 +114,14 @@ if [ -z "$CUR_MASTER" -o "salt" == "$CUR_MASTER" ] ; then
     # either we have MASTER set on commandline
     # or we try to resolve the 'salt' alias
     if [ -z "$MASTER" ] ; then
-        MASTER=`dig $DIG_OPTIONS -t CNAME salt.$DOMAIN | sed -e 's|;;.*||' -e 's|\.$||' `
+        MASTER=`dig $DIG_OPTIONS -t CNAME salt.$DNSDOMAIN | sed -e 's|;;.*||' -e 's|\.$||' `
     fi
-    # if it fails, do nothing and let it fall back to 'salt'
     if [ -n "$MASTER" ] ; then
         echo "master: $MASTER" > /etc/salt/minion.d/master.conf
     fi
     # else
     # ... if it fails, do nothing and let it fall back to 'salt'
+    # !!!!! by continuing we hide dns errors. Shouldn't we require proper setup?
 fi
 
 if [ -z "$kiwidebug" ];then
@@ -157,10 +157,8 @@ Echo "SALT Minion key fingerprint:"
 Echo "$MINION_FINGERPRINT"
 Echo
 
-if [ -e /progress ] ; then
-    # split line into two to fit to screen. Need tripple \ to properly pass through
-    echo "Terminal ID: $MINION_ID\\\nFingerprint: $MINION_FINGERPRINT" > /progress
-fi
+# split line into two to fit to screen. Need tripple \ to properly pass through
+echo "Terminal ID: $MINION_ID\\\nFingerprint: $MINION_FINGERPRINT" > /progress
 
 SALT_TIMEOUT=${SALT_TIMEOUT:-60}
 num=0
@@ -173,6 +171,7 @@ while kill -0 "$SALT_PID" >/dev/null 2>&1; do
     export systemIntegrity=fine
     export imageName=`cat $NEWROOT/etc/ImageVersion`
     echo "SUSE Manager server does not respond, trying local boot to\\\n$imageName" > /progress
+    Echo "SUSE Manager server does not respond, trying local boot to\\\n$imageName"
     kill "$SALT_PID"
     sleep 1
   fi
@@ -185,6 +184,7 @@ fi
 [ -n "$PROGRESS_PID" ] && kill $PROGRESS_PID
 
 if [ "$systemIntegrity" = "unknown" ] ; then
+   # !!!!!!! vvv  is this still valid?
    systemException \
        "SALT Minion did not create valid configuration" \
        "reboot"
