@@ -11,6 +11,14 @@ if ! [ -s /etc/resolv.conf ] ; then
     exit 0
 fi
 
+IFCONFIG="$(compgen -G '/tmp/leaseinfo.*.dhcp.ipv*')"
+if [ -f "$IFCONFIG" ]; then
+    . "$IFCONFIG"
+else
+    Echo "No network details available, skipping saltboot";
+    exit 0
+fi
+
 NEWROOT=${NEWROOT:-/mnt}
 export NEWROOT
 
