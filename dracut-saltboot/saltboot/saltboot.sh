@@ -129,8 +129,11 @@ if [ -z "$CUR_MASTER" -o "salt" == "$CUR_MASTER" ] ; then
     fi
     # else
     # ... if it fails, do nothing and let it fall back to 'salt'
-    # !!!!! by continuing we hide dns errors. Shouldn't we require proper setup?
+    # by continuing we hide dns errors. Shouldn't we require proper setup?
 fi
+
+Echo "Using Salt master: ${MASTER:-$CUR_MASTER}"
+echo "Using Salt master: ${MASTER:-$CUR_MASTER}" > /progress
 
 if [ -z "$kiwidebug" ];then
     salt-minion -d
