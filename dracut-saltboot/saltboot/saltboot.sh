@@ -146,9 +146,10 @@ sleep 1
 SALT_PID=`cat /var/run/salt-minion.pid`
 
 if [ -z "$SALT_PID" ] ; then
-   systemException \
-       "SALT Minion did not start" \
-       "reboot"
+    Echo "Salt Minion did not start"
+    echo "Salt Minion did not start" > /progress
+    sleep 10
+    reboot -f
 fi
 
 MINION_ID="`salt-call --local --out newline_values_only grains.get id`"
@@ -168,7 +169,7 @@ Echo "SALT Minion key fingerprint:"
 Echo "$MINION_FINGERPRINT"
 Echo
 
-# split line into two to fit to screen. Need tripple \ to properly pass through
+# split line into two to fit to screen. Need triple \ to properly pass through
 echo "Terminal ID: $MINION_ID\\\nFingerprint: $MINION_FINGERPRINT" > /progress
 
 SALT_TIMEOUT=${SALT_TIMEOUT:-60}
@@ -183,6 +184,7 @@ while kill -0 "$SALT_PID" >/dev/null 2>&1; do
     export imageName=`cat $NEWROOT/etc/ImageVersion`
     echo "SUSE Manager server does not respond, trying local boot to\\\n$imageName" > /progress
     Echo "SUSE Manager server does not respond, trying local boot to\\\n$imageName"
+    sleep 5
     kill "$SALT_PID"
     sleep 1
   fi
@@ -195,10 +197,9 @@ fi
 [ -n "$PROGRESS_PID" ] && kill $PROGRESS_PID
 
 if [ "$systemIntegrity" = "unknown" ] ; then
-   # !!!!!!! vvv  is this still valid?
-   systemException \
-       "SALT Minion did not create valid configuration" \
-       "reboot"
+    Echo "SALT Minion did not create valid configuration"
+    sleep 10
+    reboot -f
 fi
 
 cat > /etc/salt/minion.d/grains-initrd.conf <<EOT
