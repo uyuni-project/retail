@@ -87,7 +87,7 @@ if [ -z "$HAVE_MINION_ID" ] ; then
         SMBIOS_SERIAL=
     fi
 
-    FQDN=`dig $DIG_OPTIONS -x "$IPADDR" | sed -e 's|;;.*||' -e 's|\.$||' `
+    FQDN=`dig $DIG_OPTIONS -x "${IPADDR%/*}" | sed -e 's|;;.*||' -e 's|\.$||' `
     HOSTNAME=${FQDN%%.*}
 
     if [ -n "$DISABLE_UNIQUE_SUFFIX" ] ; then
