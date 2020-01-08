@@ -6,6 +6,7 @@ else
   # we have root, we can eventually continue without network after timeout
   # the timeout is controlled by rd.retry option
   echo "rm -f -- $hookdir/initqueue/finished/wait-network.sh" > $hookdir/initqueue/timeout/saltboot-network.sh
+  echo "rm -f -- $hookdir/initqueue/finished/devexists-*" > $hookdir/initqueue/timeout/saltboot-device.sh
 fi
 
 rootok=1
