@@ -4,9 +4,23 @@ if [ -z "$root" ] ; then
   root=saltboot
 else
   # we have root, we can eventually continue without network after timeout
+
+  # we however need to check if the root is valid. If we are still waiting
+  # for the device, then lets keep waiting and end in emergency shell
+
   # the timeout is controlled by rd.retry option
-  echo "rm -f -- $hookdir/initqueue/finished/wait-network.sh" > $hookdir/initqueue/timeout/saltboot-network.sh
-  echo "rm -f -- $hookdir/initqueue/finished/devexists-*" > $hookdir/initqueue/timeout/saltboot-device.sh
+
+  local _name
+  _name="$(str_replace "${root#block:}" '/' '\x2f')"
+  cat <<EOF_TIMEOUT > "$hookdir/initqueue/timeout/saltboot-timeout.sh"
+for f in wait-network.sh "devexists-$_name.sh"; do
+  if [ ! -e "$hookdir/initqueue/finished/\$f" ] || ( . "$hookdir/initqueue/finished/\$f" ); then
+    rm -f -- "$hookdir/initqueue/finished/wait-network.sh"
+    rm -f -- "$hookdir/initqueue/finished/devexists-$_name.sh"
+  fi
+done
+EOF_TIMEOUT
+
 fi
 
 rootok=1
