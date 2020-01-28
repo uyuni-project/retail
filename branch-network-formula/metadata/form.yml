@@ -87,14 +87,45 @@ branch_network:
     $default: True
 
   srv_directory:
-    $name:  'server directory'
+    $name:  'Server Directory for TFTP and images'
     $type: text
     $default: '/srv/saltboot'
   srv_directory_user:
-    $name: 'server directory user'
+    $name: 'Server Directory owner'
     $type: text
     $default: 'saltboot'
   srv_directory_group:
-    $name: 'server directory group'
+    $name: 'Server Directory group'
     $type: text
     $default: 'saltboot'
+
+pxe:
+  $type: group
+  $name: Terminal Naming and Identification
+  branch_id:
+    $name: Branch Identification
+    $type: text
+    $placeholder: Enter unique Branch server ID (e.g. "B0001")
+    $help: Branch server ID is used to identify to which branch server pxebooted client belongs. By default is also part of the salt client ID.
+    $required: True
+  minion_id_naming:
+    $name: Salt client naming scheme
+    $type: select
+    $values:
+      - FQDN
+      - Hostname
+      - HWType
+    $default: 'Hostname'
+    $help: HWType naming scheme names salt client by its hardware manufacturer and product. FQDN uses fully qualified domain name and Hostname uses only client hostname. If FQDN or Hostname are not avaliable, HWType naming scheme is used as fallback.
+  disable_id_prefix:
+    $name: Do not prefix salt client ID with Branch ID
+    $type: boolean
+    $default: False
+    $optional: True
+  disable_unique_suffix:
+    $name: Do not append unique suffix to the salt client ID
+    $type: boolean
+    $default: False
+    $optional: True
+    $disable: "formValues.pxe.minion_id_naming != 'HWType'"
+    $help: By default, salt client ID is suffixed by unique ID. This is to prevent naming conflict when client must be reregistered. With this option checked, client entry must be first removed from database before reregistration. Should not be used wiht HWType naming scheme.
