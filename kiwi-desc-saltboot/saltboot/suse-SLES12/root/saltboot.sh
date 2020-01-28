@@ -65,16 +65,12 @@ if dig -h | grep -q '\[no\]cookie'; then
 fi
 
 if [ -z "$HAVE_MINION_ID" ] ; then
-    SMBIOS_MANUFACTURER=`salt-call --local --out newline_values_only smbios.get system-manufacturer | tr -d -c 'A-Za-z0-9_-'`
-    SMBIOS_PRODUCT=`salt-call --local --out newline_values_only smbios.get system-product-name | tr -d -c 'A-Za-z0-9_-'`
-    SMBIOS_SERIAL=-`salt-call --local --out newline_values_only smbios.get system-serial-number | tr -d -c 'A-Za-z0-9_-'`
-
-    if [ "x$SMBIOS_SERIAL" == "x-None" ] ; then
-        SMBIOS_SERIAL=
+    FQDN=`dig $DIG_OPTIONS -x "${IPADDR%/*}" | sed -e 's|;;.*||' -e 's|\.$||' `
+    if [ -n "$USE_FQDN_MINION_ID" ]; then
+        HOSTNAME="$FQDN"
+    else
+        HOSTNAME=${FQDN%%.*}
     fi
-
-    FQDN=`dig $DIG_OPTIONS -x "$IPADDR" | sed -e 's|;;.*||' -e 's|\.$||' `
-    HOSTNAME=${FQDN%%.*}
 
     if [ -n "$DISABLE_UNIQUE_SUFFIX" ] ; then
         UNIQUE_SUFFIX=
@@ -82,20 +78,31 @@ if [ -z "$HAVE_MINION_ID" ] ; then
         UNIQUE_SUFFIX="-${MACHINE_ID:0:4}"
     fi
 
-    if [ -n "$HOSTNAME" -a -z "$DISABLE_HOSTNAME_ID" ] ; then
-        # MINION_ID_PREFIX can be specified on kernel cmdline
-        if [ -n "$MINION_ID_PREFIX" ] ; then
-            echo "$MINION_ID_PREFIX.$HOSTNAME$UNIQUE_SUFFIX" > /etc/salt/minion_id
-        else
-            echo "$FQDN$UNIQUE_SUFFIX" > /etc/salt/minion_id
+    if [ -z "$HOSTNAME" ] || [ -n "$DISABLE_HOSTNAME_ID" ]; then
+        SMBIOS_MANUFACTURER=`salt-call --local --out newline_values_only smbios.get system-manufacturer | tr -d -c 'A-Za-z0-9_-'`
+        SMBIOS_PRODUCT=`salt-call --local --out newline_values_only smbios.get system-product-name | tr -d -c 'A-Za-z0-9_-'`
+        SMBIOS_SERIAL=-`salt-call --local --out newline_values_only smbios.get system-serial-number | tr -d -c 'A-Za-z0-9_-'`
+
+        if [ "x$SMBIOS_SERIAL" == "x-None" ] ; then
+            SMBIOS_SERIAL=
         fi
-    else
-        if [ -n "$MINION_ID_PREFIX" ] ; then
+
+        # MINION_ID_PREFIX can be specified on kernel cmdline
+        if [ -n "$MINION_ID_PREFIX" ] && [ -z "$DISABLE_ID_PREFIX" ] ; then
             echo "$MINION_ID_PREFIX.$SMBIOS_MANUFACTURER-$SMBIOS_PRODUCT$SMBIOS_SERIAL$UNIQUE_SUFFIX" > /etc/salt/minion_id
         else
-          echo "$SMBIOS_MANUFACTURER-$SMBIOS_PRODUCT$SMBIOS_SERIAL$UNIQUE_SUFFIX" > /etc/salt/minion_id
+            echo "$SMBIOS_MANUFACTURER-$SMBIOS_PRODUCT$SMBIOS_SERIAL$UNIQUE_SUFFIX" > /etc/salt/minion_id
+        fi
+    else
+
+        # MINION_ID_PREFIX can be specified on kernel cmdline
+        if [ -n "$MINION_ID_PREFIX" ] && [ -z "$DISABLE_ID_PREFIX" ] ; then
+            echo "$MINION_ID_PREFIX.$HOSTNAME$UNIQUE_SUFFIX" > /etc/salt/minion_id
+        else
+            echo "$HOSTNAME$UNIQUE_SUFFIX" > /etc/salt/minion_id
         fi
     fi
+
     cat > /etc/salt/minion.d/grains-minion_id_prefix.conf <<EOT
 grains:
   minion_id_prefix: $MINION_ID_PREFIX
@@ -117,6 +124,9 @@ if [ -z "$CUR_MASTER" -o "salt" == "$CUR_MASTER" ] ; then
     # else
     # ... if it fails, do nothing and let it fall back to 'salt'
 fi
+
+Echo "Using Salt master: ${MASTER:-$CUR_MASTER}"
+echo "Using Salt master: ${MASTER:-$CUR_MASTER}" > /progress
 
 if [ -z "$kiwidebug" ];then
     salt-minion -d
