@@ -1,9 +1,15 @@
 -------------------------------------------------------------------
+Wed Jan 29 12:43:16 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Add support for FQDN as a terminal name
+
+-------------------------------------------------------------------
 Thu Jan  9 15:33:44 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Source wicked network information to access IPADDR and DNSDOMAIN variables
 - Replace systemException functions by log and reboot actions
 - Stop waiting for devices when dracut timeout is hit
+- Update to version 0.1.1579102150.4716559
 
 -------------------------------------------------------------------
 Wed Nov 20 14:37:09 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
