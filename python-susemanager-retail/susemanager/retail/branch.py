@@ -117,7 +117,7 @@ class Branch:
             # override default
             self.formulas['branch-network']['branch_network']['firewall'] = firewall
 
-    def configure_pxe(self, branch, prefix, kernel_parameters=None, kernel_parameters_append=False):
+    def configure_pxe(self, branch, kernel_parameters=None, kernel_parameters_append=False):
         """ configure PXE formula """
 
         default_kernel_parameters = 'panic=60 ramdisk_size=710000 ramdisk_blocksize=4096 vga=0x317 splash=silent'
@@ -127,21 +127,16 @@ class Branch:
             if kernel_parameters_append:
                 kernel_parameters = '{} {}'.format(default_kernel_parameters, kernel_parameters)
 
-
-
+        self.formulas['branch-network']['pxe']['branch_id'] = self.branch_prefix
         self.formulas['pxe'] = {
             'pxe': {
-                'branch_id': prefix,
                 'default_kernel_parameters': kernel_parameters,
                 'initrd_name': 'initrd.gz',
                 'kernel_name': 'linux',
                 'pxe_root_directory': SRV_DIRECTORY
             }
         }
-
-        self.groups.add(prefix, "Group for branch {}".format(branch))
-        self.branch_prefix = prefix
-
+        self.groups.add(self.branch_prefix, "Group for branch {}".format(branch))
 
     def configure_dhcp(self, domain, nic=None, ip=None, netmask=None, dyn_range=['192.168.1.10', '192.168.1.250'], terminals=[]):
         """ configure DHCPD formula """
@@ -371,6 +366,16 @@ class Branch:
                     continue
                 self.formulas['bind']['bind']['available_zones'][domain]['records']['A'][t.hostname] = t.ip
 
+    def configure_terminal_naming(self, terminal_naming = None):
+        if terminal_naming is None:
+            terminal_naming = {
+                'minion_id_naming': 'Hostname',
+                'disable_id_prefix': False,
+                'disable_unique_suffix': False
+            }
+        self.formulas['branch-network']['pxe'] = terminal_naming
+        self.formulas['branch-network']['pxe']['branch_id'] = self.branch_prefix
+
     def connect(self, client, key):
         """
         connect to SUSE Manager API and fetch branch server data used for dynamic defaults
@@ -493,9 +498,10 @@ class Branch:
                 self.exclude_formulas.append(formula)
 
         try:
-            branch_prefix = self.formulas['pxe']['pxe']['branch_id']
+            branch_prefix = self.formulas['branch-network']['pxe']['branch_id']
+            self.branch_prefix = branch_prefix
         except:
-            raise RuntimeError("Branch server '%s' does not have Branch ID set in pxe formula", self.branch_server_id)
+            raise RuntimeError("Branch server '%s' does not have Branch ID set in Branch Network form", self.branch_server_id)
 
 
         self.terminals = []
@@ -525,7 +531,7 @@ class Branch:
 
         if branch_prefix is None:
             branch_prefix = re.compile('\..*$').sub('', server_domain)
-
+        self.branch_prefix = branch_prefix
 
         salt_cname = yaml.get('salt_cname')
         contact = yaml.get('contact')
@@ -563,9 +569,10 @@ class Branch:
                 self.configure_dhcp(server_domain, nic=nic, ip=branch_ip, netmask=netmask, dyn_range=dyn_range, terminals=self.terminals)
             self.configure_bind(server_name, server_domain, branch_ip=branch_ip, salt_cname=salt_cname, contact=contact, options=bind_options, terminals=self.terminals)
 
+        self.configure_terminal_naming(yaml.get('terminal_naming'))
         self.configure_vsftpd()
         self.configure_tftpd()
-        self.configure_pxe(server_domain, branch_prefix, yaml.get('default_kernel_parameters'))
+        self.configure_pxe(server_domain, yaml.get('default_kernel_parameters'))
         self.hwAddress = yaml.get('hwAddress')
         if self.hwAddress:
             self.hwAddress = self.hwAddress.lower()
@@ -590,7 +597,8 @@ class Branch:
                     server_domain = domain
                     break
         server_name = self.formulas['bind'].get('bind', {}).get('available_zones', {}).get(server_domain, {}).get('records', {}).get('NS', {}).get('@', [''])[0]
-        branch_prefix = self.formulas['pxe'].get('pxe', {}).get('branch_id')
+        terminal_naming = self.formulas['branch-network'].get('pxe')
+        branch_prefix = terminal_naming.pop('branch_id')
 
         dedicated_nic = self.formulas['branch-network'].get('branch_network', {}).get('dedicated_NIC', False)
         yaml = {
@@ -599,6 +607,7 @@ class Branch:
             'branch_prefix': branch_prefix,
             'dedicated_nic': dedicated_nic
         }
+        yaml['terminal_naming'] = terminal_naming
 
         if dedicated_nic:
             yaml['nic'] = self.formulas['branch-network'].get('branch_network', {}).get('nic', False)
