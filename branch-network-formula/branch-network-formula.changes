@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb  3 14:26:43 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Allow http access to saltboot directory
+
+-------------------------------------------------------------------
 Wed Jan 29 12:41:06 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Update formula to include terminal naming and identification
