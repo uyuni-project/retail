@@ -72,7 +72,7 @@ server_directory_setup:
     - user:  {{ branch_network_setup.srv_directory_user }}
     - name:  {{ branch_network_setup.srv_directory }}
     - group: {{ branch_network_setup.srv_directory_group }}
-    - mode:  750
+    - mode:  755
     - makedirs: True
     - require:
         - user: server_directory_setup
@@ -102,3 +102,16 @@ add_{{service}}_to_saltboot_group:
     - require:
       - file: server_directory_setup
 {% endfor %}
+
+/etc/apache2/conf.d/susemanager-retail.conf:
+  file.managed:
+    - source: salt://branch-network/files/susemanager-retail.conf.template
+    - user: root
+    - group: root
+    - mode: 644
+    - template: jinja
+
+apache2:
+  service.running:
+    - watch:
+      - file:/etc/apache2/conf.d/susemanager-retail.conf
