@@ -114,4 +114,4 @@ add_{{service}}_to_saltboot_group:
 apache2:
   service.running:
     - watch:
-      - file:/etc/apache2/conf.d/susemanager-retail.conf
+      - file: /etc/apache2/conf.d/susemanager-retail.conf
