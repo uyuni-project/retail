@@ -1,7 +1,13 @@
 -------------------------------------------------------------------
+Sat Feb 29 22:31:11 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Use start event grains to avoid extra grains calls
+
+-------------------------------------------------------------------
 Wed Jan 29 12:43:16 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Add support for FQDN as a terminal name
+- Update to version 0.1.1580471316.1839544
 
 -------------------------------------------------------------------
 Thu Jan  9 15:33:44 UTC 2020 - Ondrej Holecek <oholecek@suse.com>

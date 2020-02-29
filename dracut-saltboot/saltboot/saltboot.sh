@@ -123,6 +123,15 @@ grains:
 EOT
 fi
 
+# send basic grains in the minion start event. This allows salt master to work with saltboot minion
+# with 1 (new registration) or 0 (already existing registration) grains calls
+cat > /etc/salt/minion.d/grains-startup-event.conf <<EOT
+start_event_grains:
+  - machine_id
+  - saltboot_initrd
+  - susemanager
+EOT
+
 CUR_MASTER=`salt-call --local --out newline_values_only grains.get master`
 # do we have master explicitly configured?
 if [ -z "$CUR_MASTER" -o "salt" == "$CUR_MASTER" ] ; then
