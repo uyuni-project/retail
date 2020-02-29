@@ -366,6 +366,10 @@ class Branch:
                     continue
                 self.formulas['bind']['bind']['available_zones'][domain]['records']['A'][t.hostname] = t.ip
 
+    def configure_branch_prefix(self, branch_prefix):
+        self.branch_prefix = branch_prefix
+        self.formulas['branch-network']['pxe']['branch_id'] = self.branch_prefix
+
     def configure_terminal_naming(self, terminal_naming = None):
         if terminal_naming is None:
             terminal_naming = {

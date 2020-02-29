@@ -36,6 +36,7 @@ if __name__ == "__main__":
     parser.add_argument('--hw-address', help='Hardware address (MAC) of one of brach server NIC, used to identify pre-configured entry')
 
     parser.add_argument('--pxe-extra-kernel-parameters', help='Additional kernel command line parameters passed to terminal via PXE')
+    parser.add_argument('--terminal-naming-scheme', help='Set terminal naming scheme [HWTYPE|Hostname|FQDN]', default='Hostname')
 
     parser.add_argument('--log-level', default='INFO', dest='log_level',
                         type=retail_log.log_level_string_to_int, nargs='?',
@@ -67,6 +68,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
+        branch.configure_branch_prefix(args.branch_prefix)
+        branch.configure_terminal_naming({'minion_id_naming':args.terminal_naming_scheme})
         if args.dedicated_nic:
             if args.branch_ip is None:
                 args.branch_ip = '192.168.1.1'
@@ -95,7 +98,7 @@ if __name__ == "__main__":
 
         branch.configure_vsftpd()
         branch.configure_tftpd()
-        branch.configure_pxe(args.server_domain, args.branch_prefix, args.pxe_extra_kernel_parameters, kernel_parameters_append=True)
+        branch.configure_pxe(args.server_domain, args.pxe_extra_kernel_parameters, kernel_parameters_append=True)
     except Exception as e:
         log.error(e)
         log.debug(e, exc_info=True)
