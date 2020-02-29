@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sat Feb 29 22:07:59 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Fix retail_branch_init python error due to change in branch id
+  handling
+
+-------------------------------------------------------------------
 Wed Jan 29 16:00:37 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Add support for terminal naming block
