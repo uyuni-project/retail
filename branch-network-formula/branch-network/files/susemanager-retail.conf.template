@@ -5,6 +5,7 @@ Alias "/saltboot" "{{ branch_network_setup.srv_directory }}"
 
 <Directory "{{ branch_network_setup.srv_directory }}">
     Options Indexes FollowSymLinks
+    AddType application/efi efi
     <IfVersion <= 2.2>
         Order allow,deny
         Allow from all
