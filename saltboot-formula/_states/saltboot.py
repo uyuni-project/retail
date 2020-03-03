@@ -947,33 +947,60 @@ def _get_image_for_part(images, part):
 
     return image_id, image_version, image_dict
 
+def _mangle_url(url):
+    supported_protocols = [ 'http', 'https', 'ftp', 'tftp' ]
+
+    url_p = urlparse(url)
+    download_server = __salt__['pillar.get']('saltboot_download_server')
+    download_scheme = __salt__['pillar.get']('saltboot_download_protocol')
+
+    if (download_scheme):
+        url_p = url_p._replace(scheme = download_scheme)
+
+    if (download_server):
+        url_p = url_p._replace(netloc = download_server)
+
+    if url_p.scheme not in supported_protocols:
+        raise ValueError("Unknown scheme {0}.\n".format(url_p.scheme))
+
+    if (url_p.scheme.startswith('http') and not url_p.path.startswith('/saltboot')):
+        url_p = url_p._replace(path='{0}{1}'.format('/saltboot', url_p.path))
+
+    return url_p
+
 def _download_url_cmd(url, local_path):
     # {0} url, {1} scheme, {2} netloc, {3} path, {4} params, {5} query, {6} fragment
     # {7} username, {8} password, {9} hostname, {10} port,
     # {11} output file
     download_cmd = {
-        'http': 'curl -f -L {0} > {11}',
-        'ftp': 'curl -P - -f -L {0} > {11}',
-        'tftp': 'busybox tftp -b 65464 -g -l {11} -r {3} {9} ',
+        'http' : 'curl -f -L {0} > {11}',
+        'https': 'curl -k -f -L {0} > {11}',
+        'ftp'  : 'curl -P - -f -L {0} > {11}',
+        'tftp' : 'busybox tftp -b 65464 -g -l {11} -r {3} {9} ',
     }
-    url_p = urlparse(url)
+    url_p = _mangle_url(url)
     cmd_template = download_cmd.get(url_p.scheme, 'curl -f -L {0} > {11}')
 
-    cmd = cmd_template.format(url,
+    return cmd_template.format(url_p.geturl(),
           url_p.scheme, url_p.netloc, url_p.path, url_p.params, url_p.query, url_p.fragment,
           url_p.username, url_p.password, url_p.hostname, url_p.port, local_path)
 
-    return cmd
+def _deploy_cmd(url):
+    # {0} url, {1} scheme, {2} netloc, {3} path, {4} params, {5} query, {6} fragment
+    # {7} username, {8} password, {9} hostname, {10} port,
+    download_pipe = {
+        'http' : 'set -o pipefail;curl -f -L {0} ',
+        'https': 'set -o pipefail;curl -k -f -L {0} ',
+        'ftp'  : 'set -o pipefail;curl -P - -f -L {0} ',
+        'tftp' : 'set -o pipefail;busybox tftp -b 65464 -g -l /dev/stdout -r {3} {9} ',
+    }
 
-_supported_protocols = [ 'http', 'ftp', 'tftp' ]
+    url_p = _mangle_url(url)
+    cmd_template = download_pipe.get(url_p.scheme, 'curl -f -L {0} ')
 
-# {0} url, {1} scheme, {2} netloc, {3} path, {4} params, {5} query, {6} fragment
-# {7} username, {8} password, {9} hostname, {10} port
-_download_pipe = {
-    'http': 'curl -f -L {0} ',
-    'ftp': 'curl -P - -f -L {0} ',
-    'tftp': 'busybox tftp -b 65464 -g -l /dev/stdout -r {3} {9} ',
-}
+    return cmd_template.format(url_p.geturl(),
+          url_p.scheme, url_p.netloc, url_p.path, url_p.params, url_p.query, url_p.fragment,
+          url_p.username, url_p.password, url_p.hostname, url_p.port)
 
 _uncompress_pipe = {
     '': '',
@@ -1092,23 +1119,19 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
 
     image_id, image_version, image = _get_image_for_part(images, devmap[name])
 
-
     compr = image.get('compressed', '')
     if compr not in _uncompress_pipe:
         ret['comment'] += "Unknown compression {0}.\n".format(compr)
         ret['result'] = False
 
-    url_p = urlparse(image['url'])
-    if url_p.scheme not in _supported_protocols:
-       ret['comment'] += "Unknown scheme {0}.\n".format(url_p.scheme)
-       ret['result'] = False
+    try:
+        deploy_cmd = _deploy_cmd(image['url'])
+    except ValueError as e:
+        ret['comment'] += str(e.args)
+        ret['result']   = False
 
     if not ret['result']:
         return ret
-
-    deploy_cmd = 'set -o pipefail; ' + _download_pipe[url_p.scheme].format(image['url'],
-                 url_p.scheme, url_p.netloc, url_p.path, url_p.params, url_p.query, url_p.fragment,
-                 url_p.username, url_p.password, url_p.hostname, url_p.port)
 
     if mode == 'fill_cache':
         need_umount = False
@@ -1140,6 +1163,7 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
                 ret['comment'] += 'Checksum OK.'
                 return ret
 
+        ret['comment'] += 'Downloading image using {0}'.format(deploy_cmd)
         res = __salt__['cmd.run_all']('mkdir -p {0}; {1} > {2}'.format(os.path.dirname(cache_path), deploy_cmd, cache_path), python_shell=True)
 
         if need_umount:
@@ -1310,11 +1334,6 @@ def image_deployed(name, partitioning, images):
         compr = image.get('compressed', '')
         if compr not in _uncompress_pipe:
             ret['comment'] += "Unknown compression {0}.\n".format(compr)
-            ret['result'] = False
-
-        url_p = urlparse(image['url'])
-        if url_p.scheme not in _supported_protocols:
-            ret['comment'] += "Unknown scheme {0}.\n".format(url_p.scheme)
             ret['result'] = False
 
         if not ret['result']:
@@ -1669,18 +1688,25 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
         return ret
 
     if action == 'kexec':
-        # try to load kexec
-        cmd = 'set -e -x ;'
-        cmd += 'mkdir -p /kexec_tmp ; umount /kexec_tmp || true ;'
-        cmd += 'mount -t tmpfs -o size=500M,nr_inodes=1k,mode=0755 tmpfs /kexec_tmp ;'
-        cmd += _download_url_cmd(boot_image.get('kernel', {}).get('url', ''), '/kexec_tmp/kernel') + ' ;'
-        cmd += _download_url_cmd(boot_image.get('initrd', {}).get('url', ''), '/kexec_tmp/initrd') + ' ;'
-        cmd += 'kexec -l /kexec_tmp/kernel --reuse-cmdline --append="$(cat /update_kernel_cmdline)" --initrd=/kexec_tmp/initrd'
-
-        res = __salt__['cmd.run_all'](cmd, python_shell=True)
-        if res['retcode'] > 0:
-            ret['comment'] += 'Kexec failed, doing normal reboot.\n' + res['stdout'] + res['stderr']
+        try:
+            kernel_download_cmd = _download_url_cmd(boot_image.get('kernel', {}).get('url', ''), '/kexec_tmp/kernel')
+            initrd_download_cmd = _download_url_cmd(boot_image.get('initrd', {}).get('url', ''), '/kexec_tmp/initrd')
+        except ValueError as e:
+            ret['comment'] += 'Kexec failed, doing normal reboot: ' + str(e.args)
             action = 'reboot'
+        else:
+            # try to load kexec
+            cmd = 'set -e -x ;'
+            cmd += 'mkdir -p /kexec_tmp ; umount /kexec_tmp || true ;'
+            cmd += 'mount -t tmpfs -o size=500M,nr_inodes=1k,mode=0755 tmpfs /kexec_tmp ;'
+            cmd += kernel_download_cmd + ' ;'
+            cmd += initrd_download_cmd + ' ;'
+            cmd += 'kexec -l /kexec_tmp/kernel --reuse-cmdline --append="$(cat /update_kernel_cmdline)" --initrd=/kexec_tmp/initrd'
+
+            res = __salt__['cmd.run_all'](cmd, python_shell=True)
+            if res['retcode'] > 0:
+                ret['comment'] += 'Kexec failed, doing normal reboot.\n' + res['stdout'] + res['stderr']
+                action = 'reboot'
 
     __states__['file.append'](
         '/salt_config',
