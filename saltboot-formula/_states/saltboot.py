@@ -895,10 +895,10 @@ def _get_image_version(device, luks_pass = None):
     log.debug("_get_image_version {0} {1} {2}".format(mountpoint, need_umount, device))
     if mountpoint is not None:
         if __salt__['file.file_exists'](os.path.join(mountpoint, 'etc/ImageVersion')):
-            namever = str(__salt__['cp.get_file_str'](os.path.join(mountpoint, 'etc/ImageVersion'))).rstrip()
+            namever = str(__salt__['file.read'](os.path.join(mountpoint, 'etc/ImageVersion'))).rstrip()
         if (namever is not None and 
             __salt__['file.file_exists'](os.path.join(mountpoint, 'etc/ImageVersion-' + namever))):
-            h = str(__salt__['cp.get_file_str'](os.path.join(mountpoint, 'etc/ImageVersion-' + namever))).split()[0]
+            h = str(__salt__['file.read'](os.path.join(mountpoint, 'etc/ImageVersion-' + namever))).split()[0]
 
         if need_umount:
             _try_umount_device(device)
@@ -1126,7 +1126,7 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
 
         cache_path = service_mountpoint + url_p.path
 
-        if __salt__['file.file_exists'](cache_path) and str(__salt__['cp.get_file_str'](cache_path + '.hash')).rstrip() == image.get('hash'):
+        if __salt__['file.file_exists'](cache_path) and str(__salt__['file.read'](cache_path + '.hash')).rstrip() == image.get('hash'):
             ret['comment'] += "Found cached image {0}.\n".format(url_p.path)
             if compr:
                 h = image['compressed_hash']
@@ -1163,7 +1163,7 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
         hash_exists = __salt__['file.file_exists'](cache_path + '.hash')
         log.debug('check cache path {0}: exists {1}, hash {2}'.format(cache_path, img_exists, hash_exists))
         if img_exists and hash_exists:
-            cache_hash = str(__salt__['cp.get_file_str'](cache_path + '.hash')).rstrip()
+            cache_hash = str(__salt__['file.read'](cache_path + '.hash')).rstrip()
             pillar_hash = image.get('hash')
             log.debug('cache hash "{0}", pillar hash "{1}"'.format(cache_hash, pillar_hash))
             if cache_hash == pillar_hash:
