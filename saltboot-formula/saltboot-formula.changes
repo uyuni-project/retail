@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  4 10:31:37 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use file.read instead of cp.get_file_str
+
+-------------------------------------------------------------------
 Tue Mar  3 12:25:25 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Improve image cache debug messages
