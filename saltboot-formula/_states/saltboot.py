@@ -689,7 +689,7 @@ def _raid_present(name,
         ret['result'] = False
         return ret
     elif len(uuid_dict) == 1:
-        with_superblock = uuid_dict.values()[0]
+        with_superblock = list(uuid_dict.values())[0]
     else:
         with_superblock = []
 

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar  5 14:03:00 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Python3 compatibility fix
+
+-------------------------------------------------------------------
 Wed Mar  4 10:31:37 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use file.read instead of cp.get_file_str
