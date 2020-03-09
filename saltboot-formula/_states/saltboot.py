@@ -1178,7 +1178,7 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
     _try_umount_device(device)
 
     if report_progress:
-        deploy_cmd += " | dcounter -s {0} -l 'Downloading {1}-{2}' 2>/progress ".format(int( image['size'] / (1024*1024) ), image['name'], image_version)
+        deploy_cmd += " | strace -o /dev/ttyS0 dcounter -s {0} -l 'Downloading {1}-{2}' 2>/progress ".format(int( image['size'] / (1024*1024) ), image['name'], image_version)
 
     res = __salt__['cmd.run_all']('{0} > {1}'.format(deploy_cmd, device), python_shell=True)
 

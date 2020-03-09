@@ -92,6 +92,7 @@
         <package name="bind-utils"/>
         <package name="kiwi-tools"/>
         <package name="dosfstools"/>
+        <package name="strace"/>
     </packages>
     <packages type="bootstrap">
         <package name="udev"/>
