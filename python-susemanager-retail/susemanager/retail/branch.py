@@ -37,7 +37,8 @@ class Branch:
                     'srv_directory': SRV_DIRECTORY,
                     'srv_directory_group': SRV_DIRECTORY_GROUP,
                     'srv_directory_user': SRV_DIRECTORY_USER,
-                }
+                },
+                'pxe': {}
             },
             'dhcpd': None, # optional
             'bind': {},
@@ -64,26 +65,24 @@ class Branch:
 
     def configure_dedicated_nic(self, nic, ip='192.168.1.1', netmask='255.255.255.0', configure_firewall=True, firewall=None):
         """ configure branch network for dedicated NIC """
-        self.formulas['branch-network'] = {
-            'branch_network': {
-                'configure_firewall': configure_firewall,
-                'dedicated_NIC': True,
-                'firewall': {
-                    'enable_NAT': True,
-                    'enable_route': True,
-                    'open_ssh_port': True,
-                    'open_xmpp_server_port': True,
-                    'open_xmpp_client_port': True
-                },
-                'forwarder': 'bind',
-                'forwarder_fallback': True,
-                'ip': ip,
-                'netmask': netmask,
-                'nic': nic,
-                'srv_directory': SRV_DIRECTORY,
-                'srv_directory_group': SRV_DIRECTORY_GROUP,
-                'srv_directory_user': SRV_DIRECTORY_USER
-            }
+        self.formulas['branch-network']['branch_network'] = {
+            'configure_firewall': configure_firewall,
+            'dedicated_NIC': True,
+            'firewall': {
+                'enable_NAT': True,
+                'enable_route': True,
+                'open_ssh_port': True,
+                'open_xmpp_server_port': True,
+                'open_xmpp_client_port': True
+            },
+            'forwarder': 'bind',
+            'forwarder_fallback': True,
+            'ip': ip,
+            'netmask': netmask,
+            'nic': nic,
+            'srv_directory': SRV_DIRECTORY,
+            'srv_directory_group': SRV_DIRECTORY_GROUP,
+            'srv_directory_user': SRV_DIRECTORY_USER
         }
         if firewall:
             # override default
@@ -92,26 +91,24 @@ class Branch:
 
     def configure_default_nic(self, configure_firewall=True, firewall=None):
         """ configure branch network for default NIC """
-        self.formulas['branch-network'] = {
-            'branch_network': {
-                'configure_firewall': configure_firewall,
-                'dedicated_NIC': False,
-                'firewall': {
-                    'open_dhcp_port': True,
-                    'open_dns_port': True,
-                    'open_ftp_port': True,
-                    'open_tftp_port': True,
-                    'open_http_port': True,
-                    'open_https_port': True,
-                    'open_salt_ports': True,
-                    'open_ssh_port': True,
-                    'open_xmpp_server_port': True,
-                    'open_xmpp_client_port': True
-                },
-                'srv_directory': SRV_DIRECTORY,
-                'srv_directory_group': SRV_DIRECTORY_GROUP,
-                'srv_directory_user': SRV_DIRECTORY_USER
-            }
+        self.formulas['branch-network']['branch_network'] = {
+            'configure_firewall': configure_firewall,
+            'dedicated_NIC': False,
+            'firewall': {
+                'open_dhcp_port': True,
+                'open_dns_port': True,
+                'open_ftp_port': True,
+                'open_tftp_port': True,
+                'open_http_port': True,
+                'open_https_port': True,
+                'open_salt_ports': True,
+                'open_ssh_port': True,
+                'open_xmpp_server_port': True,
+                'open_xmpp_client_port': True
+            },
+            'srv_directory': SRV_DIRECTORY,
+            'srv_directory_group': SRV_DIRECTORY_GROUP,
+            'srv_directory_user': SRV_DIRECTORY_USER
         }
         if firewall:
             # override default
