@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 10 12:26:51 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use more reliable progress output
+
+-------------------------------------------------------------------
 Sat Feb 29 22:31:11 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Use start event grains to avoid extra grains calls

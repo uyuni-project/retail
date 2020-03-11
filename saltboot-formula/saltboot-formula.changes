@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 10 12:26:10 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use more reliable progress output
+
+-------------------------------------------------------------------
 Thu Mar  5 14:03:00 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Python3 compatibility fix

@@ -1086,6 +1086,9 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
     report_progress = False
     if not __opts__['test']:
         report_progress = __salt__['file.is_fifo']("/progress")
+    dcounter_progress_file = "/progress"
+    if __salt__['file.file_exists']("/dc_progress"):
+        dcounter_progress_file = "/dc_progress"
 
     image_id, image_version, image = _get_image_for_part(images, devmap[name])
 
@@ -1178,7 +1181,7 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
     _try_umount_device(device)
 
     if report_progress:
-        deploy_cmd += " | dcounter -s {0} -l 'Downloading {1}-{2}' 2>/progress ".format(int( image['size'] / (1024*1024) ), image['name'], image_version)
+        deploy_cmd += " | dcounter -s {0} -l 'Downloading {1}-{2}' 2>>{3} ".format(int( image['size'] / (1024*1024) ), image['name'], image_version, dcounter_progress_file)
 
     res = __salt__['cmd.run_all']('{0} > {1}'.format(deploy_cmd, device), python_shell=True)
 
@@ -1193,7 +1196,7 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
     if 'hash' in image and 'size' in image:
         verify_cmd = 'head --bytes={1} {0}'.format(device, image['size'])
         if report_progress:
-            verify_cmd += " | dcounter -s {0} -l 'Verifying {1}-{2}' 2>/progress ".format(int( image['size'] / (1024*1024) ), image['name'], image_version)
+            verify_cmd += " | dcounter -s {0} -l 'Verifying {1}-{2}' 2>>{3} ".format(int( image['size'] / (1024*1024) ), image['name'], image_version, dcounter_progress_file)
 
         verify_cmd += ' | ' + _get_cmd_for_hash(image['hash']) + ' -'
 
