@@ -19,6 +19,10 @@ else
     PROGRESS_PID=$!
 fi
 
+echo -n > /dc_progress
+bash -c 'tail -f /dc_progress | while true ; do read msg ; echo "$msg" >/progress ; done ' &
+DC_PROGRESS_PID=$!
+
 rm /etc/machine-id
 rm /var/lib/dbus/machine-id
 dbus-uuidgen --ensure
@@ -196,6 +200,7 @@ if [ -f /salt_config ] ; then
 fi
 
 [ -n "$PROGRESS_PID" ] && kill $PROGRESS_PID
+[ -n "$DC_PROGRESS_PID" ] && kill $DC_PROGRESS_PID
 
 if [ "$systemIntegrity" = "unknown" ] ; then
    systemException \
