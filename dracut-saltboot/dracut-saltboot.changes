@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 11 16:17:25 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Force installation of raid1 kernel module
+
+-------------------------------------------------------------------
 Tue Mar 10 12:26:51 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use more reliable progress output

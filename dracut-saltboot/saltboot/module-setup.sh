@@ -28,6 +28,13 @@ get_python_pkg_deps_recursive() {
 }
 
 # called by dracut
+installkernel() {
+    # for raid support, the kernel module is needed unconditionally, even in hostonly mode
+    hostonly='' instmods raid1
+}
+
+
+# called by dracut
 install() {
     inst_multiple -o $(rpm -ql $(get_python_pkg_deps_recursive salt salt-minion) | \
                   grep -v '\.pyc$\|/etc/salt/minion_id\|/etc/salt/pki\|/usr/share/doc/\|/usr/share/man' )
