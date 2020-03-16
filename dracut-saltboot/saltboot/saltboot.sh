@@ -42,6 +42,9 @@ rm /var/lib/dbus/machine-id
 dbus-uuidgen --ensure
 systemd-machine-id-setup
 
+# make sure there are no pending changes in devices
+udevadm settle -t 60
+
 salt_device=${salt_device:-${root#block:}}
 
 mkdir -p $NEWROOT
