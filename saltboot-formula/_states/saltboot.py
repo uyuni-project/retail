@@ -1150,10 +1150,11 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
             ret['result'] = False
             return ret
 
-        cache_path = service_mountpoint + url_p.path
+        cache_path = service_mountpoint + urlparse(image['url']).path
 
         if __salt__['file.file_exists'](cache_path) and str(__salt__['file.read'](cache_path + '.hash')).rstrip() == image.get('hash'):
-            ret['comment'] += "Found cached image {0}.\n".format(url_p.path)
+            ret['comment'] += "Found cached image {0}.\n".format(cache_path)
+
             if compr:
                 h = image['compressed_hash']
             else:
@@ -1163,7 +1164,7 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
                 ret['comment'] += 'Checksum OK.'
                 return ret
 
-        ret['comment'] += 'Downloading image using {0}'.format(deploy_cmd)
+        ret['comment'] += 'Downloading image using {0} to cache {1}'.format(deploy_cmd, cache_path)
         res = __salt__['cmd.run_all']('mkdir -p {0}; {1} > {2}'.format(os.path.dirname(cache_path), deploy_cmd, cache_path), python_shell=True)
 
         if need_umount:
@@ -1183,9 +1184,9 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
 
         return ret
 
-
+    deploy_comment = 'Downloading image using {0}'.format(deploy_cmd)
     if service_mountpoint and mode == 'use_cache':
-        cache_path = service_mountpoint + url_p.path
+        cache_path = service_mountpoint + urlparse(image['url']).path
         img_exists = __salt__['file.file_exists'](cache_path)
         hash_exists = __salt__['file.file_exists'](cache_path + '.hash')
         log.debug('check cache path {0}: exists {1}, hash {2}'.format(cache_path, img_exists, hash_exists))
@@ -1196,10 +1197,11 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
             if cache_hash == pillar_hash:
                 log.debug('Using cached copy of image {0}-{1}.'.format(image['name'], image_version))
                 # override deploy_cmd if we have a cached copy
-                ret['comment'] += 'Using cached copy of image {0}-{1}.'.format(image['name'], image_version)
+                deploy_comment = 'Using cached copy of image {0}-{1}.'.format(image['name'], image_version)
                 deploy_cmd = 'set -o pipefail; cat {0} '.format(cache_path)
 
 
+    ret['comment'] += deploy_comment
     deploy_cmd += _uncompress_pipe[compr]
 
     _try_umount_device(device)
