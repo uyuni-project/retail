@@ -47,6 +47,6 @@ install() {
     inst_hook cmdline 91 "$moddir/saltboot-root.sh"
     inst_hook pre-mount 99 "$moddir/saltboot.sh"
 
-    echo "rd.neednet=1" > "${initdir}/etc/cmdline.d/50saltboot.conf"
+    echo "rd.neednet=1 rd.auto" > "${initdir}/etc/cmdline.d/50saltboot.conf"
 }
 
