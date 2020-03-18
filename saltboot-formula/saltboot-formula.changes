@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Mar 18 09:16:23 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Allow pillar customizable download urls
+  Saltboot now recognizes following pillars:
+
+  - saltboot_download_server: specifies from where download the images, kernel, etc.
+  - saltboot_download_protocol: specifies what protocol to use for download
+
+-------------------------------------------------------------------
 Tue Mar 10 12:26:10 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use more reliable progress output
@@ -7,6 +16,7 @@ Tue Mar 10 12:26:10 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 Thu Mar  5 14:03:00 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Python3 compatibility fix
+- Update to version 0.1.1583842676.2fc2fa6
 
 -------------------------------------------------------------------
 Wed Mar  4 10:31:37 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
