@@ -2,6 +2,7 @@
 Mon Mar  2 09:49:31 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Handle application/efi mime type
+- Update to version 0.1.1583842676.2fc2fa6
 
 -------------------------------------------------------------------
 Mon Feb  3 14:26:43 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
@@ -12,6 +13,7 @@ Mon Feb  3 14:26:43 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 Wed Jan 29 12:41:06 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Update formula to include terminal naming and identification
+- Update to version 0.1.1580471316.1839544
 
 -------------------------------------------------------------------
 Fri Oct 11 14:41:01 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
