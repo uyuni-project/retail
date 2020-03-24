@@ -1,7 +1,7 @@
 #
 # spec file for package kiwi-desc-saltboot
 #
-# Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) 2020 SUSE LLC.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -30,6 +30,12 @@ Requires:       kiwi-desc-netboot
 Provides:       kiwi-boot:saltboot
 Provides:       kiwi-image:cpio
 Provides:       kiwi-image:pxe
+
+%if 0%{?sle_version} >= 120000
+ExclusiveArch:  x86_64 noarch
+%else
+ExclusiveArch:  i586 x86_64 noarch
+%endif
 
 %description
 kiwi boot (initrd) image for booting SALT-based PXE images.
