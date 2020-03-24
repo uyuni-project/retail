@@ -19,34 +19,26 @@ partitioning:
             $default: DISK
         device:
             $type: text
-            $visibleIf: .type == DISK
+            $visible: this.parent.value.type == "DISK"
             $name: Disk Device
             $placeholder: Enter target disk device name (e.g. /dev/sda)
             $optional: true
         level:
-            $visibleIf: .type == RAID
+            $visible: this.parent.value.type == "RAID"
             $type: select
             $name: RAID Level
             $values:
-              -
-              - 0
               - 1
-              - 4
-              - 5
-              - 6
-              - 10
-              - linear
-              - multipath
-            $default:
+            $default: 1
             $optional: true
         devices:
-            $visibleIf: .type == RAID
+            $visible: this.parent.value.type == "RAID"
             $type: edit-group
             $name: Symbolic IDs of devices to used for RAID device type
             $minItems: 0
             $prototype:
                 $type: text
-                $help: E.g. disk1p1, disk2p1, ... Combination of Disk symbolic ID and Partition symbolic ID to describe devices/partitions used to build RAID device.
+                $help: Combination of Disk symbolic ID and Partition symbolic ID to describe devices/partitions used to build RAID device (e.g.  disk1p1, disk2p1).
                 $placeholder: Enter combination of Disk and Partition symbolic ID (e.g. disk1part1, disk2part1, ...)
             $optional: True
         disklabel:
@@ -61,7 +53,7 @@ partitioning:
             $itemName: Partition ${i}
             $minItems: 1
             $optional: True
-            $visibleIf: .disklabel != "none"
+            $visible: this.parent.value.disklabel != "none"
             $prototype:
                 $type: group
                 $key:
@@ -73,15 +65,18 @@ partitioning:
                     $type: number
                     $name: Partition Size (MiB)
                     $help: Leave blank to acquire remaining empty space on the disk.
+                    $match: "[0-9]*"
                     $optional: True
                 mountpoint:
                     $type: text
                     $name: Device Mount Point
-                    $help: What should the partition be mount as - /, swap, /var, ...
+                    $help: What should the partition be mount as (e.g. /, swap, /var).
+                    $match: "^(/.*)|(swap)|"
                     $optional: True
                 format:
                     $type: select
                     $name: Filesystem Format
+                    $help: Chose one of the presented filesystems. Leave blank if image should be deployed on this partition.
                     $values:
                       -
                       - btrfs
@@ -93,18 +88,19 @@ partitioning:
                 image:
                     $type: text
                     $name: OS Image to Deploy
+                    $disabled: this.parent.value.format
                     $help: Name of the OS Image. Leave blank if no image should be deployed on this partition.
                     $optional: True
                 image_version:
-                    $visibleIf: .image != ''
+                    $visible: this.parent.value.image
                     $type: text
-                    $help: Version of OS Image. Leave blank for most recent.
+                    $help: Version of OS Image. Leave blank to use most recent version available.
                     $optional: True
                 luks_pass:
                     $optional: True
                     $type: text
                     $name: Partition Encryption Password
-                    $help: Password for encrypted partition. Leave blank for unencrypted. Image itself still can be encrypted.
+                    $help: Password for encrypted partition. Leave blank for unencrypted partition. Image itself still can be encrypted.
                 flags:
                     $type: select
                     $name: Partition Flags
@@ -119,13 +115,15 @@ partitioning:
         mountpoint:
             $type: text
             $name: Device Mount Point
-            $help: What should the partition be mount as - /, swap, /var, ...
+            $help: What should this disk be mount as (e.g. /, swap, /var).
             $optional: True
-            $visibleIf: .disklabel == "none"
+            $match: "^(/.*)|(swap)|"
+            $visible: this.parent.value.disklabel == "none"
         format:
             $type: select
             $name: Filesystem Format
-            $visibleIf: .disklabel == "none"
+            $visible: this.parent.value.disklabel == "none"
+            $help: Chose one of the presented filesystems. Leave blank if image should be deployed on this disk.
             $values:
               -
               - btrfs
@@ -135,19 +133,20 @@ partitioning:
               - swap
             $optional: True
         image:
-            $visibleIf: .disklabel == "none"
+            $visible: this.parent.value.disklabel == "none"
+            $disabled: this.parent.value.format
             $type: text
             $name: OS Image to Deploy
-            $help: Name of the OS Image. Leave blank if no image should be deployed on this partition.
+            $help: Name of the OS Image. Leave blank if no image should be deployed on this disk.
             $optional: True
         image_version:
-            $visibleIf: .image != ''
+            $visible: this.parent.value.image != ''
             $type: text
-            $help: Version of OS Image. Leave blank for most recent.
+            $help: Version of OS Image. Leave blank to use most recent version available.
             $optional: True
         luks_pass:
-            $visibleIf: .disklabel == "none"
+            $visible: this.parent.value.disklabel == "none"
             $optional: True
             $type: text
-            $name: Partition Encryption Password
-            $help: Password for encrypted partition. Leave blank for unencrypted. Image itself still can be encrypted.
+            $name: Disk Encryption Password
+            $help: Password for encrypted disk. Leave blank for unencrypted disk. Image itself still can be encrypted.

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 28 10:25:16 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Update form and metadata to use new formula features
+
+-------------------------------------------------------------------
 Wed Apr 15 08:38:29 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Add grain to force image redeployment and repartition
