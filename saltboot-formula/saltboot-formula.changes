@@ -3,9 +3,9 @@ Wed Mar 18 09:16:23 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Allow pillar customizable download urls
   Saltboot now recognizes following pillars:
-
   - saltboot_download_server: specifies from where download the images, kernel, etc.
   - saltboot_download_protocol: specifies what protocol to use for download
+- Update to version 0.1.1585064259.12b97ef
 
 -------------------------------------------------------------------
 Tue Mar 10 12:26:10 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
