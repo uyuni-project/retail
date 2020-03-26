@@ -2,6 +2,7 @@
 Tue Mar 24 10:04:37 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Limit architectures to i585 and x86_64 depending SLE version
+- Update to version 0.1.1585064259.12b97ef
 
 -------------------------------------------------------------------
 Wed Mar 11 15:22:12 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
@@ -12,6 +13,7 @@ Wed Mar 11 15:22:12 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 Sat Feb 29 22:30:26 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Use start event grains to avoid extra grains calls
+- Update to version 0.1.1583842676.2fc2fa6
 
 -------------------------------------------------------------------
 Wed Jan 29 12:42:16 UTC 2020 - Ondrej Holecek <oholecek@suse.com>

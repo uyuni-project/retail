@@ -2,12 +2,14 @@
 Tue Mar 24 11:05:14 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Install dosfstools package for sync_image_usb module to work
+- Update to version 0.1.1585064259.12b97ef
 
 -------------------------------------------------------------------
 Mon Dec 23 17:42:39 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
 
 - Prevent installing xdelta3 package and disable delta functionality
   on SLE12 branch servers (bsc#1159553)
+- Update to version 0.1.1579102150.4716559
 
 -------------------------------------------------------------------
 Fri Nov 15 14:35:06 UTC 2019 - Vladimir Nadvornik <nadvornik@suse.com>
