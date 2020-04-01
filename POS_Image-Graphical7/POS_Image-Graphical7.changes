@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 30 11:07:13 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Enable Secure Boot by default
+
+-------------------------------------------------------------------
 Fri Jan 24 08:57:40 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Add xfsprogs to the image description to make XFS available
