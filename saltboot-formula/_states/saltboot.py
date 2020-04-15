@@ -439,7 +439,7 @@ def disk_partitioned(name, data):
 
     if device is None:
         raise salt.exceptions.SaltInvocationError(
-            "device not specified for {0}".format(name))
+            "Device not specified for {0}".format(name))
 
     try:
         existing = __salt__['partition.list'](device, unit='MiB')
@@ -450,8 +450,9 @@ def disk_partitioned(name, data):
             raise e
 
     existing_disklabel = existing['info'].get('partition table')
+    force_repartition = __grains__.get('saltboot_force_repartition', False)
 
-    if existing_disklabel != data['disklabel']:
+    if existing_disklabel != data['disklabel'] or force_repartition:
         if __opts__['test']:
             ret['comment'] += 'Disk "{0}" will be formatted with label {1}.\n'.format(name, data['disklabel'])
             _add_change(ret['pchanges'], {

@@ -90,10 +90,19 @@ saltboot_fstab:
     - require_in:
       - saltboot: boot_system
 
-boot_system:
+saltboot_force_redeploy:
   grains.absent:
-    - name: saltboot_force_redeploy
     - destructive: True
+    - require_in:
+      - saltboot: boot_system
+
+saltboot_force_repartition:
+  grains.absent:
+    - destructive: True
+    - require_in:
+      - saltboot: boot_system
+
+boot_system:
   saltboot.verify_and_boot_system:
     - partitioning: {{ partitioning|yaml }}
     - images: {{ images|yaml }}
