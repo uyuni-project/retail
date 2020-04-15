@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 15 08:38:29 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Add grain to force image redeployment
+
+-------------------------------------------------------------------
 Wed Mar 18 09:16:23 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Allow pillar customizable download urls
