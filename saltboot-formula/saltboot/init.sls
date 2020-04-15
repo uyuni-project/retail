@@ -1,5 +1,3 @@
-
-
 {%- set partitioning = salt['pillar.get']('partitioning', {}) %}
 {%- set images = salt['pillar.get']('images', {}) %}
 {%- set boot_images = salt['pillar.get']('boot_images', {}) %}
@@ -81,7 +79,7 @@ no_pillar:
     - name: no_pillar
     - changes: False
     - result: False
-    - comment: partitioning pillar is missing
+    - comment: Partitioning pillar is missing
 
 {% else %}
 
@@ -93,6 +91,9 @@ saltboot_fstab:
       - saltboot: boot_system
 
 boot_system:
+  grains.absent:
+    - name: saltboot_force_redeploy
+    - destructive: True
   saltboot.verify_and_boot_system:
     - partitioning: {{ partitioning|yaml }}
     - images: {{ images|yaml }}

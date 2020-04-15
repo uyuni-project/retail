@@ -1325,10 +1325,12 @@ def image_deployed(name, partitioning, images):
     luks_pass = image.get('luks_pass')
 
     existing, existing_hash = _get_image_version(device, luks_pass)
+    force_redeploy = __grains__.get('saltboot_force_redeploy', False)
 
     if ( existing is None or
          existing != '{0}-{1}'.format(image['name'], image_version) or
-         ('hash' in image and existing_hash != image['hash'])
+         ('hash' in image and existing_hash != image['hash'] ) or
+         force_redeploy
        ):
         log.debug('existing: "{0}" existing hash: "{1}"'.format(existing, existing_hash))
         log.debug('new: "{0}-{1}" new hash: "{2}"'.format(image['name'], image_version, image.get('hash')))
@@ -1392,7 +1394,7 @@ def image_deployed(name, partitioning, images):
             if 'hash' in image:
                 _write_image_version(device, '{0}-{1}'.format(image['name'], image_version), image['hash'], luks_pass)
 
-            if not __opts__['test'] and devmap[name].get('mountpoint') == '/':
+            if devmap[name].get('mountpoint') == '/':
                 ret1 = __states__['file.managed'](
                     '/salt_config',
                     contents = [
