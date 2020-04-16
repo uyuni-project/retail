@@ -89,9 +89,25 @@ def create(dest, sizeMiB=300):
     if res['retcode'] > 0:
         return res
 
-    res = __salt__['cmd.run_all']("grub2-install --target=x86_64-efi --force --removable '--boot-directory={0}/boot' '--efi-directory={0}/boot/efi' '{1}'".format(tmpmount, loopdev))
+    res = __salt__['cmd.run_all']("grub2-install --target=x86_64-efi --force --removable --no-nvram '--boot-directory={0}/boot' '--efi-directory={0}/boot/efi' '{1}'".format(tmpmount, loopdev))
     if res['retcode'] > 0:
         return res
+
+    res = __salt__['cmd.run_all']("cp -f '{0}/boot/grub.efi' '{1}/boot/efi/EFI/BOOT/GRUB.EFI'".format(srv_dir, tmpmount))
+    if res['retcode'] > 0:
+        return res
+
+    res = __salt__['cmd.run_all']("cp -f '{0}/boot/shim.efi' '{1}/boot/efi/EFI/BOOT/BOOTX64.EFI'".format(srv_dir, tmpmount))
+    if res['retcode'] > 0:
+        return res
+
+    uuid = __salt__['disk.blkid'](devices[2])[devices[2]]['UUID']
+
+    configfile = ("search.fs_uuid " + uuid +" root\n"
+                 +"set prefix=($root)/boot\n"
+                 +"configfile ${prefix}/grub.cfg\n")
+
+    __salt__['file.write']("{0}/boot/efi/EFI/BOOT/GRUB.CFG".format(tmpmount), configfile)
 
     res = __salt__['cmd.run_all']("cp '{0}/boot/linux' '{0}/boot/initrd.gz' '{0}/boot/grub.cfg' '{1}/boot'".format(srv_dir, tmpmount))
     if res['retcode'] > 0:
