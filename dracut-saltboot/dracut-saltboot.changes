@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr 23 08:22:56 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Force install crypt modules
+
+-------------------------------------------------------------------
 Thu Apr  9 12:00:44 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Add missing terminal naming modifiers as exported veriables
