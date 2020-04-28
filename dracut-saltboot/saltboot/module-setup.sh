@@ -7,7 +7,7 @@ check() {
 
 # called by dracut
 depends() {
-    echo network
+    echo network dm
     return 0
 }
 
@@ -29,8 +29,8 @@ get_python_pkg_deps_recursive() {
 
 # called by dracut
 installkernel() {
-    # for raid support, the kernel module is needed unconditionally, even in hostonly mode
-    hostonly='' instmods raid1
+    # for raid and crypt support, the kernel module is needed unconditionally, even in hostonly mode
+    hostonly='' instmods raid1 dm_crypt =crypto
 }
 
 
