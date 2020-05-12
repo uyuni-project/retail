@@ -92,6 +92,16 @@ def _try_umount_device(device, depth = 0):
         __salt__['cmd.run_all']("cryptsetup close " + device, output_loglevel='trace')
     elif depth > 0 and devtree.get('type').startswith('raid'):
         __salt__['cmd.run_all']("mdadm --stop " + device, output_loglevel='trace')
+        for i in range(5):
+            # verify that the raid is already stopped - it may take some time
+            tree = _lsblk_compat(device)
+            if tree:
+                devtree = tree['blockdevices'][0]
+                if devtree.get('type').startswith('raid'):
+                    __salt__['cmd.run_all']("mdadm --stop " + device, output_loglevel='trace')
+                    time.sleep(1)
+                    continue
+            break
     else:
         # there can be inactive raids (not listed by lsblk) that blocks the device anyway
         uuid = _mdadm_examine(device).get('MD_UUID')
@@ -382,6 +392,15 @@ def _append_ret(ret, ret1, alt_comment = None, alt_comment_no_change = None, alt
 
 def _get_disk_device(name, data):
     device = data.get('device')
+
+    if device is not None:
+        path, name = os.path.split(device)
+        if path == '':
+            path = '/dev/disk/by-path';
+        found = __salt__['file.find'](path, name=name, type='b')
+        if found:
+            # the list is sorted so partitions come after the main device
+            device = found[0]
     if device is None and data.get('type') == 'RAID':
        device = '/dev/{0}'.format(name)
     return device
@@ -797,7 +816,13 @@ def raid_created(name, partitioning):
         _try_umount_device(cdevice)
 
     #return __states__['raid.present'](device, partitioning[name].get('level'), components, run=True)
-    return _raid_present(device, partitioning[name].get('level'), components, run=True)
+    ret = _raid_present(device, partitioning[name].get('level'), components, run=True)
+
+    if ret['result']:
+        # If the device is already assembed, _raid_present does not run it. Make sure it is started now
+        __salt__['cmd.run_all']("mdadm --assemble --run {0}".format(device), output_loglevel='trace')
+
+    return ret
 
 def device_formatted(name, partitioning):
     '''
@@ -869,6 +894,12 @@ def device_formatted(name, partitioning):
 
     if not __opts__['test']:
         _try_umount_device(device)
+
+    # if the device was partitioned, wipe the partition table (can happen for raid devices)
+    try:
+        __salt__['cmd.run_all']("wipefs -a -f -t gpt,PMBR {0}".format(device), output_loglevel='trace')
+    except:
+        pass
 
     luks_pass = devmap[name].get('luks_pass')
     opened_device = _luks_open(device, luks_pass)
