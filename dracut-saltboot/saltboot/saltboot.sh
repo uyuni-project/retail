@@ -36,14 +36,21 @@ echo -n > /dc_progress
 bash -c 'tail -f /dc_progress | while true ; do read msg ; echo "$msg" >/progress ; done ' &
 DC_PROGRESS_PID=$!
 
-rm /etc/machine-id
+rm -f /etc/machine-id
 mkdir -p /var/lib/dbus
-rm /var/lib/dbus/machine-id
+rm -f /var/lib/dbus/machine-id
 dbus-uuidgen --ensure
 systemd-machine-id-setup
 
 # make sure there are no pending changes in devices
 udevadm settle -t 60
+
+# This should be visible after pressing ESC
+Echo "Available disk devices" >&2
+Echo "ls -l /dev/disk/by-id" >&2
+ls -l /dev/disk/by-id >&2
+Echo "ls -l /dev/disk/by-path" >&2
+ls -l /dev/disk/by-path >&2
 
 salt_device=${salt_device:-${root#block:}}
 

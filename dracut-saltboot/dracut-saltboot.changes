@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 12 10:50:54 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Print a list of available disk devices (bsc#1170824)
+- Install wipefs to initrd
+
+-------------------------------------------------------------------
 Thu Apr 23 08:22:56 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Force install crypt modules
