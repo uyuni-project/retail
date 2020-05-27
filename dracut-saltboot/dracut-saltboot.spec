@@ -26,6 +26,7 @@ Group:          System/Packages
 BuildArch:      noarch
 BuildRequires:  dracut
 Requires:       dracut
+Recommends:     plymouth-plugin-label-ft
 
 %description
 dracut module for booting SALT-based PXE images.

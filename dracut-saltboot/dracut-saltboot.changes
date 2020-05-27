@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 27 14:11:41 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Add plymouth-plugin-label-ft as recommended package to allow
+  multiline splash screen
+
+-------------------------------------------------------------------
 Tue May 12 10:50:54 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Print a list of available disk devices (bsc#1170824)
