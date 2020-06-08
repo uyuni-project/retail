@@ -3,11 +3,13 @@ Wed May 20 11:10:13 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Allow wildcards for device name (bsc#1170824)
 - Fix corner cases of RAID setup
+- Update to version 0.1.1590413773.a959db7
 
 -------------------------------------------------------------------
 Tue Apr 28 10:25:16 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Update form and metadata to use new formula features
+- Update to version 0.1.1588156049.952b58d
 
 -------------------------------------------------------------------
 Wed Apr 15 08:38:29 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
