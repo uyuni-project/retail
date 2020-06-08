@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Jun  8 12:02:10 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Allow image-sync state on regular minion.
+  Image sync state requires branch-network pillars to get the directory
+  where to sync images. Use default `/srv/saltboot` if that pillar is
+  missing so image-sync can be applied on non branch minions as well.
+
+-------------------------------------------------------------------
 Thu Apr 16 15:21:50 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Install shim.efi on usb boot image
