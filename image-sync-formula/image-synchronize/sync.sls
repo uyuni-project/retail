@@ -3,14 +3,14 @@ support_packages:
   pkg.installed:
     - pkgs:
 # Do not install xdelta3 on SLE12 based systems. It is not available there
-{%- if (salt['grains.get']('osfullname') != 'SLES') or (salt['grains.get']('osmajorrelease')|int() != 12) %}
+{%- if (grains.get('osfullname') != 'SLES') or (grains.get('osmajorrelease')|int() != 12) %}
       - xdelta3
 {%- endif %}
       - dosfstools
 
-{%- set boot_images = salt['pillar.get']('boot_images', {}) %}
+{%- set boot_images = pillar.get('boot_images', {}) %}
 {%- set boot_images_in_use = {} %}
-{%- set rootdir = pillar['branch_network']['srv_directory'] %}
+{%- set rootdir = pillar.get('branch_network', {'srv_directory':'/srv/saltboot'})['srv_directory'] %}
 {%- set boot_dir = "boot" %}
 {%- set whitelist = salt['pillar.get']('image-synchronize:whitelist', []) %}
 
