@@ -1731,13 +1731,18 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
             ret['comment'] += 'Kexec failed, doing normal reboot: ' + str(e.args)
             action = 'reboot'
         else:
+            kexec_opt = ''
+            res = __salt__['cmd.run_all']("kexec --help |grep -q kexec-syscall-auto", python_shell=True)
+            if res['retcode'] == 0:
+                kexec_opt += "--kexec-syscall-auto "
+
             # try to load kexec
             cmd = 'set -e -x ;'
             cmd += 'mkdir -p /kexec_tmp ; umount /kexec_tmp || true ;'
             cmd += 'mount -t tmpfs -o size=500M,nr_inodes=1k,mode=0755 tmpfs /kexec_tmp ;'
             cmd += kernel_download_cmd + ' ;'
             cmd += initrd_download_cmd + ' ;'
-            cmd += 'kexec -l /kexec_tmp/kernel --reuse-cmdline --append="$(cat /update_kernel_cmdline)" --initrd=/kexec_tmp/initrd'
+            cmd += 'kexec ' + kexec_opt + ' -l /kexec_tmp/kernel --reuse-cmdline --append="$(cat /update_kernel_cmdline)" --initrd=/kexec_tmp/initrd'
 
             res = __salt__['cmd.run_all'](cmd, python_shell=True)
             if res['retcode'] > 0:
