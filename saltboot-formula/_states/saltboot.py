@@ -134,38 +134,10 @@ def _disk_wipe_signatures(device):
 def _random_string(n):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
 
-def _luks_name(device):
-    return 'luks_' + device.split('/')[-1]
-
-def _luks_open(device, luks_pass = None):
-    if luks_pass is not None:
-        luks_name = _luks_name(device)
-        luks_device = "/dev/mapper/" + luks_name
-        res = __salt__['file.is_blkdev'](luks_device)
-        if res:
-            log.debug("_luks_open: already opened: " + luks_device)
-
-            return luks_device
-        res = __salt__['cmd.run_all']("echo {0} | cryptsetup open --type luks {1} {2}".format(luks_pass, device, luks_name), python_shell=True)
-        log.debug("_luks_open: {0} res: {1}".format(luks_device, res))
-        if res['retcode'] != 0:
-            return None
-    else:
-        luks_device = device
-        log.debug("_luks_open: not encrypted: " + device)
-    return luks_device
-
-def _luks_create(device, luks_pass):
-    res = __salt__['cmd.run_all']("echo {0} | cryptsetup --force-password luksFormat {1}".format(luks_pass, device), python_shell=True)
-    log.debug("_luks_create: {0} res: {1}".format(device, res))
-    if res['retcode'] != 0:
-        return None
-    return _luks_open(device, luks_pass)
-
 def _mount(mountpoint, device, luks_pass = None):
-    device = _luks_open(device, luks_pass)
+    device = __salt__['cryptsetup.luks_open'](device, luks_pass)
     if not device:
-        log.error('_mount: _luks_open failed')
+        log.error('_mount: luks_open failed')
         return False
     return __salt__['mount.mount'](mountpoint, device, True)
 
@@ -902,14 +874,14 @@ def device_formatted(name, partitioning):
         pass
 
     luks_pass = devmap[name].get('luks_pass')
-    opened_device = _luks_open(device, luks_pass)
+    opened_device = __salt__['cryptsetup.luks_open'](device, luks_pass)
     if opened_device is None:
         if __opts__['test']:
             ret['comment'] = "Device {0} will be encrypted.".format(device)
             ret['result'] = None
             return ret
         else:
-            opened_device = _luks_create(device, luks_pass)
+            opened_device = __salt__['cryptsetup.luks_create'](device, luks_pass)
 
     fs_type = devmap[name]['format']
     if fs_type == 'swap':
@@ -1415,7 +1387,7 @@ def image_deployed(name, partitioning, images):
             if report_progress:
                 __salt__['cmd.run_all']("echo 'Checking and resizing image filesystem' > /progress ", python_shell=True, output_loglevel='trace')
 
-            checkdevice = _luks_open(device, luks_pass)
+            checkdevice = __salt__['cryptsetup.luks_open'](device, luks_pass)
             res = __salt__['cmd.run_all'](
                 'e2fsck -y -f {0} ; resize2fs {0}'.format(checkdevice), python_shell=True)
             if res['retcode'] > 0:
@@ -1588,7 +1560,7 @@ def fstab_updated(name, partitioning, images):
 
         name = p.get('mountpoint', 'swap')
 
-        opened_device = _luks_open(p['device'], luks_pass)
+        opened_device = __salt__['cryptsetup.luks_open'](p['device'], luks_pass)
         uuid = __salt__['disk.blkid'](opened_device)[opened_device]['UUID']
 
         if name != '/' and name != 'swap':

@@ -35,11 +35,11 @@ Formula for boot image of POS terminal.
 %build
 
 %install
-mkdir -p %{buildroot}/usr/share/susemanager/formulas/states/{%{fname},%{fname}-orchestrate,%{fname}-reactor,_states}
+mkdir -p %{buildroot}/usr/share/susemanager/formulas/states/{%{fname},%{fname}-reactor,_states,_modules}
 mkdir -p %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}
 cp -R %{fname}/* %{buildroot}/usr/share/susemanager/formulas/states/%{fname}
 cp -R metadata/* %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}
-cp -R _states/* %{buildroot}/usr/share/susemanager/formulas/states/_states
+cp -R _states _modules %{buildroot}/usr/share/susemanager/formulas/states
 cp -R %{fname}-reactor/* %{buildroot}/usr/share/susemanager/formulas/states/%{fname}-reactor
 
 mkdir -p %{buildroot}/etc/salt/master.d
