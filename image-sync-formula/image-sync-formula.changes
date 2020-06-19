@@ -2,6 +2,7 @@
 Thu Apr 16 15:21:50 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Install shim.efi on usb boot image
+- Update to version 0.1.1588156049.952b58d
 
 -------------------------------------------------------------------
 Tue Mar 24 11:05:14 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
