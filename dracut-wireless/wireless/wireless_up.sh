@@ -111,4 +111,9 @@ if ! wpa_cli status | grep wpa_state=COMPLETED ; then
 
     # run after any ethX
     /sbin/initqueue --name "zz-wireless_pw-$WLAN_DEV" --unique --onetime /sbin/wireless_ask_password_wrapper $WLAN_DEV
+else
+    # schedule ifup unless it has been scheduled by udev
+    if [ ! -f "$hookdir/initqueue/ifup-$WLAN_DEV.sh" ] ; then
+        /sbin/initqueue --name "ifup-$WLAN_DEV" --unique --onetime /sbin/ifup $WLAN_DEV
+    fi
 fi
