@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul  2 09:45:33 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Better fix for rounding errors (bsc#1136857)
+
+-------------------------------------------------------------------
 Tue Jun  9 14:12:03 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - use kexec --kexec-syscall-auto if possible (bsc#1172829)
