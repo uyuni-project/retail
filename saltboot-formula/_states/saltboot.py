@@ -235,7 +235,7 @@ def _compute_start_end(part, disk_size):
 
     size_auto = 0
     if num_grow > 0:
-        size_auto = (disk_size - 1 - size_known) / num_grow
+        size_auto = int((disk_size - 1 - size_known) / num_grow)
 
     res = {}
     pos = 1
@@ -340,7 +340,7 @@ def _check_existing(part, existing, diskdevice, wait = 0):
             #  this partition should match too
             #
             if p['start'] == existing_start and (p['end'] == existing_end or
-               (p['end'] == existing_end + 1 and p['end'] == disk_size)):
+               (p['end'] + 1 == existing_end and p['end'] + 1 == disk_size)):
                 flags_ok, to_add, to_delete = _compare_part_flags(_parse_part_flags(e['flags']), _parse_part_flags(p.get('flags', '')))
                 if not flags_ok:
                     continue # delete and create the partition again, to be sure
