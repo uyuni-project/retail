@@ -45,6 +45,9 @@ systemd-machine-id-setup
 # make sure there are no pending changes in devices
 udevadm settle -t 60
 
+# from now on, disable automatic RAID assembly
+udevproperty rd_NO_MD=1
+
 # This should be visible after pressing ESC
 Echo "Available disk devices" >&2
 Echo "ls -l /dev/disk/by-id" >&2
