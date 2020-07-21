@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jul 21 09:07:15 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use automatic RAID assembly only in the first phase before
+  start of salt
+
+-------------------------------------------------------------------
 Tue May 12 10:50:54 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Print a list of available disk devices (bsc#1170824)
