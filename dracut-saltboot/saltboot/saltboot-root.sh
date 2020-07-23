@@ -35,12 +35,26 @@ export MASTER=$(getarg MASTER=)
 export MINION_ID_PREFIX=$(getarg MINION_ID_PREFIX=)
 export SALT_TIMEOUT=$(getarg SALT_TIMEOUT=)
 export salt_device=$(getarg salt_device=)
+export SALTBOOT_MODE=$(getarg SALTBOOT_MODE=)
 
 # Terminal naming modifiers
 export DISABLE_UNIQUE_SUFFIX=$(getarg DISABLE_UNIQUE_SUFFIX=)
 export DISABLE_HOSTNAME_ID=$(getarg DISABLE_HOSTNAME_ID=)
 export DISABLE_ID_PREFIX=$(getarg DISABLE_ID_PREFIX=)
 export USE_FQDN_MINION_ID=$(getarg USE_FQDN_MINION_ID=)
+
+# YOMI compatible naming - disable all saltboot namings and use just FQDN, unless specified otherwise
+if [ "$SALTBOOT_MODE" = "yomi" ]; then
+  if [ -z "$DISABLE_UNIQUE_SUFFIX" ]; then
+    export DISABLE_UNIQUE_SUFFIX=1
+  fi
+  if [ -z "$DISABLE_ID_PREFIX" ]; then
+    export DISABLE_ID_PREFIX=1
+  fi
+  if [ -z "$USE_FQDN_MINION_ID" ]; then
+    export USE_FQDN_MINION_ID=1
+  fi
+fi
 
 # Debugging
 export kiwidebug=$(getarg kiwidebug=)

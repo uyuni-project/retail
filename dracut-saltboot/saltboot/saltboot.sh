@@ -72,10 +72,15 @@ if [ -n "$salt_device" ] && mount "$salt_device" $NEWROOT ; then
     umount $NEWROOT
 fi
 
+# detault saltboot mode is saltboot. Can be also yomi and other
+if [ -z "$SALTBOOT_MODE" ]; then
+    SALTBOOT_MODE="saltboot"
+fi
+
 mkdir -p /etc/salt/minion.d
 cat > /etc/salt/minion.d/grains-initrd.conf <<EOT
 grains:
-  saltboot_initrd: True
+  saltboot_initrd: $SALTBOOT_MODE
 EOT
 
 MACHINE_ID=`salt-call --local --out newline_values_only grains.get machine_id`
@@ -236,10 +241,8 @@ if [ "$systemIntegrity" = "unknown" ] ; then
     reboot -f
 fi
 
-cat > /etc/salt/minion.d/grains-initrd.conf <<EOT
-grains:
-  saltboot_initrd: False
-EOT
+# remove saltboot_initrd grain
+rm /etc/salt/minion.d/grains-initrd.conf
 
 cp -pr /etc/salt $NEWROOT/etc
 echo $MACHINE_ID > $NEWROOT/etc/machine-id
