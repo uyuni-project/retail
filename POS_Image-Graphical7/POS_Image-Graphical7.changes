@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Jul 23 09:52:52 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Add plymouth-plugin-label-ft package to all *7 templates and set
+  them to be of SLE15SP2 version
+- Add optional dracut-wireless comment section and move wpa_suplicant
+  there
+
+-------------------------------------------------------------------
 Mon Mar 30 11:07:13 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Enable Secure Boot by default
