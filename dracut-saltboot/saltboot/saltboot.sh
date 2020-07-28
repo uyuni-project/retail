@@ -49,11 +49,15 @@ udevadm settle -t 60
 udevproperty rd_NO_MD=1
 
 # This should be visible after pressing ESC
-Echo "Available disk devices" >&2
-Echo "ls -l /dev/disk/by-id" >&2
-ls -l /dev/disk/by-id >&2
-Echo "ls -l /dev/disk/by-path" >&2
-ls -l /dev/disk/by-path >&2
+Echo "Available disk devices:" >&2
+if [ -d /dev/disk/by-id ]; then
+  Echo "ls -l /dev/disk/by-id" >&2
+  ls -l /dev/disk/by-id >&2
+fi
+if [ -d /dev/disk/by-path ]; then
+  Echo "ls -l /dev/disk/by-path" >&2
+  ls -l /dev/disk/by-path >&2
+fi
 
 salt_device=${salt_device:-${root#block:}}
 
