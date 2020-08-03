@@ -4,7 +4,8 @@ Thu Jul 23 09:54:52 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 - Add plymouth-plugin-label-ft package to all *7 templates and set
   them to be of SLE15SP2 version
 - Add optional dracut-wireless comment section and move wpa_suplicant
-  there 
+  there
+- Update to version 0.1.1595937550.0285244
 
 -------------------------------------------------------------------
 Mon Mar 30 11:06:06 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>

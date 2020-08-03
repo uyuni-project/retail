@@ -3,6 +3,7 @@ Tue Jul 21 09:07:15 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use automatic RAID assembly only in the first phase before
   start of salt
+- Update to version 0.1.1595937550.0285244
 
 -------------------------------------------------------------------
 Tue May 12 10:50:54 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
