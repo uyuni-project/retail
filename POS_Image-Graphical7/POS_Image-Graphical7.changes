@@ -5,6 +5,7 @@ Thu Jul 23 09:52:52 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
   them to be of SLE15SP2 version
 - Add optional dracut-wireless comment section and move wpa_suplicant
   there
+- Update to version 0.1.1595937550.0285244
 
 -------------------------------------------------------------------
 Mon Mar 30 11:07:13 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
