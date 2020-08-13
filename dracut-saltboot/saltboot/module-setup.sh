@@ -49,5 +49,9 @@ install() {
     inst_hook initqueue/timeout 99 "$moddir/saltboot-timeout.sh"
 
     echo "rd.neednet=1 rd.auto" > "${initdir}/etc/cmdline.d/50saltboot.conf"
+
+    # wicked duid generation rules - use ll instead of default llt. ll does not include time, just mac address and generic prefix
+    mkdir -p "${initdir}/etc/wicked"
+    echo "<config><addrconf><dhcp6><default-duid><ll/></default-duid></dhcp6></addrconf></config>" > "${initdir}/etc/wicked/client.xml"
 }
 
