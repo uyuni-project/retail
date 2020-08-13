@@ -46,6 +46,7 @@ install() {
 
     inst_hook cmdline 91 "$moddir/saltboot-root.sh"
     inst_hook pre-mount 99 "$moddir/saltboot.sh"
+    inst_hook initqueue/timeout 99 "$moddir/saltboot-timeout.sh"
 
     echo "rd.neednet=1 rd.auto" > "${initdir}/etc/cmdline.d/50saltboot.conf"
 }
