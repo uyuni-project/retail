@@ -241,9 +241,14 @@ grains:
   saltboot_initrd: False
 EOT
 
+# copy salt, wicked and system configurations to deployed system
 cp -pr /etc/salt $NEWROOT/etc
 echo $MACHINE_ID > $NEWROOT/etc/machine-id
 
+mkdir -p $NEWROOT/var/lib/wicked
+cp /var/lib/wicked/lease* $NEWROOT/var/lib/wicked/
+
+# copy salt log files
 mkdir -p $NEWROOT/var/log/salt
 num=1
 while [ -e $NEWROOT/var/log/salt/saltboot_$num ] ; do
