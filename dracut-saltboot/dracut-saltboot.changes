@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 14 11:46:55 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Set wicked to use plain mac address for computing DHCP DUID
+- Copy wicked lease xml file to prevent query for second IP address
+  (bsc#1173268)
+
+-------------------------------------------------------------------
 Tue Jul 21 09:07:15 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use automatic RAID assembly only in the first phase before
