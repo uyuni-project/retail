@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep  9 10:32:16 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Support autosign grains in saltboot intrd
+
+-------------------------------------------------------------------
 Fri Aug 14 11:46:55 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Set wicked to use plain mac address for computing DHCP DUID
