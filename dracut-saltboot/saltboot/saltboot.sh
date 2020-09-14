@@ -90,6 +90,28 @@ EOT
 
 echo $MACHINE_ID > /etc/machine-id
 
+SALT_AUTOSIGN_GRAINS=$(getarg SALT_AUTOSIGN_GRAINS=)
+if [ -n "$SALT_AUTOSIGN_GRAINS" ] ; then
+    grains=
+    agrains=
+    readarray -d , -t grains_arr <<< "$SALT_AUTOSIGN_GRAINS"
+    for g in "${grains_arr[@]}" ; do
+        name=${g%%:*}
+        agrains="$agrains    - $name"$'\n'
+        if [[ $g == *:* ]]; then
+            value=${g#*:}
+            grains="$grains    $name: $value"$'\n'
+        fi
+    done
+    cat > /etc/salt/minion.d/autosign-grains-onetime.conf <<EOT
+grains:
+$grains
+
+autosign_grains:
+$agrains
+EOT
+fi
+
 DIG_OPTIONS="+short"
 if dig -h | grep -q '\[no\]cookie'; then
     DIG_OPTIONS="+nocookie +short"
@@ -240,6 +262,8 @@ cat > /etc/salt/minion.d/grains-initrd.conf <<EOT
 grains:
   saltboot_initrd: False
 EOT
+
+rm -f /etc/salt/minion.d/autosign-grains-onetime.conf
 
 # copy salt, wicked and system configurations to deployed system
 cp -pr /etc/salt $NEWROOT/etc

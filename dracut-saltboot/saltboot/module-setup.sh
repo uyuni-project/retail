@@ -53,5 +53,7 @@ install() {
     # wicked duid generation rules - use ll instead of default llt. ll does not include time, just mac address and generic prefix
     mkdir -p "${initdir}/etc/wicked"
     echo "<config><addrconf><dhcp6><default-duid><ll/></default-duid></dhcp6></addrconf></config>" > "${initdir}/etc/wicked/client.xml"
+
+    inst -o /etc/salt/minion.d/autosign-grains.conf
 }
 
