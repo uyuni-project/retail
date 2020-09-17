@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 17 10:34:57 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Allow setting terminal kernel parameters in saltboot formula
+
+-------------------------------------------------------------------
 Thu Jul  2 09:45:33 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Better fix for rounding errors (bsc#1136857)
