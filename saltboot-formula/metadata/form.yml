@@ -150,3 +150,8 @@ partitioning:
             $type: text
             $name: Disk Encryption Password
             $help: Password for encrypted disk. Leave blank for unencrypted disk. Image itself still can be encrypted.
+
+terminal_kernel_parameters:
+    $type: text
+    $name: Additional kernel parameters
+    $optional: True

@@ -2,6 +2,7 @@
 {%- set images = salt['pillar.get']('images', {}) %}
 {%- set boot_images = salt['pillar.get']('boot_images', {}) %}
 {%- set initrd = salt['grains.get']('saltboot_initrd') %}
+{%- set terminal_kernel_parameters = salt['pillar.get']('terminal_kernel_parameters', '') %}
 
 {% if initrd %}
 
@@ -87,6 +88,16 @@ saltboot_fstab:
   saltboot.fstab_updated:
     - partitioning: {{ partitioning|yaml }}
     - images: {{ images|yaml }}
+    - require_in:
+      - saltboot: boot_system
+
+saltboot_bootloader:
+  saltboot.bootloader_updated:
+    - partitioning: {{ partitioning|yaml }}
+    - images: {{ images|yaml }}
+    - terminal_kernel_parameters: {{ terminal_kernel_parameters }}
+    - require:
+      - saltboot: saltboot_fstab
     - require_in:
       - saltboot: boot_system
 

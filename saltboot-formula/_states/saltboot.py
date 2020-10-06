@@ -1632,18 +1632,128 @@ def fstab_updated(name, partitioning, images):
             ret['comment'] += '\nfstab was not found.'
             return ret
 
+    return ret
+
+def bootloader_updated(name, partitioning, images, terminal_kernel_parameters=None):
+    '''
+    Ensure that both local bootloader and pxe server are updated
+    with current partitioning and image pillar,
+    The root partition is expected to be mounted on getenv(NEWROOT)
+
+    name
+        not used
+    partitioning
+        pillar data
+    images
+        pillar data
+    terminal_kernel_parameters
+        additional kernel parameters
+
+    Partitioning pillar data example:
+
+    disk1:
+        type: DISK
+        device: /dev/sda
+        disklabel: gpt
+        partitions:
+            p1:
+                 size_MiB: 200
+                 type: 83
+                 format: ext4
+                 mountpoint: /srv/saltboot
+            p2:
+                 size_MiB: 2000
+                 type: 82
+                 format: swap
+            p3:
+                 type: 83
+                 mountpoint: /
+                 image: JeOS
+            p4:
+                 size_MiB: 4000
+                 type: 83
+                 format: btrfs
+                 mountpoint: /data
+
+    Images pillar data example:
+
+    JeOS:
+        - 5.0.0:
+            url: http://branchserver/pub/POS_Image_JeOS5.x86_64-5.0.0.gz
+            name: POS_Image_JeOS5
+            compressed: gzip
+            fstype: ext3
+            size: 1121976320
+            hash: b8fef0e2d1f1cc4df41b957c8def0ff0
+
+    '''
+
+    ret = {
+        'name': name,
+        'changes': {},
+        'result': True,
+        'comment': '',
+        'pchanges': {},
+        }
+
+
+    devmap = _device_map(partitioning)
+    root_device = None
+    salt_device = None
+
+    report_progress = False
     if not __opts__['test']:
+        report_progress = __salt__['file.is_fifo']("/progress")
+
+    if report_progress:
+        __salt__['cmd.run_all']("echo 'Updating bootloader' > /progress ", python_shell=True, output_loglevel='trace')
+
+    for p in devmap.values():
+        if p.get('mountpoint') == '/':
+            root_device = p
+            if 'image' in p:
+                image_id, image_version, image = _get_image_for_part(images, p)
+                luks_pass = image.get('luks_pass')
+            else:
+                luks_pass = p.get('luks_pass')
+
+        if p.get('mountpoint') == '/etc/salt':
+            salt_device = p['device']
+
+    prefix, need_umount = _tmp_mount(root_device['device'], mount = False, luks_pass = luks_pass)
+    if prefix is None:
+        if __opts__['test']:
+            ret['comment'] = "Root partition is not mounted"
+            ret['result'] = None
+        else:
+            ret['comment'] = "Root partition is not mounted"
+            ret['result'] = False
+        return ret
+
+    boot_image = _get_boot_image(partitioning, images)
+
+    if salt_device is None:
+        salt_device = root_device['device']
+
+    ret['comment'] = "salt_device={0}\nboot_image={1}\nroot={2}\nterminal_kernel_parameters={3}".format(salt_device, boot_image, root_device['device'], terminal_kernel_parameters)
+
+    if not __opts__['test']:
+        if terminal_kernel_parameters is None:
+            terminal_kernel_parameters = ''
+
         # make sure raid is configured on local boot
         __salt__['cmd.run_all']("mdadm --detail --scan > {0}".format(os.path.join(prefix, 'etc/mdadm.conf')), python_shell=True, output_loglevel='trace')
 
         # notify branch server that the new config is in place
-        __salt__['cmd.run_all']("salt-call event.send suse/manager/pxe_update 'salt_device={0}' 'boot_image={1}' 'root={2}' with_grains=True".format(salt_device, boot_image, root_device['device']), python_shell=False, output_loglevel='trace')
+        __salt__['cmd.run_all']("salt-call event.send suse/manager/pxe_update 'salt_device={0}' 'boot_image={1}' 'root={2}' 'terminal_kernel_parameters={3}' with_grains=True".format(salt_device, boot_image, root_device['device'], terminal_kernel_parameters), python_shell=False, output_loglevel='trace')
 
         # this can be eventually used for kexec in verify_boot_image
-        __salt__['cmd.run_all']("echo -n 'salt_device={0} root={1}' >/update_kernel_cmdline".format(salt_device, root_device['device']), python_shell=True, output_loglevel='trace')
+        __salt__['cmd.run_all']("echo -n 'salt_device={0} root={1} {2}' >/update_kernel_cmdline".format(salt_device, root_device['device'], terminal_kernel_parameters), python_shell=True, output_loglevel='trace')
+
+        # adjust grub configuration
+        __salt__['file.replace'](os.path.join(prefix, 'etc/default/grub'), '^GRUB_CMDLINE_LINUX=', "GRUB_CMDLINE_LINUX='{0}'".format(terminal_kernel_parameters), append_if_not_found=True)
 
     return ret
-
 
 # return boot image corresponding to system image mounted on /
 def _get_boot_image(partitioning, images):
@@ -1671,8 +1781,24 @@ def _get_boot_image(partitioning, images):
 
     return boot_image_id
 
+def _check_terminal_kernel_parameters(parameters):
+    if parameters is None:
+        return True, 'OK'
 
-def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fail'):
+    kernel_cmdline = str(__salt__['file.read']('/proc/cmdline')).split()
+
+    ok = True
+    msg = 'Missing kernel parameters: '
+
+    for p in parameters.split():
+        if p not in kernel_cmdline:
+            ok = False
+            msg = msg + ' ' + p
+    if ok:
+        msg = 'OK'
+    return ok, msg
+
+def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fail', terminal_kernel_parameters=None):
 
     ret = {
         'name': name,
@@ -1696,8 +1822,10 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
     actual_kernel_version = __grains__.get('kernelrelease')
     requested_kernel_version = boot_image.get('kernel', {}).get('version', '')
 
-    if actual_kernel_version == requested_kernel_version:
-        ret['comment'] += 'Actual kernel version "{0}" matches the pillar for boot image "{1}".\n'.format(requested_kernel_version, boot_image_id)
+    kernel_parameters_ok, kernel_parameters_msg = _check_terminal_kernel_parameters(terminal_kernel_parameters)
+
+    if actual_kernel_version == requested_kernel_version and kernel_parameters_ok:
+        ret['comment'] += 'Actual kernel version "{0}" matches the pillar for boot image "{1}, parameters are OK".\n'.format(requested_kernel_version, boot_image_id)
 
         if __opts__['test']:
             return ret
@@ -1710,7 +1838,11 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
         ret['comment'] += "\n" + res['comment']
         return ret
 
-    ret['comment'] += 'Actual kernel version "{0}" does not match "{1}" from the pillar for boot image "{2}".\n'.format(actual_kernel_version, requested_kernel_version, boot_image_id)
+    if actual_kernel_version != requested_kernel_version:
+        ret['comment'] += 'Actual kernel version "{0}" does not match "{1}" from the pillar for boot image "{2}".\n'.format(actual_kernel_version, requested_kernel_version, boot_image_id)
+
+    if not kernel_parameters_ok:
+        ret['comment'] += '{0}\n'.format(kernel_parameters_msg)
 
     if report_progress:
         __salt__['cmd.run_all']("echo '{0}' > /progress ".format(ret['comment']), python_shell=True, output_loglevel='trace')
