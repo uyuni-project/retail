@@ -16,7 +16,7 @@ images:
             #local_path: ~
 
 boot_images:
-    # "default" boot image is symlinked to "linux" and "initrd.gz" in default pxe boot entry
+    # "default" boot image is symlinked to "linux" and "initrd" in default pxe boot entry
     default:
         name: initrd-netboot-suse-SLES12
         initrd:

@@ -109,7 +109,7 @@ def create(dest, sizeMiB=300):
 
     __salt__['file.write']("{0}/boot/efi/EFI/BOOT/GRUB.CFG".format(tmpmount), configfile)
 
-    res = __salt__['cmd.run_all']("cp '{0}/boot/linux' '{0}/boot/initrd.gz' '{0}/boot/grub.cfg' '{1}/boot'".format(srv_dir, tmpmount))
+    res = __salt__['cmd.run_all']("cp '{0}/boot/linux' '{0}/boot/initrd' '{0}/boot/grub.cfg' '{1}/boot'".format(srv_dir, tmpmount))
     if res['retcode'] > 0:
         return res
 
