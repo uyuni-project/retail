@@ -128,7 +128,7 @@ class Branch:
         self.formulas['pxe'] = {
             'pxe': {
                 'default_kernel_parameters': kernel_parameters,
-                'initrd_name': 'initrd.gz',
+                'initrd_name': 'initrd',
                 'kernel_name': 'linux',
                 'pxe_root_directory': SRV_DIRECTORY
             }

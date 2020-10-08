@@ -137,10 +137,17 @@ boot_images:{{ boot_image_id }}:
 {%- if boot_image_id == default_boot_image %}
 # symlinks for default boot image
 
-{{ rootdir + '/' + boot_dir + '/initrd.gz' }}:
+{{ rootdir + '/' + boot_dir + '/initrd' }}:
   file.symlink:
     - target: {{ local_initrd_file_relative }}
     - force: True
+
+#compatibility symlink
+{{ rootdir + '/' + boot_dir + '/initrd.gz' }}:
+  file.symlink:
+    - target: initrd
+    - force: True
+
 
 {{ rootdir + '/' + boot_dir + '/linux' }}:
   file.symlink:
