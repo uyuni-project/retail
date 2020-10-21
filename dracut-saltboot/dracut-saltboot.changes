@@ -2,6 +2,7 @@
 Wed Sep  9 10:32:16 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Support autosign grains in saltboot intrd
+- Update to version 0.1.1602150122.f08af0a
 
 -------------------------------------------------------------------
 Fri Aug 14 11:46:55 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
