@@ -2,6 +2,7 @@
 Thu Sep 17 10:34:57 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Allow setting terminal kernel parameters in saltboot formula
+- Update to version 0.1.1602150122.f08af0a
 
 -------------------------------------------------------------------
 Thu Jul  2 09:45:33 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
