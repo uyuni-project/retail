@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 10 14:32:07 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- support older SLE11 cryptsetup (bsc#1172287)
+
+-------------------------------------------------------------------
 Thu Jul  2 09:45:33 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Better fix for rounding errors (bsc#1136857)
