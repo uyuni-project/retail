@@ -965,12 +965,20 @@ def _get_image_for_part(images, part):
             pass
     else:
         try:
+            image_version_fallback = None
             sorted_versions = sorted(images[image_id].keys(), key=LooseVersion, reverse=True)
             for check_version in sorted_versions:
                 if not images[image_id][check_version].get('inactive'):
-                    image_version = check_version
-                    image_dict = images[image_id][check_version]
-                    break
+                    if image_version_fallback is None:
+                        image_version_fallback = check_version
+                    if images[image_id][check_version].get('synced'):
+                        image_version = check_version
+                        break
+            if image_version is None:
+                # no synced version found, maybe we run against old SUMA server
+                # try fallback to original behavior
+                image_version = image_version_fallback
+            image_dict = images[image_id][check_version]
         except KeyError:
             pass
 
