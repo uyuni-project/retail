@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 29 15:10:03 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use images with "synced" flag
+
+-------------------------------------------------------------------
 Thu Sep 17 10:34:57 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Allow setting terminal kernel parameters in saltboot formula

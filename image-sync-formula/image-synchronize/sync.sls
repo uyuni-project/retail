@@ -13,6 +13,7 @@ support_packages:
 {%- set rootdir = pillar.get('branch_network', {'srv_directory':'/srv/saltboot'})['srv_directory'] %}
 {%- set boot_dir = "boot" %}
 {%- set whitelist = salt['pillar.get']('image-synchronize:whitelist', []) %}
+{%- set branch_id = salt['pillar.get']('pxe:branch_id', "unknown") %}
 
 {%- for image_id, image_version, image_data in salt['image_sync.filter_images'](whitelist) %}
 {%-     set name = image_data['filename'] %}
@@ -31,6 +32,13 @@ images:{{ image_id }}:{{ image_version }}:
   grains.present:
     - value: {{ image_data|yaml }}
     - force: True
+  event.send:
+    - name: suse/manager/image_synced
+    - data:
+        branch: {{ branch_id }}
+        action: add
+        image_name: {{ image_id }}
+        image_version: {{ image_version }}
 
 {%- endfor %}
 
@@ -52,6 +60,13 @@ images:{{ image_id }}:{{ image_version }}:
   grains.absent:
     - destructive: true
     - force: true
+  event.send:
+    - name: suse/manager/image_synced
+    - data:
+        branch: {{ branch_id }}
+        action: remove
+        image_name: {{ image_id }}
+        image_version: {{ image_version }}
 
 {%- endfor %}
 
