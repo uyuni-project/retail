@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov  9 09:18:20 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Handle organizations in retail_create_delta
+
+-------------------------------------------------------------------
 Wed Oct  7 10:59:52 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use name "initrd" without .gz suffix
