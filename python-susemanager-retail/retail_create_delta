@@ -24,15 +24,16 @@ _cat_list = {
     'tar.xz': 'xzcat'
 }
 
-def image_pillars():
+def image_pillars(org_id=1):
     '''
     Load image pillars
 
     Image pillars are automatically created after image build and are available to all minions
     '''
     ret = {}
-    for pillar in os.listdir(IMAGES_DATA_PATH):
-        pillar_path = os.path.join(IMAGES_DATA_PATH, pillar)
+    pillar_dir = os.path.join(IMAGES_DATA_PATH, "org" + str(org_id))
+    for pillar in os.listdir(pillar_dir):
+        pillar_path = os.path.join(pillar_dir, pillar)
         if os.path.isfile(pillar_path) and pillar.endswith('.sls'):
             try:
                 with open(pillar_path) as p:
@@ -70,7 +71,7 @@ def generate_delta(src_pillar, target_pillar, args):
         shutil.rmtree(tmpdir)
     return out_file, delta_url
 
-def generate_pillar(src_name, src_version, target_name, target_version, delta_file, delta_url):
+def generate_pillar(src_name, src_version, target_name, target_version, delta_file, delta_url, org_id=1):
 
     size = os.path.getsize(delta_file)
     delta_hash = subprocess.check_output(['sha512sum', delta_file]).decode().split(' ')[0]
@@ -95,7 +96,8 @@ def generate_pillar(src_name, src_version, target_name, target_version, delta_fi
         }
     }
 
-    name = os.path.join(IMAGES_DATA_PATH, os.path.basename(delta_file) + '.sls')
+    pillar_dir = os.path.join(IMAGES_DATA_PATH, "org" + str(org_id))
+    name = os.path.join(pillar_dir, os.path.basename(delta_file) + '.sls')
     with open(name, 'w') as outfile:
         yaml.safe_dump(pillar, outfile, default_flow_style=False)
 
@@ -106,6 +108,7 @@ parser = argparse.ArgumentParser(description='Generate delta image')
 parser.add_argument('target', help='Target image (Name-Version)')
 parser.add_argument('source', help='Source image (Name-Version)')
 parser.add_argument('-B', metavar='bytes', help='Passed to xdelta3')
+parser.add_argument('--org', type=int, default=1, help='Organization ID')
 
 parser.add_argument('--log-level', default='INFO', dest='log_level',
                     type=retail_log.log_level_string_to_int, nargs='?',
@@ -135,7 +138,7 @@ else:
 
 
 try:
-    pillars = image_pillars()
+    pillars = image_pillars(args.org)
 
     try:
         target_pillar = pillars['images'][target_name][target_version]
@@ -148,7 +151,7 @@ try:
         raise RuntimeError("Source image is not in pillar")
 
     delta_file, delta_url = generate_delta(src_pillar, target_pillar, args)
-    generate_pillar(src_name, src_version, target_name, target_version, delta_file, delta_url)
+    generate_pillar(src_name, src_version, target_name, target_version, delta_file, delta_url, args.org)
 
 except Exception as e:
     log.error(e)
