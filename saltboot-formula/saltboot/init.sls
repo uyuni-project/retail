@@ -1,14 +1,19 @@
+{%- set initrd = salt['grains.get']('saltboot_initrd') %}
+{% if initrd %}
+
 {%- set partitioning = salt['pillar.get']('partitioning', {}) %}
 {%- set images = salt['pillar.get']('images', {}) %}
 {%- set boot_images = salt['pillar.get']('boot_images', {}) %}
-{%- set initrd = salt['grains.get']('saltboot_initrd') %}
 
-{% if initrd %}
+{%- set saltboot = "saltboot" %}
+{%- if salt['grains.get']('osfinger') == 'SLES-11' %}
+  {% set saltboot = "saltboot-sle11" %}
+{%- endif %}
 
 # partition all disks
 {% for disk_id, disk_data in partitioning.items() if disk_data['type'] == 'DISK' and disk_data.get('disklabel') != 'none' %}
 {{ disk_id }}_partitioned:
-  saltboot.disk_partitioned:
+  {{saltboot}}.disk_partitioned:
     - name: {{ disk_id }}
     - data: {{ disk_data|yaml }}
 {% endfor %}
@@ -16,17 +21,17 @@
 # create / assemble all RAIDs and eventually partition them
 {% for disk_id, disk_data in partitioning.items() if disk_data['type'] == 'RAID' %}
 {{ disk_id }}_created:
-  saltboot.raid_created:
+  {{saltboot}}.raid_created:
     - name: {{ disk_id }}
     - partitioning: {{ partitioning|yaml }}
 
 {% if disk_data.get('disklabel') != 'none' %}
 {{ disk_id }}_partitioned:
-  saltboot.disk_partitioned:
+  {{saltboot}}.disk_partitioned:
     - name: {{ disk_id }}
     - data: {{ disk_data|yaml }}
     - require:
-      - saltboot: {{ disk_id }}_created
+      - {{saltboot}}: {{ disk_id }}_created
 {% endif %}
 {% endfor %}
 
@@ -40,35 +45,35 @@
 {% for part_id, part_data in todo_data.items() %}
 {% if 'image' in part_data %}
 {{ disk_id + part_id }}_deployed:
-  saltboot.image_deployed:
+  {{saltboot}}.image_deployed:
     - name: {{ disk_id + part_id }}
     - partitioning: {{ partitioning|yaml }}
     - images: {{ images|yaml }}
   {% if disk_data.get('disklabel') != 'none' %}
     - require:
-      - saltboot: {{ disk_id }}_partitioned
+      - {{saltboot}}: {{ disk_id }}_partitioned
   {% endif %}
   {% if disk_data['type'] == 'RAID' %}
     - require:
-      - saltboot: {{ disk_id }}_created
+      - {{saltboot}}: {{ disk_id }}_created
   {% endif %}
     - require_in:
-      - saltboot: saltboot_fstab
+      - {{saltboot}}: saltboot_fstab
 {% elif 'format' in part_data %}
 {{ disk_id + part_id }}_formatted:
-  saltboot.device_formatted:
+  {{saltboot}}.device_formatted:
     - name: {{ disk_id + part_id }}
     - partitioning: {{ partitioning|yaml }}
   {% if 'partitions' in disk_data %}
     - require:
-      - saltboot: {{ disk_id }}_partitioned
+      - {{saltboot}}: {{ disk_id }}_partitioned
   {% endif %}
   {% if disk_data['type'] == 'RAID' %}
     - require:
-      - saltboot: {{ disk_id }}_created
+      - {{saltboot}}: {{ disk_id }}_created
   {% endif %}
     - require_in:
-      - saltboot: saltboot_fstab
+      - {{saltboot}}: saltboot_fstab
 {% endif %}
 {% endfor %}
 {% endfor %}
@@ -84,26 +89,26 @@ no_pillar:
 {% else %}
 
 saltboot_fstab:
-  saltboot.fstab_updated:
+  {{saltboot}}.fstab_updated:
     - partitioning: {{ partitioning|yaml }}
     - images: {{ images|yaml }}
     - require_in:
-      - saltboot: boot_system
+      - {{saltboot}}: boot_system
 
 saltboot_force_redeploy:
   grains.absent:
     - destructive: True
     - require_in:
-      - saltboot: boot_system
+      - {{saltboot}}: boot_system
 
 saltboot_force_repartition:
   grains.absent:
     - destructive: True
     - require_in:
-      - saltboot: boot_system
+      - {{saltboot}}: boot_system
 
 boot_system:
-  saltboot.verify_and_boot_system:
+  {{saltboot}}.verify_and_boot_system:
     - partitioning: {{ partitioning|yaml }}
     - images: {{ images|yaml }}
     - boot_images: {{ boot_images|yaml }}
