@@ -116,6 +116,8 @@ class Branch:
 
     def configure_pxe(self, branch, kernel_parameters=None, kernel_parameters_append=False):
         """ configure PXE formula """
+        if "pxe" in self.exclude_formulas:
+            return
 
         default_kernel_parameters = 'panic=60 ramdisk_size=710000 ramdisk_blocksize=4096 vga=0x317 splash=silent'
         if kernel_parameters is None:
@@ -137,6 +139,9 @@ class Branch:
 
     def configure_dhcp(self, domain, nic=None, ip=None, netmask=None, dyn_range=['192.168.1.10', '192.168.1.250'], terminals=[]):
         """ configure DHCPD formula """
+        if "dhcpd" in self.exclude_formulas:
+            return
+
         if not nic:
             nic = self.formulas.get('branch-network', {}).get('branch_network', {}).get('nic')
         if not nic:
@@ -193,6 +198,9 @@ class Branch:
 
     def configure_tftpd(self):
         """ configure TFTP formula """
+        if "tftpd" in self.exclude_formulas:
+            return
+
         dedicated_nic = self.formulas.get('branch-network', {}).get('branch_network', {}).get('dedicated_NIC', False)
         if dedicated_nic:
             ip = self.formulas['branch-network']['branch_network']['ip']
@@ -210,6 +218,9 @@ class Branch:
 
     def configure_vsftpd(self):
         """ configure vsftpd formula """
+        if "vsftpd" in self.exclude_formulas:
+            return
+
         dedicated_nic = self.formulas.get('branch-network', {}).get('branch_network', {}).get('dedicated_NIC', False)
         if dedicated_nic:
             ip = self.formulas['branch-network']['branch_network']['ip']
@@ -239,6 +250,9 @@ class Branch:
 
     def configure_bind(self, branch_server, domain, branch_ip = None, salt_cname = None, network = None, contact = None, options= None, terminals = []):
         """ configure bind formula """
+        if "bind" in self.exclude_formulas:
+            return
+
         dedicated_nic = self.formulas.get('branch-network', {}).get('branch_network', {}).get('dedicated_NIC', False)
         if dedicated_nic:
             if network is None:
@@ -566,8 +580,7 @@ class Branch:
             netmask = yaml.get('netmask', '255.255.255.0')
 
             self.configure_default_nic(configure_firewall=yaml.get('configure_firewall', True), firewall=yaml.get('firewall'))
-            if 'dhcpd' not in self.exclude_formulas:
-                self.configure_dhcp(server_domain, nic=nic, ip=branch_ip, netmask=netmask, dyn_range=dyn_range, terminals=self.terminals)
+            self.configure_dhcp(server_domain, nic=nic, ip=branch_ip, netmask=netmask, dyn_range=dyn_range, terminals=self.terminals)
             self.configure_bind(server_name, server_domain, branch_ip=branch_ip, salt_cname=salt_cname, contact=contact, options=bind_options, terminals=self.terminals)
 
         self.configure_terminal_naming(yaml.get('terminal_naming'))

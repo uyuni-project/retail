@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 24 14:27:23 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Skip internal initialization of excluded formulas
+
+-------------------------------------------------------------------
 Mon Nov  9 09:18:20 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Handle organizations in retail_create_delta
