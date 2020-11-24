@@ -2,6 +2,7 @@
 Mon Nov  9 09:18:20 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Handle organizations in retail_create_delta
+- Update to version 0.1.1605087464.65d1b51
 
 -------------------------------------------------------------------
 Wed Oct  7 10:59:52 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
