@@ -2,6 +2,7 @@
 Thu Oct 29 15:12:09 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Send image_synced event to master
+- Update to version 0.1.1605087464.65d1b51
 
 -------------------------------------------------------------------
 Tue Oct  6 15:27:43 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
