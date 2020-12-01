@@ -1,5 +1,20 @@
 #!/bin/bash
 
+findAndCopySalt() {
+    local MOUNT="$1"
+    local FOUND
+    for sd in $MOUNT/etc/salt $MOUNT/salt $MOUNT ; do
+        if [ -f $sd/minion_id ] ; then # find valid salt configuration
+            mkdir -p /etc/salt
+            cp -pr $sd/* /etc/salt
+            # remove activation key grain copied from the disk with the rest of configuration
+            rm -f /etc/salt/minion.d/kiwi_activation_key.conf
+            FOUND="y"
+        fi
+    done > /dev/null
+    echo $FOUND
+}
+
 if ! declare -f Echo > /dev/null ; then
   Echo() {
     echo "$@"
@@ -55,21 +70,24 @@ ls -l /dev/disk/by-id >&2
 Echo "ls -l /dev/disk/by-path" >&2
 ls -l /dev/disk/by-path >&2
 
+# Get the existing salt configuration
 salt_device=${salt_device:-${root#block:}}
-
 mkdir -p $NEWROOT
 if [ -n "$salt_device" ] && mount "$salt_device" $NEWROOT ; then
-    for sd in $NEWROOT/etc/salt $NEWROOT/salt $NEWROOT ; do
-        if [ -f $sd/minion_id ] ; then # find valid salt configuration
-            mkdir -p /etc/salt
-            cp -pr $sd/* /etc/salt
-            # remove activation key grain copied from the disk with the rest of configuration
-            rm -f /etc/salt/minion.d/kiwi_activation_key.conf
-            HAVE_MINION_ID=y
-            break
+    HAVE_MINION_ID=$(findAndCopySalt $NEWROOT)
+    umount $NEWROOT
+else
+    Echo "No valid root was specified, trying to find partition with salt config" >&2
+    for uuid in `lsblk -n --output UUID`; do
+        Echo "Trying uuid: \"${uuid}\"" >&2
+        if [ -n "uuid" ] && mount -o ro "UUID=$uuid" $NEWROOT; then
+            HAVE_MINION_ID=$(findAndCopySalt $NEWROOT)
+            umount $NEWROOT
+            if [ -n "$HAVE_MINION_ID" ]; then
+                break
+            fi
         fi
     done
-    umount $NEWROOT
 fi
 
 mkdir -p /etc/salt/minion.d
@@ -82,7 +100,7 @@ MACHINE_ID=`salt-call --local --out newline_values_only grains.get machine_id`
 
 # store machine id in grains permanently so it does not change when we switch to
 # initrd and back
-# this is not needed for SALT but SUSE Manager seems to rely on it
+# this is not needed for SALT but SUSE Manager rely on it
 cat > /etc/salt/minion.d/grains-machine_id.conf <<EOT
 grains:
   machine_id: $MACHINE_ID

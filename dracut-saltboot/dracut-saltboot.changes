@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec  1 10:47:59 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
+
+- Add autodiscovery code for salt partitions when not specified
+
+-------------------------------------------------------------------
 Wed Sep  9 10:32:16 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Support autosign grains in saltboot intrd
