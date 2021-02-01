@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb  1 10:03:03 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Create saltboot/defaults file containing basic Branch
+  configuration
+
+-------------------------------------------------------------------
 Mon Mar  2 09:49:31 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Handle application/efi mime type

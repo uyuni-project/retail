@@ -115,3 +115,11 @@ apache2:
   service.running:
     - watch:
       - file: /etc/apache2/conf.d/susemanager-retail.conf
+
+{{ branch_network_setup.srv_directory }}/defaults:
+  file.managed:
+    - source: salt://branch-network/files/defaults.template
+    - user: root
+    - group: root
+    - mode: 644
+    - template: jinja

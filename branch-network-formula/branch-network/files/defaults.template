@@ -1,0 +1,13 @@
+MINION_ID_PREFIX={{ salt['pillar.get']('pxe:branch_id', 'UnknownBranch') }}
+{%- if salt['pillar.get']('pxe:disable_id_prefix') %}
+DISABLE_ID_PREFIX=1
+{%- endif %}
+{%- if salt['pillar.get']('pxe:disable_unique_suffix') %}
+DISABLE_UNIQUE_SUFFIX=1
+{%- endif %}
+{%- set minion_id_naming = salt['pillar.get']('pxe:minion_id_naming', 'Hostname') %}
+{%- if minion_id_naming == 'FQDN' %}
+USE_FQDN_MINION_ID=1
+{%- elif minion_id_naming == 'HWType' %}
+DISABLE_HOSTNAME_ID=1
+{%- endif %}
