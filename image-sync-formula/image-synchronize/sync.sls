@@ -9,13 +9,15 @@ support_packages:
       - dosfstools
 
 {%- set boot_images = pillar.get('boot_images', {}) %}
-{%- set boot_images_in_use = {} %}
 {%- set rootdir = pillar.get('branch_network', {'srv_directory':'/srv/saltboot'})['srv_directory'] %}
 {%- set boot_dir = "boot" %}
 {%- set whitelist = salt['pillar.get']('image-synchronize:whitelist', []) %}
 {%- set branch_id = salt['pillar.get']('pxe:branch_id', "unknown") %}
 
-{%- for image_id, image_version, image_data in salt['image_sync.filter_images'](whitelist) %}
+{%- for arch_list, arch_suffix in [(['x86_64', 'i586', 'i686'], ''), (['aarch64'], '_arm64')] %}
+{%- set boot_images_in_use = {} %}
+
+{%- for image_id, image_version, image_data in salt['image_sync.filter_images'](whitelist, arch_list) %}
 {%-     set name = image_data['filename'] %}
 {%-     set local_path = rootdir + '/' + image_data['sync'].get('local_path') %}
 {%-     set local_file = local_path + '/' + name %}
@@ -42,7 +44,7 @@ images:{{ image_id }}:{{ image_version }}:
 
 {%- endfor %}
 
-{%- for image_id, image_version, image_data in salt['image_sync.deleted_images']() %}
+{%- for image_id, image_version, image_data in salt['image_sync.deleted_images'](arch_list) %}
 {%-     set name = image_data['filename'] %}
 {%-     set local_path_relative = image_data['sync'].get('local_path') %}
 {%-     set local_path = rootdir + '/' + local_path_relative %}
@@ -71,7 +73,7 @@ images:{{ image_id }}:{{ image_version }}:
 {%- endfor %}
 
 
-{%- set default_boot_image = salt['pillar.get']('image-synchronize:default_boot_image', 'default') %}
+{%- set default_boot_image = salt['pillar.get']('image-synchronize:default_boot_image' + arch_suffix, 'default' + arch_suffix) %}
 {%- if default_boot_image not in boot_images_in_use %}
 {%-   if default_boot_image not in boot_images %}
 {%-     if boot_images_in_use|length > 0 %}
@@ -152,19 +154,20 @@ boot_images:{{ boot_image_id }}:
 {%- if boot_image_id == default_boot_image %}
 # symlinks for default boot image
 
-{{ rootdir + '/' + boot_dir + '/initrd' }}:
+{{ rootdir + '/' + boot_dir + '/initrd' + arch_suffix }}:
   file.symlink:
     - target: {{ local_initrd_file_relative }}
     - force: True
 
+%-   if arch_suffix == '' %}
 #compatibility symlink
 {{ rootdir + '/' + boot_dir + '/initrd.gz' }}:
   file.symlink:
     - target: initrd
     - force: True
+{%-  endif %}
 
-
-{{ rootdir + '/' + boot_dir + '/linux' }}:
+{{ rootdir + '/' + boot_dir + '/linux' + arch_suffix }}:
   file.symlink:
     - target: {{ local_kernel_file_relative }}
     - force: True
@@ -173,7 +176,7 @@ boot_images:{{ boot_image_id }}:
 {%- endfor %}
 
 
-{%- for boot_image_id, boot_image_data in salt['image_sync.deleted_boot_images'](boot_images_in_use) %}
+{%- for boot_image_id, boot_image_data in salt['image_sync.deleted_boot_images'](boot_images_in_use, arch_list) %}
 {%-   set local_path = rootdir + '/' + boot_dir + '/' + boot_image_data['sync']['local_path'] or '' %}
 {%-   set local_path_relative = boot_image_data['sync']['local_path'] or '' %}
 {%-   set kernel_name = boot_image_data['kernel']['filename'] %}
@@ -197,6 +200,8 @@ boot_images:{{ boot_image_id }}:
   grains.absent:
     - destructive: true
     - force: true
+
+{%- endfor %}
 
 {%- endfor %}
 
