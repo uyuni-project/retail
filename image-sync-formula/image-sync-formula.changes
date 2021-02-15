@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 10 11:53:58 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Create default for arm64 images: linux_arm64 and initrd_arm64 
+
+-------------------------------------------------------------------
 Thu Oct 29 15:12:09 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Send image_synced event to master
