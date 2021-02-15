@@ -90,6 +90,21 @@ EOT
 
 echo $MACHINE_ID > /etc/machine-id
 
+curl -s http://salt/saltboot/defaults > /tmp/defaults
+if [ \! -s /tmp/defaults ] ; then
+    busybox tftp -g -l /tmp/defaults -r defaults $BOOTSERVERADDR
+fi
+
+if [ -s /tmp/defaults ] ; then
+    [ -z "$MINION_ID_PREFIX" ] && eval `grep ^MINION_ID_PREFIX= /tmp/defaults`
+    [ -z "$DISABLE_ID_PREFIX" ] && eval `grep ^DISABLE_ID_PREFIX= /tmp/defaults`
+    [ -z "$DISABLE_UNIQUE_SUFFIX" ] && eval `grep ^DISABLE_UNIQUE_SUFFIX= /tmp/defaults`
+    if [ -z "$USE_FQDN_MINION_ID" -a -z "$DISABLE_HOSTNAME_ID" ] ; then
+        eval `grep ^USE_FQDN_MINION_ID= /tmp/defaults`
+        eval `grep ^DISABLE_HOSTNAME_ID= /tmp/defaults`
+    fi
+fi
+
 SALT_AUTOSIGN_GRAINS=$(getarg SALT_AUTOSIGN_GRAINS=)
 if [ -n "$SALT_AUTOSIGN_GRAINS" ] ; then
     grains=
