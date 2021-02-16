@@ -159,7 +159,7 @@ boot_images:{{ boot_image_id }}:
     - target: {{ local_initrd_file_relative }}
     - force: True
 
-%-   if arch_suffix == '' %}
+{%-   if arch_suffix == '' %}
 #compatibility symlink
 {{ rootdir + '/' + boot_dir + '/initrd.gz' }}:
   file.symlink:
