@@ -100,6 +100,7 @@ saltboot_bootloader:
   {{saltboot}}.bootloader_updated:
     - partitioning: {{ partitioning|yaml }}
     - images: {{ images|yaml }}
+    - boot_images: {{ boot_images|yaml }}
     - terminal_kernel_parameters: {{ terminal_kernel_parameters }}
     - require:
       - {{saltboot}}: saltboot_fstab
