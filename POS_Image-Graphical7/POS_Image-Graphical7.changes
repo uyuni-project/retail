@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 22 14:51:57 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Update install-local-bootloader.service for recent saltboot
+
+-------------------------------------------------------------------
 Fri Jan 29 12:49:40 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use linuxefi only on x86
