@@ -1642,7 +1642,7 @@ def fstab_updated(name, partitioning, images):
 
     return ret
 
-def bootloader_updated(name, partitioning, images, terminal_kernel_parameters=None):
+def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_parameters=None):
     '''
     Ensure that both local bootloader and pxe server are updated
     with current partitioning and image pillar,
@@ -1738,12 +1738,13 @@ def bootloader_updated(name, partitioning, images, terminal_kernel_parameters=No
             ret['result'] = False
         return ret
 
-    boot_image = _get_boot_image(partitioning, images)
+    boot_image_id = _get_boot_image(partitioning, images)
+    boot_image = boot_images.get(boot_image_id)
 
     if salt_device is None:
         salt_device = root_device['device']
 
-    ret['comment'] = "salt_device={0}\nboot_image={1}\nroot={2}\nterminal_kernel_parameters={3}".format(salt_device, boot_image, root_device['device'], terminal_kernel_parameters)
+    ret['comment'] = "salt_device={0}\nboot_image={1}\nroot={2}\nterminal_kernel_parameters={3}".format(salt_device, boot_image_id, root_device['device'], terminal_kernel_parameters)
 
     if not __opts__['test']:
         if terminal_kernel_parameters is None:
@@ -1753,13 +1754,35 @@ def bootloader_updated(name, partitioning, images, terminal_kernel_parameters=No
         __salt__['cmd.run_all']("mdadm --detail --scan > {0}".format(os.path.join(prefix, 'etc/mdadm.conf')), python_shell=True, output_loglevel='trace')
 
         # notify branch server that the new config is in place
-        __salt__['cmd.run_all']("salt-call event.send suse/manager/pxe_update 'salt_device={0}' 'boot_image={1}' 'root={2}' 'terminal_kernel_parameters={3}' with_grains=True".format(salt_device, boot_image, root_device['device'], terminal_kernel_parameters), python_shell=False, output_loglevel='trace')
+        __salt__['cmd.run_all']("salt-call event.send suse/manager/pxe_update 'salt_device={0}' 'boot_image={1}' 'root={2}' 'terminal_kernel_parameters={3}' with_grains=True".format(salt_device, boot_image_id, root_device['device'], terminal_kernel_parameters), python_shell=False, output_loglevel='trace')
 
         # this can be eventually used for kexec in verify_boot_image
         __salt__['cmd.run_all']("echo -n 'salt_device={0} root={1} {2}' >/update_kernel_cmdline".format(salt_device, root_device['device'], terminal_kernel_parameters), python_shell=True, output_loglevel='trace')
 
         # adjust grub configuration
         __salt__['file.replace'](os.path.join(prefix, 'etc/default/grub'), '^GRUB_CMDLINE_LINUX=', "GRUB_CMDLINE_LINUX='{0}'".format(terminal_kernel_parameters), append_if_not_found=True)
+
+        __salt__['cmd.run_all']('if [ -e /sys/firmware/efi ]; then sed -i -e "s|^LOADER_TYPE=.*|LOADER_TYPE=\\"grub2-efi\\"|" ' + prefix + '/etc/sysconfig/bootloader; else sed -i -e "s|^LOADER_TYPE=.*|LOADER_TYPE=\\"grub2\\"|" ' + prefix + '/etc/sysconfig/bootloader; fi', python_shell=True)
+
+        if not os.path.exists(os.path.join(prefix, 'boot/grub2/grub.cfg')):
+            # local boot is not configured
+            # download kernel and initrd for kexec and for local boot
+            #
+            # failures do matter only if kernel version differs and kexec fails, so do not set ret['result'] here
+            try:
+                res = __salt__['cmd.run_all'](_download_url_cmd(boot_image.get('kernel', {}).get('url', ''), os.path.join(prefix, 'boot/Image')))
+                if res['retcode'] > 0:
+                    ret['comment'] += res['stdout'] + res['stderr']
+                res = __salt__['cmd.run_all'](_download_url_cmd(boot_image.get('initrd', {}).get('url', ''), os.path.join(prefix, 'boot/initrd')))
+                if res['retcode'] > 0:
+                    ret['comment'] += res['stdout'] + res['stderr']
+            except ValueError as e:
+                ret['comment'] += "Can't download current kernel/initrd: " + str(e.args)
+
+            # install bootloader
+            res = __salt__['cmd.run_chroot'](prefix, "sh -c 'mount -a ; pbl --install ; pbl --config ; test -f /boot/grub2/grub.cfg '", binds=["/dev", "/proc", "/sys"])
+            if res['retcode'] > 0:
+                ret['comment'] += 'Bootloader installation failed.\n' + res['stdout'] + res['stderr']
 
     return ret
 
@@ -1820,6 +1843,8 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
     if not __opts__['test']:
         report_progress = __salt__['file.is_fifo']("/progress")
 
+    newroot = __salt__['environ.get']("NEWROOT", default="/mnt")
+
     boot_image_id = _get_boot_image(partitioning, images)
     boot_image = boot_images.get(boot_image_id)
     if boot_image is None:
@@ -1864,30 +1889,18 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
         return ret
 
     if action == 'kexec':
-        try:
-            kernel_download_cmd = _download_url_cmd(boot_image.get('kernel', {}).get('url', ''), '/kexec_tmp/kernel')
-            initrd_download_cmd = _download_url_cmd(boot_image.get('initrd', {}).get('url', ''), '/kexec_tmp/initrd')
-        except ValueError as e:
-            ret['comment'] += 'Kexec failed, doing normal reboot: ' + str(e.args)
+        kexec_opt = ''
+        res = __salt__['cmd.run_all']("kexec --help |grep -q kexec-syscall-auto", python_shell=True)
+        if res['retcode'] == 0:
+            kexec_opt += "--kexec-syscall-auto "
+
+        # try to load kexec
+        cmd = 'kexec ' + kexec_opt + ' -l ' + newroot + '/boot/Image --reuse-cmdline --append="$(cat /update_kernel_cmdline)" --initrd=' + newroot + '/boot/initrd'
+
+        res = __salt__['cmd.run_all'](cmd, python_shell=True)
+        if res['retcode'] > 0:
+            ret['comment'] += 'Kexec failed, doing normal reboot.\n' + res['stdout'] + res['stderr']
             action = 'reboot'
-        else:
-            kexec_opt = ''
-            res = __salt__['cmd.run_all']("kexec --help |grep -q kexec-syscall-auto", python_shell=True)
-            if res['retcode'] == 0:
-                kexec_opt += "--kexec-syscall-auto "
-
-            # try to load kexec
-            cmd = 'set -e -x ;'
-            cmd += 'mkdir -p /kexec_tmp ; umount /kexec_tmp || true ;'
-            cmd += 'mount -t tmpfs -o size=500M,nr_inodes=1k,mode=0755 tmpfs /kexec_tmp ;'
-            cmd += kernel_download_cmd + ' ;'
-            cmd += initrd_download_cmd + ' ;'
-            cmd += 'kexec ' + kexec_opt + ' -l /kexec_tmp/kernel --reuse-cmdline --append="$(cat /update_kernel_cmdline)" --initrd=/kexec_tmp/initrd'
-
-            res = __salt__['cmd.run_all'](cmd, python_shell=True)
-            if res['retcode'] > 0:
-                ret['comment'] += 'Kexec failed, doing normal reboot.\n' + res['stdout'] + res['stderr']
-                action = 'reboot'
 
     __states__['file.append'](
         '/salt_config',
