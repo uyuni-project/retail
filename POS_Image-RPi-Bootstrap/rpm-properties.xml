@@ -1,0 +1,11 @@
+<props>
+  <summary>Bootable Raspberry Pi SD Card image with Saltboot initrd</summary>
+  <description>
+    Bootable Raspberry Pi SD Card image with Saltboot initrd
+  </description>
+  <license>GPL-2.0</license>
+  <licensefile>LICENSE</licensefile>
+  <group>System/Management</group>
+  <targetboot>/srv/POS_Image-RPi-Bootstrap</targetboot>
+  <targetimage>/srv/POS_Image-RPi-Bootstrap/image</targetimage>
+</props>
