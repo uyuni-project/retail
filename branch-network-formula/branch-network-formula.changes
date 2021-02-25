@@ -3,6 +3,7 @@ Mon Feb  1 10:03:03 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Create saltboot/defaults file containing basic Branch
   configuration
+- Update to version 0.1.1614159840.ef7cad5
 
 -------------------------------------------------------------------
 Mon Mar  2 09:49:31 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>

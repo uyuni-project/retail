@@ -2,6 +2,7 @@
 Tue Nov 24 14:27:23 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Skip internal initialization of excluded formulas
+- Update to version 1.0.1614159840.ef7cad5
 
 -------------------------------------------------------------------
 Mon Nov  9 09:18:20 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>

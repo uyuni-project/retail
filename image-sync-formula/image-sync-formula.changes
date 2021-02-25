@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Wed Feb 10 11:53:58 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
-- Create default for arm64 images: linux_arm64 and initrd_arm64 
+- Create default for arm64 images: linux_arm64 and initrd_arm64
+- Update to version 0.1.1614159840.ef7cad5
 
 -------------------------------------------------------------------
 Thu Oct 29 15:12:09 UTC 2020 - Vladimir Nadvornik <nadvornik@suse.com>

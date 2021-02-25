@@ -2,6 +2,7 @@
 Fri Feb 19 09:13:57 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Install bootloader before kexec/reboot
+- Update to version 0.1.1614159840.ef7cad5
 
 -------------------------------------------------------------------
 Tue Nov 10 14:32:07 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
