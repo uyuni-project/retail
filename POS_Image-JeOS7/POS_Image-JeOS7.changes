@@ -2,6 +2,7 @@
 Mon Feb 22 14:52:47 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Update install-local-bootloader.service for recent saltboot
+- Update to version 0.1.1614159840.ef7cad5
 
 -------------------------------------------------------------------
 Fri Jan 29 12:48:29 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
