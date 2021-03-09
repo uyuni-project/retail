@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar  9 14:06:12 UTC 2021 - Ondrej Holecek <oholecek@suse.com>
+
+- Backport SLE11 saltboot split (bsc#1182771)
+- Update to version 0.1.1615295998.2e55309
+
+-------------------------------------------------------------------
 Tue Nov 10 14:32:07 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - support older SLE11 cryptsetup (bsc#1172287)
