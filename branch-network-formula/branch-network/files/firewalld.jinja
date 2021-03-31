@@ -74,7 +74,7 @@ common_services:
     - masquerade: False
   {%- endif %}
 
-{%- if salt['pillar.get']('branch_network:firewall:enable_NAT') %}
+{%- if salt['pillar.get']('branch_network:firewall:enable_route') %}
 net.ipv4.conf.all.forwarding:
   sysctl.present:
     - value: 1

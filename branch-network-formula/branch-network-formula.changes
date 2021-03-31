@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 31 10:04:32 UTC 2021 - Ondrej Holecek <oholecek@suse.com>
+
+- Fix 'enable route' not having efect on firewalld based systems
+
+-------------------------------------------------------------------
 Mon Feb  1 10:03:03 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Create saltboot/defaults file containing basic Branch
