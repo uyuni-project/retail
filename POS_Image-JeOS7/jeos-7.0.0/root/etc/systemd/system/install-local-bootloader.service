@@ -13,7 +13,7 @@ Type=oneshot
 ExecStartPre=/bin/bash -c 'if [ -e /sys/firmware/efi ]; then sed -i -e "s|^LOADER_TYPE=.*|LOADER_TYPE=\\"grub2-efi\\"|" /etc/sysconfig/bootloader; fi'
 ExecStartPre=/bin/bash -c 'if [ ! -e /sys/firmware/efi ]; then sed -i -e "s|^LOADER_TYPE=.*|LOADER_TYPE=\\"grub2\\"|" /etc/sysconfig/bootloader; fi'
 ExecStart=/bin/bash -c 'pbl --install ; dracut -f ; pbl --config '
-ExecStartPost=touch /var/lib/misc/bootloader_updated
+ExecStartPost=/usr/bin/touch /var/lib/misc/bootloader_updated
 
 [Install]
 WantedBy=multi-user.target
