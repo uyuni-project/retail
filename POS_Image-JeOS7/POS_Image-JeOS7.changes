@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 14 08:49:34 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use absolute path in bootloader service
+
+-------------------------------------------------------------------
 Mon Feb 22 14:52:47 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Update install-local-bootloader.service for recent saltboot
