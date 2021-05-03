@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May  3 14:39:11 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Better error reporting on boot image download (bsc#1185509)
+
+-------------------------------------------------------------------
 Fri Feb 19 09:13:57 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Install bootloader before kexec/reboot
