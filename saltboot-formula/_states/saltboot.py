@@ -1770,19 +1770,21 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
             #
             # failures do matter only if kernel version differs and kexec fails, so do not set ret['result'] here
             try:
-                res = __salt__['cmd.run_all'](_download_url_cmd(boot_image.get('kernel', {}).get('url', ''), os.path.join(prefix, 'boot/Image')))
+                cmd = _download_url_cmd(boot_image.get('kernel', {}).get('url', ''), os.path.join(prefix, 'boot/Image'))
+                res = __salt__['cmd.run_all'](cmd)
                 if res['retcode'] > 0:
-                    ret['comment'] += res['stdout'] + res['stderr']
-                res = __salt__['cmd.run_all'](_download_url_cmd(boot_image.get('initrd', {}).get('url', ''), os.path.join(prefix, 'boot/initrd')))
+                    ret['comment'] += "\nKernel download failed:\n" + cmd + " : " + res['stdout'] + res['stderr']
+                cmd = _download_url_cmd(boot_image.get('initrd', {}).get('url', ''), os.path.join(prefix, 'boot/initrd'))
+                res = __salt__['cmd.run_all'](cmd)
                 if res['retcode'] > 0:
-                    ret['comment'] += res['stdout'] + res['stderr']
+                    ret['comment'] += "\nInitrd download failed:\n" + cmd + " : " + res['stdout'] + res['stderr']
             except ValueError as e:
-                ret['comment'] += "Can't download current kernel/initrd: " + str(e.args)
+                ret['comment'] += "\nCan't download current kernel/initrd: " + str(e.args)
 
             # install bootloader
             res = __salt__['cmd.run_chroot'](prefix, "sh -c 'mount -a ; pbl --install ; pbl --config ; test -f /boot/grub2/grub.cfg '", binds=["/dev", "/proc", "/sys"])
             if res['retcode'] > 0:
-                ret['comment'] += 'Bootloader installation failed.\n' + res['stdout'] + res['stderr']
+                ret['comment'] += '\nBootloader installation failed.\n' + res['stdout'] + res['stderr']
 
     return ret
 
