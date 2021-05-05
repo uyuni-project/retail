@@ -2,6 +2,7 @@
 Wed Apr 14 08:49:34 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use absolute path in bootloader service
+- Update to version 0.1.1620138994.d7f39a0
 
 -------------------------------------------------------------------
 Mon Feb 22 14:52:47 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
