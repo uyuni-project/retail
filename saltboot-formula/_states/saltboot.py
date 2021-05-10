@@ -1771,11 +1771,11 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
             # failures do matter only if kernel version differs and kexec fails, so do not set ret['result'] here
             try:
                 cmd = _download_url_cmd(boot_image.get('kernel', {}).get('url', ''), os.path.join(prefix, 'boot/Image'))
-                res = __salt__['cmd.run_all'](cmd)
+                res = __salt__['cmd.run_all'](cmd, python_shell=True)
                 if res['retcode'] > 0:
                     ret['comment'] += "\nKernel download failed:\n" + cmd + " : " + res['stdout'] + res['stderr']
                 cmd = _download_url_cmd(boot_image.get('initrd', {}).get('url', ''), os.path.join(prefix, 'boot/initrd'))
-                res = __salt__['cmd.run_all'](cmd)
+                res = __salt__['cmd.run_all'](cmd, python_shell=True)
                 if res['retcode'] > 0:
                     ret['comment'] += "\nInitrd download failed:\n" + cmd + " : " + res['stdout'] + res['stderr']
             except ValueError as e:
