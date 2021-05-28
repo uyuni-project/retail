@@ -103,6 +103,8 @@ if [ -s /tmp/defaults ] ; then
         eval `grep ^USE_FQDN_MINION_ID= /tmp/defaults`
         eval `grep ^DISABLE_HOSTNAME_ID= /tmp/defaults`
     fi
+    [ -z "$DEFAULT_KERNEL_PARAMETERS" ] && eval `grep ^DEFAULT_KERNEL_PARAMETERS= /tmp/defaults`
+    export DEFAULT_KERNEL_PARAMETERS
 fi
 
 SALT_AUTOSIGN_GRAINS=$(getarg SALT_AUTOSIGN_GRAINS=)

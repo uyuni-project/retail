@@ -11,3 +11,4 @@ USE_FQDN_MINION_ID=1
 {%- elif minion_id_naming == 'HWType' %}
 DISABLE_HOSTNAME_ID=1
 {%- endif %}
+DEFAULT_KERNEL_PARAMETERS='{{ salt['pillar.get']('pxe:default_kernel_parameters', '') }}'

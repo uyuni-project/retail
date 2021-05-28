@@ -1749,6 +1749,7 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
     if not __opts__['test']:
         if terminal_kernel_parameters is None:
             terminal_kernel_parameters = ''
+        default_kernel_parameters = __salt__['environ.get']("DEFAULT_KERNEL_PARAMETERS", default="")
 
         # make sure raid is configured on local boot
         __salt__['cmd.run_all']("mdadm --detail --scan > {0}".format(os.path.join(prefix, 'etc/mdadm.conf')), python_shell=True, output_loglevel='trace')
@@ -1757,10 +1758,12 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
         __salt__['cmd.run_all']("salt-call event.send suse/manager/pxe_update 'salt_device={0}' 'boot_image={1}' 'root={2}' 'terminal_kernel_parameters={3}' with_grains=True".format(salt_device, boot_image_id, root_device['device'], terminal_kernel_parameters), python_shell=False, output_loglevel='trace')
 
         # this can be eventually used for kexec in verify_boot_image
-        __salt__['cmd.run_all']("echo -n 'salt_device={0} root={1} {2}' >/update_kernel_cmdline".format(salt_device, root_device['device'], terminal_kernel_parameters), python_shell=True, output_loglevel='trace')
+        __salt__['cmd.run_all']("echo -n '{0} salt_device={1} root={2} {3}' >/update_kernel_cmdline".format(
+            default_kernel_parameters, salt_device, root_device['device'], terminal_kernel_parameters), python_shell=True, output_loglevel='trace')
 
         # adjust grub configuration
-        __salt__['file.replace'](os.path.join(prefix, 'etc/default/grub'), '^GRUB_CMDLINE_LINUX=', "GRUB_CMDLINE_LINUX='{0}'".format(terminal_kernel_parameters), append_if_not_found=True)
+        __salt__['file.replace'](os.path.join(prefix, 'etc/default/grub'), '^GRUB_CMDLINE_LINUX=.*', "GRUB_CMDLINE_LINUX='{0} {1}'".format(
+            default_kernel_parameters, terminal_kernel_parameters), append_if_not_found=True)
 
         __salt__['cmd.run_all']('if [ -e /sys/firmware/efi ]; then sed -i -e "s|^LOADER_TYPE=.*|LOADER_TYPE=\\"grub2-efi\\"|" ' + prefix + '/etc/sysconfig/bootloader; else sed -i -e "s|^LOADER_TYPE=.*|LOADER_TYPE=\\"grub2\\"|" ' + prefix + '/etc/sysconfig/bootloader; fi', python_shell=True)
 
