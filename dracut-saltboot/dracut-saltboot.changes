@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri May 28 09:27:54 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use kernel parameters from PXE formula also for local boot
+
+-------------------------------------------------------------------
 Mon Feb  1 10:05:17 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use saltboot/defaults file

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri May 28 09:27:21 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use kernel parameters from PXE formula also for local boot
+
+-------------------------------------------------------------------
 Wed Mar 31 10:04:32 UTC 2021 - Ondrej Holecek <oholecek@suse.com>
 
 - Fix 'enable route' not having efect on firewalld based systems
