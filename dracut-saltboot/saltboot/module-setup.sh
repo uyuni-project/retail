@@ -39,6 +39,7 @@ install() {
     inst_multiple -o $(rpm -ql $(get_python_pkg_deps_recursive salt salt-minion) | \
                   grep -v '\.pyc$\|/etc/salt/minion_id\|/etc/salt/pki\|/usr/share/doc/\|/usr/share/man' )
     inst_multiple -o /usr/lib64/libffi.so.7 # dracut dependency solver does not see this
+    inst_multiple -o /usr/lib64/libexpat.so.1 # workaround for bsc#1188846
     inst_multiple -o grep dig ldconfig date dbus-uuidgen systemd-machine-id-setup dmidecode seq parted \
                      lsblk partprobe mdadm dcounter mkswap curl head md5sum resize2fs mkfs mkfs.btrfs \
                      mkfs.ext2 mkfs.ext3 mkfs.ext4 mkfs.fat mkfs.vfat mkfs.xfs sync cryptsetup busybox \

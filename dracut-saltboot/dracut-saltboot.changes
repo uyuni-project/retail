@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 28 14:11:14 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Force installation of libexpat.so.1 (bsc#1188846)
+
+-------------------------------------------------------------------
 Fri May 28 09:27:54 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use kernel parameters from PXE formula also for local boot
