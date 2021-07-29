@@ -2,6 +2,7 @@
 Wed Jul 28 14:11:14 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Force installation of libexpat.so.1 (bsc#1188846)
+- Update to version 0.1.1627546504.96a0b3e
 
 -------------------------------------------------------------------
 Fri May 28 09:27:54 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
