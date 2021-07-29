@@ -2,6 +2,7 @@
 Fri May 28 09:27:21 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use kernel parameters from PXE formula also for local boot
+- Update to version 0.1.1627546504.96a0b3e
 
 -------------------------------------------------------------------
 Wed Mar 31 10:04:32 UTC 2021 - Ondrej Holecek <oholecek@suse.com>

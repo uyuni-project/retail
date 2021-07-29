@@ -2,11 +2,13 @@
 Fri May 28 09:25:58 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use kernel parameters from PXE formula also for local boot
+- Update to version 0.1.1627546504.96a0b3e
 
 -------------------------------------------------------------------
 Mon May 10 14:08:28 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
-- Fix execution of boot image download command
+- Fix execution of boot image download command (bsc#1185509)
+- Update to version 0.1.1620661758.3af6be9
 
 -------------------------------------------------------------------
 Mon May  3 14:39:11 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
