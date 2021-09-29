@@ -2,6 +2,7 @@
 Wed Aug  4 12:08:43 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Fix dependencies of python libs (bsc#1188846)
+- Update to version 0.1.1628156312.dbd0dec
 
 -------------------------------------------------------------------
 Wed Jul 28 14:11:14 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
