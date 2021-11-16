@@ -1626,7 +1626,7 @@ def fstab_updated(name, partitioning, images):
 
     return ret
 
-def bootloader_updated(name, partitioning, images, terminal_kernel_parameters=None):
+def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_parameters=None):
     '''
     Ensure that both local bootloader and pxe server are updated
     with current partitioning and image pillar,
