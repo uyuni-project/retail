@@ -82,14 +82,14 @@ def _try_umount_device(device, depth = 0):
 
     if devtree.get('type') == 'crypt':
         __salt__['cmd.run_all']("cryptsetup close " + device, output_loglevel='trace')
-    elif depth > 0 and devtree.get('type').startswith('raid'):
+    elif depth > 0 and devtree.get('type', '').startswith('raid'):
         __salt__['cmd.run_all']("mdadm --stop " + device, output_loglevel='trace')
         for i in range(5):
             # verify that the raid is already stopped - it may take some time
             tree = _lsblk_compat(device)
             if tree:
                 devtree = tree['blockdevices'][0]
-                if devtree.get('type').startswith('raid'):
+                if devtree.get('type', '').startswith('raid'):
                     __salt__['cmd.run_all']("mdadm --stop " + device, output_loglevel='trace')
                     time.sleep(1)
                     continue
