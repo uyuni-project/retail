@@ -1,9 +1,10 @@
 -------------------------------------------------------------------
 Tue Nov 16 13:32:48 UTC 2021 - Ondrej Holecek <oholecek@suse.com>
 
-- Prevent python failure under some circumstances when filesystem
-  was not set (bsc#1192440)
-- Add missing boot_images option in SLE11 saltboot version
+- Update to version 0.1.1637232240.87d79ed
+  * Prevent python failure under some circumstances when filesystem
+    was not set (bsc#1192440)
+  * Add missing boot_images option in SLE11 saltboot version
 
 -------------------------------------------------------------------
 Fri May 28 09:25:58 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
