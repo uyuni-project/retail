@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec 13 16:46:22 UTC 2021 - Ondrej Holecek <oholecek@suse.com>
+
+- Enable one-time autosign grains for SLE12 and SLE11 clients
+
+-------------------------------------------------------------------
 Tue Mar 24 10:04:37 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
 
 - Limit architectures to i585 and x86_64 depending SLE version

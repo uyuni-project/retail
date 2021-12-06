@@ -113,6 +113,27 @@ grains:
 EOT
 fi
 
+if [ -n "$SALT_AUTOSIGN_GRAINS" ] ; then
+    grains=
+    agrains=
+    IFS=, read -a grains_arr <<< "$SALT_AUTOSIGN_GRAINS"
+    for g in "${grains_arr[@]}" ; do
+        name=${g%%:*}
+        agrains="$agrains    - $name"$'\n'
+        if [[ $g == *:* ]]; then
+            value=${g#*:}
+            grains="$grains    $name: $value"$'\n'
+        fi
+    done
+    cat > /etc/salt/minion.d/autosign-grains-onetime.conf <<EOT
+grains:
+$grains
+
+autosign_grains:
+$agrains
+EOT
+fi
+
 # send basic grains in the minion start event. This allows salt master to work with saltboot minion
 # with 1 (new registration) or 0 (already existing registration) grains calls
 cat > /etc/salt/minion.d/grains-startup-event.conf <<EOT
