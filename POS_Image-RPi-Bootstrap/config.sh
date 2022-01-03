@@ -42,18 +42,10 @@ CONSOLE_FONT="eurlatgr.psfu"
 #--------------------------------------
 echo ** "reset machine settings"
 
-# FIXME: 
-#sed -i 's/^root:[^:]*:/root:*:/' /etc/shadow
 rm -f /etc/machine-id \
       /var/lib/zypp/AnonymousUniqueId \
       /var/lib/systemd/random-seed \
       /var/lib/dbus/machine-id
-
-#======================================
-# SuSEconfig
-#--------------------------------------
-echo "** Running suseConfig..."
-suseConfig
 
 echo "** Running ldconfig..."
 /sbin/ldconfig
@@ -93,7 +85,8 @@ chkconfig sshd on
 #======================================
 # Remove doc files
 #--------------------------------------
-baseStripDocs
+rm -rf /usr/share/doc/*
+rm -rf /usr/share/man/man*/*
 
 #======================================
 # Sysconfig Update
@@ -101,9 +94,6 @@ baseStripDocs
 echo '** Update sysconfig entries...'
 
 baseUpdateSysConfig /etc/sysconfig/network/dhcp DHCLIENT_SET_HOSTNAME yes
-
-# Enable firewalld
-chkconfig firewalld on
 
 # Set GRUB2 to boot graphically (bsc#1097428)
 sed -Ei"" "s/#?GRUB_TERMINAL=.+$/GRUB_TERMINAL=gfxterm/g" /etc/default/grub
@@ -144,7 +134,5 @@ cat > /usr/lib/sysctl.d/50-rpi3.conf <<-EOF
         # Avoid running out of DMA pages for smsc95xx (bsc#1012449)
         vm.min_free_kbytes = 2048
 EOF
-
-baseCleanMount
 
 exit 0
