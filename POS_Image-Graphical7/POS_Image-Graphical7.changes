@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan  3 13:25:18 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
+
+- Remove deprecated kiwi functions
+
+-------------------------------------------------------------------
 Wed Apr 14 08:50:26 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use absolute path in bootloader service

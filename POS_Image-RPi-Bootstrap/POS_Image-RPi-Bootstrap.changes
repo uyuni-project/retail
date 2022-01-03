@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan  3 08:41:45 UTC 2022 - Michael Calmer <mc@suse.com>
+
+ - remove obsolete suseConfig call
+ - replace baseStripDocs call
+ - remove obsolete baseCleanMount
+
+-------------------------------------------------------------------
 Tue Feb 23 15:52:30 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - new package
