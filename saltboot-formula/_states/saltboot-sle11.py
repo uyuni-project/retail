@@ -948,22 +948,40 @@ def _get_image_for_part(images, part):
     image_id = part.get('image')
     image_version = part.get('image_version')
     image_dict = None
+    sorted_versions = None
     if image_version is not None:
         try:
             if image_version in images[image_id]:
-                    image_dict = images[image_id][image_version]
+                # version includes release: A.B.C-R
+                image_dict = images[image_id][image_version]
             if image_dict is None:
-                raise salt.exceptions.SaltException("requested image '{0}' version {1} not found in pillar".format(image_id, image_version))
+                # version does not include release: A.B.C
+                # take highest available release, assuming A.B.C-R in pillar
+                sorted_versions = sorted(filter(lambda v: v.startswith(image_version + '-'), images[image_id].keys()), key=LooseVersion, reverse=True)
+
+                if not sorted_versions:
+                    raise salt.exceptions.SaltException("requested image '{0}' version {1} not found in pillar".format(image_id, image_version))
         except KeyError:
             pass
-    else:
+
+    if image_dict is None:
         try:
-            sorted_versions = sorted(images[image_id].keys(), key=LooseVersion, reverse=True)
+            if sorted_versions is None:
+                # version not specified - take highest available version-release
+                sorted_versions = sorted(images[image_id].keys(), key=LooseVersion, reverse=True)
+            image_version_fallback = None
             for check_version in sorted_versions:
                 if not images[image_id][check_version].get('inactive'):
-                    image_version = check_version
-                    image_dict = images[image_id][check_version]
-                    break
+                    if image_version_fallback is None:
+                        image_version_fallback = check_version
+                    if images[image_id][check_version].get('synced'):
+                        image_version = check_version
+                        break
+            if image_version is None:
+                # no synced version found, maybe we run against old SUMA server
+                # try fallback to original behavior
+                image_version = image_version_fallback
+            image_dict = images[image_id][image_version]
         except KeyError:
             pass
 
