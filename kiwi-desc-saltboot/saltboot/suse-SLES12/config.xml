@@ -36,6 +36,7 @@
         <file name="drivers/block/cciss.ko"/>
         <file name="drivers/block/loop.ko"/>
         <file name="drivers/block/nbd.ko"/>
+        <file name="drivers/block/virtio_blk.ko" /> 
         <file name="drivers/char/lp.ko"/>
         <file name="drivers/gpu/drm/*"/>
         <file name="drivers/hid/*"/>
