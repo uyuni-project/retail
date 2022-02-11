@@ -994,17 +994,20 @@ def _mangle_url(url):
     download_server = __salt__['pillar.get']('saltboot_download_server')
     download_scheme = __salt__['pillar.get']('saltboot_download_protocol')
 
-    if (download_scheme):
+    if (download_scheme and download_scheme != url_p.scheme):
         url_p = url_p._replace(scheme = download_scheme)
+
+        if (url_p.scheme.startswith('http') and not url_p.path.startswith('/saltboot/')):
+            url_p = url_p._replace(path='{0}{1}'.format('/saltboot', url_p.path))
+
+        if (not url_p.scheme.startswith('http') and url_p.path.startswith('/saltboot/')):
+            url_p = url_p._replace(path=url_p.path[9:])
 
     if (download_server):
         url_p = url_p._replace(netloc = download_server)
 
     if url_p.scheme not in supported_protocols:
         raise ValueError("Unknown scheme {0}.\n".format(url_p.scheme))
-
-    if (url_p.scheme.startswith('http') and not url_p.path.startswith('/saltboot')):
-        url_p = url_p._replace(path='{0}{1}'.format('/saltboot', url_p.path))
 
     return url_p
 
