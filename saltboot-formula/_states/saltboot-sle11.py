@@ -386,13 +386,14 @@ def _get_disk_device(name, data):
     device = data.get('device')
 
     if device is not None:
-        path, name = os.path.split(device)
-        if path == '':
-            path = '/dev/disk/by-path';
-        found = __salt__['file.find'](path, name=name, type='b')
-        if found:
-            # the list is sorted so partitions come after the main device
-            device = found[0]
+        if not __salt__['file.is_blkdev'](device):
+            path, name = os.path.split(device)
+            if path == '':
+                path = '/dev/disk/by-path';
+            found = __salt__['file.find'](path, name=name, type='b')
+            if found:
+                # the list is sorted so partitions come after the main device
+                device = found[0]
     if device is None and data.get('type') == 'RAID':
        device = '/dev/{0}'.format(name)
     return device
