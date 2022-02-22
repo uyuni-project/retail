@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb 22 13:47:20 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Allow image versions with or without release
+
+-------------------------------------------------------------------
 Fri Feb 18 09:56:43 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
 - Skip device lookup if correct path to device is already provided
