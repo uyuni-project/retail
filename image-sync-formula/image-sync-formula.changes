@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 19 08:44:34 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
+
+- Sort boot images by version instead of name-version (bsc#1196729)
+
+-------------------------------------------------------------------
 Wed Feb 10 11:53:58 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Create default for arm64 images: linux_arm64 and initrd_arm64
