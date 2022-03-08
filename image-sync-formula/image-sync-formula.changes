@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 19 08:44:34 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
+
+- Sort boot images by version instead of name-version (bsc#1196729)
+
+-------------------------------------------------------------------
 Thu Jul 28 12:51:40 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Do not send events if syncing fails
