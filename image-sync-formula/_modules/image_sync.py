@@ -1,4 +1,5 @@
 import logging
+import re
 log = logging.getLogger(__name__)
 
 
@@ -97,3 +98,21 @@ def deleted_boot_images(boot_images_in_use, arch_list = ['x86_64', 'i586', 'i686
         if boot_image_id not in pillar_boot_images or boot_image_id in deleted_bundle_boot_images:
             res.append((boot_image_id, boot_image_data))
     return res
+
+def get_default_boot_image(boot_images_in_use):
+    """
+    Return boot image with the highest version number
+
+    boot_images_in_use list is in format "image_name-image_version".
+    image_version is 'Major.Minor.Release' numeric version, we may have '-Revision' number at the end.
+
+    """
+    if __pillar__.get('image-synchronize', {}).get('use_latest_boot_image', True):
+        log.debug("Using latest version of boot image")
+        version_template = r"^(?P<name>.+)-(?P<major>[0-9]+)\.(?P<minor>[0-9]+)\.(?P<release>[0-9]*)-?(?P<revision>[0-9]*)$"
+        def _version_key(image_version):
+            ver = re.search(version_template, image_version)
+            return ver.group("major", "minor", "release", "revision")
+        return sorted(boot_images_in_use,key=_version_key, reverse=True)[0]
+    log.debug("Using first alphabetical boot image")
+    return sorted(boot_images_in_use)[0]

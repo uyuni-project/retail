@@ -77,7 +77,7 @@ images:{{ image_id }}:{{ image_version }}:
 {%- if default_boot_image not in boot_images_in_use %}
 {%-   if default_boot_image not in boot_images %}
 {%-     if boot_images_in_use|length > 0 %}
-{%-       set new_default_boot_image = (boot_images_in_use.keys()|sort)[0] %}
+{%-       set new_default_boot_image = salt['image_sync.get_default_boot_image'](boot_images_in_use.keys()) %}
 
 default_boot_image_missing:
   test.show_notification:
