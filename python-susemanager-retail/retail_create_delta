@@ -10,13 +10,10 @@ import shutil
 import salt.utils.dictupdate
 import argparse
 import logging
+import susemanager
 import susemanager.retail.log as retail_log
 
 log = logging.getLogger(__name__)
-
-# OS images path:
-MANAGER_PILLAR_DATA_PATH = '/srv/susemanager/pillar_data'
-IMAGES_DATA_PATH = os.path.join(MANAGER_PILLAR_DATA_PATH, 'images')
 
 _cat_list = {
     'tar': 'cat',
@@ -24,54 +21,34 @@ _cat_list = {
     'tar.xz': 'xzcat'
 }
 
-def image_pillars(org_id=1):
-    '''
-    Load image pillars
-
-    Image pillars are automatically created after image build and are available to all minions
-    '''
-    ret = {}
-    pillar_dir = os.path.join(IMAGES_DATA_PATH, "org" + str(org_id))
-    for pillar in os.listdir(pillar_dir):
-        pillar_path = os.path.join(pillar_dir, pillar)
-        if os.path.isfile(pillar_path) and pillar.endswith('.sls'):
-            try:
-                with open(pillar_path) as p:
-                    ret = salt.utils.dictupdate.merge(ret, yaml.load(p.read()), strategy='recurse')
-            except Exception as error:
-                log.error('Error loading data for image "{image}": {message}'.format(image=pillar.path(), message=str(error)))
-
-    return ret
-
 def bundle_path(url):
     return re.sub(r"^.*/os-images/", "/srv/www/os-images/", url)
 
 
-def generate_delta(src_pillar, target_pillar, args):
+def generate_delta(src_bundle, target_bundle, src_pillar, target_pillar, img_path, args):
     tmpdir = tempfile.mkdtemp()
     try:
-        src_bundle = bundle_path(src_pillar.get('sync', {}).get('bundle_url'))
-        target_url = target_pillar.get('sync', {}).get('bundle_url')
-        target_bundle = bundle_path(target_url)
         cat = _cat_list[next(filter(lambda x: target_bundle.endswith(x), _cat_list.keys()))]
 
-        tar = tarfile.open(src_bundle, "r")
-        tar.extractall(tmpdir)
-        tar.close()
+        with tarfile.open(img_path + src_bundle, "r") as tar:
+            tar.extractall(tmpdir)
 
-        out_file = target_bundle + '-' + os.path.basename(src_bundle) + '.delta'
+        delta_file = target_bundle + '-' + os.path.basename(src_bundle) + '.delta'
+
+        target_url = target_pillar.get('sync', {}).get('bundle_url')
         delta_url = target_url + '-' + os.path.basename(src_bundle) + '.delta'
 
         extra_args = ''
         if args.B is not None:
             extra_args += "-B " + args.B
 
-        subprocess.check_call("{} '{}' | xdelta3 -e {} -s '{}' > '{}'".format(cat, target_bundle, extra_args, os.path.join(tmpdir, src_pillar.get('filename')), out_file), shell=True)
+        subprocess.check_call("{} '{}' | xdelta3 -e {} -s '{}' > '{}'".format(cat, img_path + target_bundle, extra_args, os.path.join(tmpdir, src_pillar.get('filename')), img_path + delta_file), shell=True)
     finally:
         shutil.rmtree(tmpdir)
-    return out_file, delta_url
 
-def generate_pillar(src_name, src_version, target_name, target_version, delta_file, delta_url, org_id=1):
+    return delta_file, delta_url
+
+def generate_pillar(src_name, src_version, src_revision, target_name, target_version, target_revision, delta_file, delta_url, org_id=1):
 
     size = os.path.getsize(delta_file)
     delta_hash = subprocess.check_output(['sha512sum', delta_file]).decode().split(' ')[0]
@@ -79,11 +56,11 @@ def generate_pillar(src_name, src_version, target_name, target_version, delta_fi
     pillar = {
         'images': {
             target_name: {
-                target_version: {
+                target_version + '-' + target_revision: {
                     'sync': {
                         'bundle_delta': {
                             src_name: {
-                                src_version: {
+                                src_version + '-' + src_revision: {
                                     'url': delta_url,
                                     'size': size,
                                     'delta_hash': delta_hash
@@ -96,65 +73,129 @@ def generate_pillar(src_name, src_version, target_name, target_version, delta_fi
         }
     }
 
-    pillar_dir = os.path.join(IMAGES_DATA_PATH, "org" + str(org_id))
-    name = os.path.join(pillar_dir, os.path.basename(delta_file) + '.sls')
-    with open(name, 'w') as outfile:
-        yaml.safe_dump(pillar, outfile, default_flow_style=False)
+    return pillar
 
+
+def list_images(images, deltas):
+    image_dict = {}
+    print("Images:")
+    for i in images:
+        image_dict[i['id']] = i
+
+        print("  {0}-{1}-{2}".format(i.get('name'), i.get('version'), i.get('revision')))
+
+    print("Deltas:");
+    for d in deltas:
+        s = image_dict[d['source_id']]
+        t = image_dict[d['target_id']]
+        print("  {0}-{1}-{2} from {3}-{4}-{5}".format(t.get('name'), t.get('version'), t.get('revision'), s.get('name'), s.get('version'), s.get('revision')))
+    print()
 
 
 parser = argparse.ArgumentParser(description='Generate delta image')
 
-parser.add_argument('target', help='Target image (Name-Version)')
-parser.add_argument('source', help='Source image (Name-Version)')
+parser.add_argument('--api-host', default='localhost', help='API host')
+parser.add_argument('--api-user', default='admin', help='API user')
+parser.add_argument('--api-pass', help='API password')
+
+parser.add_argument('target', help='Target image (Name-Version-Revision)', nargs='?')
+parser.add_argument('source', help='Source image (Name-Version-Revision)', nargs='?')
 parser.add_argument('-B', metavar='bytes', help='Passed to xdelta3')
-parser.add_argument('--org', type=int, default=1, help='Organization ID')
 
 parser.add_argument('--log-level', default='INFO', dest='log_level',
                     type=retail_log.log_level_string_to_int, nargs='?',
                     help='Set the logging output level. {0}'.format(retail_log.LOG_LEVEL_STRINGS))
-
+parser.add_argument('--log-file', help='save log to file')
 
 args = parser.parse_args()
-logging.basicConfig(level=args.log_level)
+retail_log.init_logging(args.log_level, os.path.basename(__file__), args.log_file)
 
-namever_re = re.compile(r'^(.*)-([0-9+]\.[0-9+]\.[0-9+])$')
 
+
+try:
+    client, key = susemanager.retail.connect(args)
+
+    org_id = client.user.getDetails(key, args.api_user)['org_id']
+
+    images = client.image.listImages(key)
+    deltas = client.image.delta.listDeltas(key)
+
+    if args.target is None or args.source is None:
+        list_images(images, deltas)
+        sys.exit(0)
+
+except Exception as e:
+    log.error(e)
+    log.debug(e, exc_info=True)
+    retail_log.print_logfile_info()
+    sys.exit(1)
+
+
+
+namever_re = re.compile(r'^(.*)-([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)$')
 match = namever_re.match(args.target)
 if match:
     target_name = match.group(1)
     target_version = match.group(2)
+    target_revision = match.group(3)
 else:
-    log.error("Target is not given as 'name-version': '{}'".format(args.target))
+    list_images(images, deltas)
+    log.error("Target is not given as 'name-version-revision': '{}'".format(args.target))
     sys.exit(1)
 
 match = namever_re.match(args.source)
 if match:
     src_name = match.group(1)
     src_version = match.group(2)
+    src_revision = match.group(3)
 else:
-    log.error("Source is not given as 'name-version': '{}'".format(args.source))
+    list_images(images, deltas)
+    log.error("Source is not given as 'name-version-revision': '{}'".format(args.source))
     sys.exit(1)
 
 
 try:
-    pillars = image_pillars(args.org)
+
+    org_id = client.user.getDetails(key, args.api_user)['org_id']
+
+    images = client.image.listImages(key)
+    deltas = client.image.delta.listDeltas(key)
 
     try:
-        target_pillar = pillars['images'][target_name][target_version]
-    except KeyError:
-        raise RuntimeError("Target image is not in pillar")
+        src_id = [i['id'] for i in images if i['name'] == src_name and i['version'] == src_version and i['revision'] == int(src_revision)][0]
+    except IndexError:
+        list_images(images, deltas)
+        raise RuntimeError("Source image not found")
 
     try:
-        src_pillar = pillars['images'][src_name][src_version]
-    except KeyError:
-        raise RuntimeError("Source image is not in pillar")
+        target_id = [i['id'] for i in images if i['name'] == target_name and i['version'] == target_version and i['revision'] == int(target_revision)][0]
+    except IndexError:
+        list_images(images, deltas)
+        raise RuntimeError("Target image not found")
 
-    delta_file, delta_url = generate_delta(src_pillar, target_pillar, args)
-    generate_pillar(src_name, src_version, target_name, target_version, delta_file, delta_url, args.org)
+    existing = [d for d in deltas if d['source_id'] == src_id and d['target_id'] == target_id]
+    if existing:
+        raise RuntimeError("Delta already exists")
 
+    src_image = client.image.getDetails(key, src_id)
+    target_image = client.image.getDetails(key, target_id)
+
+    src_pillar =  client.image.getPillar(key, src_id).get('images', {}).get(src_name, {}).get(src_version + '-' + src_revision, {})
+    target_pillar =  client.image.getPillar(key, target_id).get('images', {}).get(target_name, {}).get(target_version + '-' + target_revision, {})
+    target_url = target_pillar.get('sync', {}).get('bundle_url')
+    img_path = "/srv/www/os-images/{0}/".format(org_id)
+
+    delta_file, delta_url = generate_delta(src_image['files'][0]['file'], target_image['files'][0]['file'], src_pillar, target_pillar, img_path, args)
+
+    delta_pillar = generate_pillar(src_name, src_version, src_revision, target_name, target_version, target_revision, img_path + delta_file, delta_url, org_id)
+
+    client.image.delta.createDeltaImage(key, src_id, target_id, delta_file, delta_pillar)
+
+    log.info("Delta image '{0}' registered.".format(delta_file))
 except Exception as e:
     log.error(e)
+    log.debug(e, exc_info=True)
+    retail_log.print_logfile_info()
     sys.exit(1)
 
 sys.exit(0)
