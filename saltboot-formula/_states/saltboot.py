@@ -1179,7 +1179,12 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
         ret['result'] = False
 
     try:
-        deploy_cmd = _deploy_cmd(image['url'])
+        if image['sync'].get('bundle_url') is None:
+            # if bundle URL is missing, then we no longer use image-sync and download image through proxy directly
+            deploy_cmd = _deploy_cmd(image['sync']['url'])
+        else:
+            # if bundle URL is in pillars then image was build as bundle and thus we use image-sync
+            deploy_cmd = _deploy_cmd(image['url'])
     except ValueError as e:
         ret['comment'] += str(e.args)
         ret['result']   = False
@@ -1787,11 +1792,18 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
             #
             # failures do matter only if kernel version differs and kexec fails, so do not set ret['result'] here
             try:
-                cmd = _download_url_cmd(boot_image.get('kernel', {}).get('url', ''), os.path.join(prefix, 'boot/Image'))
+                cmd = ""
+                if boot_image.get('sync',{}).get('kernel_url'):
+                    cmd = _download_url_cmd(boot_image['sync']['kernel_url'], os.path.join(prefix, 'boot/Image'))
+                else:
+                    cmd = _download_url_cmd(boot_image.get('kernel', {}).get('url', ''), os.path.join(prefix, 'boot/Image'))
                 res = __salt__['cmd.run_all'](cmd, python_shell=True)
                 if res['retcode'] > 0:
                     ret['comment'] += "\nKernel download failed:\n" + cmd + " : " + res['stdout'] + res['stderr']
-                cmd = _download_url_cmd(boot_image.get('initrd', {}).get('url', ''), os.path.join(prefix, 'boot/initrd'))
+                if boot_image.get('sync', {}).get('initrd_url'):
+                    cmd = _download_url_cmd(boot_image['sync']['initrd_url'], os.path.join(prefix, 'boot/initrd'))
+                else:
+                    cmd = _download_url_cmd(boot_image.get('initrd', {}).get('url', ''), os.path.join(prefix, 'boot/initrd'))
                 res = __salt__['cmd.run_all'](cmd, python_shell=True)
                 if res['retcode'] > 0:
                     ret['comment'] += "\nInitrd download failed:\n" + cmd + " : " + res['stdout'] + res['stderr']
