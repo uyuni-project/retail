@@ -1225,13 +1225,13 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
             _try_umount_device(service_partition['device'])
 
         if res['retcode'] > 0:
-           ret['comment'] += 'Unable to download image {0}-{1}.\n'.format(image['name'], image_version) + res['stdout'] + res['stderr']
+           ret['comment'] += 'Unable to download image {0}-{1}.\n'.format(image_id, image_version) + res['stdout'] + res['stderr']
            ret['result'] = False
            return ret
 
-        ret['comment'] += 'Image {0}-{1} successfully downloaded.\n'.format(image['name'], image_version)
+        ret['comment'] += 'Image {0}-{1} successfully downloaded.\n'.format(image_id, image_version)
         _add_change(ret['changes'], {
-           'new': '{0}-{1}'.format(image['name'], image_version),
+           'new': '{0}-{1}'.format(image_id, image_version),
         })
 
         __salt__['file.write'](cache_path + '.hash', image.get('hash'))
@@ -1249,9 +1249,9 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
             pillar_hash = image.get('hash')
             log.debug('cache hash "{0}", pillar hash "{1}"'.format(cache_hash, pillar_hash))
             if cache_hash == pillar_hash:
-                log.debug('Using cached copy of image {0}-{1}.'.format(image['name'], image_version))
+                log.debug('Using cached copy of image {0}-{1}.'.format(image_id, image_version))
                 # override deploy_cmd if we have a cached copy
-                deploy_comment = 'Using cached copy of image {0}-{1}.'.format(image['name'], image_version)
+                deploy_comment = 'Using cached copy of image {0}-{1}.'.format(image_id, image_version)
                 deploy_cmd = 'set -o pipefail; cat {0} '.format(cache_path)
 
 
@@ -1261,38 +1261,38 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
     _try_umount_device(device)
 
     if report_progress:
-        deploy_cmd += " | dcounter -s {0} -l 'Downloading {1}-{2}' 2>>{3} ".format(int( image['size'] / (1024*1024) ), image['name'], image_version, dcounter_progress_file)
+        deploy_cmd += " | dcounter -s {0} -l 'Downloading {1}-{2}' 2>>{3} ".format(int( image['size'] / (1024*1024) ), image_id, image_version, dcounter_progress_file)
 
     res = __salt__['cmd.run_all']('{0} > {1}'.format(deploy_cmd, device), python_shell=True)
 
     if res['retcode'] > 0:
-        ret['comment'] += 'Unable to deploy image {0}-{1} on {2}.\n'.format(image['name'], image_version, name) + res['stdout'] + res['stderr']
+        ret['comment'] += 'Unable to deploy image {0}-{1} on {2}.\n'.format(image_id, image_version, name) + res['stdout'] + res['stderr']
         ret['result'] = False
         return ret
     _add_change(ret['changes'], {
-        'new': '{0}-{1}'.format(image['name'], image_version),
+        'new': '{0}-{1}'.format(image_id, image_version),
     })
 
     if 'hash' in image and 'size' in image:
         verify_cmd = 'head --bytes={1} {0}'.format(device, image['size'])
         if report_progress:
-            verify_cmd += " | dcounter -s {0} -l 'Verifying {1}-{2}' 2>>{3} ".format(int( image['size'] / (1024*1024) ), image['name'], image_version, dcounter_progress_file)
+            verify_cmd += " | dcounter -s {0} -l 'Verifying {1}-{2}' 2>>{3} ".format(int( image['size'] / (1024*1024) ), image_id, image_version, dcounter_progress_file)
 
         verify_cmd += ' | ' + _get_cmd_for_hash(image['hash']) + ' -'
 
         res = __salt__['cmd.run_all'](verify_cmd, python_shell=True)
         if res['retcode'] > 0:
-            ret['comment'] += 'Unable to verify image {0}-{1} on {2}.\n'.format(image['name'], image_version, name) + res['stdout'] + res['stderr']
+            ret['comment'] += 'Unable to verify image {0}-{1} on {2}.\n'.format(image_id, image_version, name) + res['stdout'] + res['stderr']
             ret['result'] = False
             if report_progress:
-                __salt__['cmd.run_all']("echo 'Unable to verify image {0}-{1} on {2}' >/progress ".format(image['name'], image_version, name), python_shell=True)
+                __salt__['cmd.run_all']("echo 'Unable to verify image {0}-{1} on {2}' >/progress ".format(image_id, image_version, name), python_shell=True)
             return ret
         h = res['stdout'][0:len(image['hash'])]
         if h != image['hash']:
-            ret['comment'] += 'hash does not match on image {0}-{1} on {2}.\n'.format(image['name'], image_version, name) + res['stdout'] + res['stderr']
+            ret['comment'] += 'hash does not match on image {0}-{1} on {2}.\n'.format(image_id, image_version, name) + res['stdout'] + res['stderr']
             ret['result'] = False
             if report_progress:
-                __salt__['cmd.run_all']("echo 'hash does not match on image {0}-{1} on {2}' >/progress ".format(image['name'], image_version, name), python_shell=True)
+                __salt__['cmd.run_all']("echo 'hash does not match on image {0}-{1} on {2}' >/progress ".format(image_id, image_version, name), python_shell=True)
             return ret
         ret['comment'] += 'hash OK\n'
     return ret
@@ -1382,12 +1382,12 @@ def image_deployed(name, partitioning, images):
     force_redeploy = __grains__.get('saltboot_force_redeploy', False)
 
     if ( existing is None or
-         existing != '{0}-{1}'.format(image['name'], image_version) or
+         existing != '{0}-{1}'.format(image_id, image_version) or
          ('hash' in image and existing_hash != image['hash'] ) or
          force_redeploy
        ):
         log.debug('existing: "{0}" existing hash: "{1}"'.format(existing, existing_hash))
-        log.debug('new: "{0}-{1}" new hash: "{2}"'.format(image['name'], image_version, image.get('hash')))
+        log.debug('new: "{0}-{1}" new hash: "{2}"'.format(image_id, image_version, image.get('hash')))
 
         compr = image.get('compressed', '')
         if compr not in _uncompress_pipe:
@@ -1398,9 +1398,9 @@ def image_deployed(name, partitioning, images):
             return ret
 
         if __opts__['test']:
-            ret['comment'] += 'Image {0}-{1} will be deployed on {2}.\n'.format(image['name'], image_version, name)
+            ret['comment'] += 'Image {0}-{1} will be deployed on {2}.\n'.format(image_id, image_version, name)
             _add_change(ret['pchanges'], {
-                'new': '{0}-{1}'.format(image['name'], image_version),
+                'new': '{0}-{1}'.format(image_id, image_version),
                 'old': existing
             })
             ret['result'] = None
@@ -1441,30 +1441,30 @@ def image_deployed(name, partitioning, images):
             res = __salt__['cmd.run_all'](
                 'e2fsck -y -f {0} ; resize2fs {0}'.format(checkdevice), python_shell=True)
             if res['retcode'] > 0:
-                ret['comment'] += 'Unable to resize image {0}-{1} on {2}.\n'.format(image['name'], image_version, name) + res['stdout'] + res['stderr']
+                ret['comment'] += 'Unable to resize image {0}-{1} on {2}.\n'.format(image_id, image_version, name) + res['stdout'] + res['stderr']
                 ret['result'] = False
                 return ret
 
             if 'hash' in image:
-                _write_image_version(device, '{0}-{1}'.format(image['name'], image_version), image['hash'], luks_pass)
+                _write_image_version(device, '{0}-{1}'.format(image_id, image_version), image['hash'], luks_pass)
 
             if devmap[name].get('mountpoint') == '/':
                 ret1 = __states__['file.managed'](
                     '/salt_config',
                     contents = [
                         'export systemIntegrity=clean\n' +
-                        'export imageName={0}-{1}\n'.format(image['name'], image_version) +
+                        'export imageName={0}-{1}\n'.format(image_id, image_version) +
                         'export imageDiskDevice={0}\n'.format(devmap[name]['diskdevice'])
                     ])
                 #_append_ret(ret, ret1) # the messages are confusing
     else:
-        ret['comment'] += 'Image {0}-{1} is already deployed on {2}.\n'.format(image['name'], image_version, name)
+        ret['comment'] += 'Image {0}-{1} is already deployed on {2}.\n'.format(image_id, image_version, name)
         if not __opts__['test'] and devmap[name].get('mountpoint') == '/':
             ret1 = __states__['file.managed'](
                 '/salt_config',
                 contents = [
                     'export systemIntegrity=fine\n' +
-                    'export imageName={0}-{1}\n'.format(image['name'], image_version) +
+                    'export imageName={0}-{1}\n'.format(image_id, image_version) +
                     'export imageDiskDevice={0}\n'.format(devmap[name]['diskdevice'])
                 ])
             #_append_ret(ret, ret1) # the messages are confusing
