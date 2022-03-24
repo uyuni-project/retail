@@ -1,3 +1,4 @@
+from urllib.parse import ParseResult
 import salt.exceptions
 import random
 import string
@@ -957,52 +958,58 @@ def _get_image_for_part(images, part):
     image_version = part.get('image_version')
     image_dict = None
     sorted_versions = None
+    if image_id not in images:
+        raise salt.exceptions.SaltException("Image '{}' not found in images pillar".format(image_id))
+
     if image_version is not None:
-        try:
-            if image_version in images[image_id]:
-                # version includes release: A.B.C-R
-                image_dict = images[image_id][image_version]
-            if image_dict is None:
-                # version does not include release: A.B.C
-                # take highest available release, assuming A.B.C-R in pillar
-                sorted_versions = sorted(filter(lambda v: v.startswith(image_version + '-'), images[image_id].keys()), key=LooseVersion, reverse=True)
+        # version includes release: A.B.C-R
+        image_dict = images[image_id].get(image_version)
 
-                if not sorted_versions:
-                    raise salt.exceptions.SaltException("requested image '{0}' version {1} not found in pillar".format(image_id, image_version))
-        except KeyError:
-            pass
+        if image_dict is None:
+            # version does not include release: A.B.C
+            # take highest available release, assuming A.B.C-R in pillar
+            sorted_versions = sorted(filter(lambda v: v.startswith(image_version + '-'), images[image_id].keys()), key=LooseVersion, reverse=True)
+
+            if not sorted_versions:
+                raise salt.exceptions.SaltException("Requested image '{0}' version {1} not found in pillar".format(image_id, image_version))
 
     if image_dict is None:
-        try:
-            if sorted_versions is None:
-                # version not specified - take highest available version-release
-                sorted_versions = sorted(images[image_id].keys(), key=LooseVersion, reverse=True)
-            image_version_fallback = None
-            for check_version in sorted_versions:
-                if not images[image_id][check_version].get('inactive'):
-                    if image_version_fallback is None:
-                        image_version_fallback = check_version
-                    if images[image_id][check_version].get('synced'):
-                        image_version = check_version
-                        break
-            if image_version is None:
-                # no synced version found, maybe we run against old SUMA server
-                # try fallback to original behavior
-                image_version = image_version_fallback
-            image_dict = images[image_id][image_version]
-        except KeyError:
-            pass
+        if sorted_versions is None:
+            # version not specified - take highest available version-release
+            sorted_versions = sorted(images[image_id].keys(), key=LooseVersion, reverse=True)
+
+        skip_sync_check = False
+        # check if we have bundles, thus we need to check for synced images, or we can download images directly
+        if images[image_id][sorted_versions[0]].get('sync', {}).get('bundle_url') is None:
+            skip_sync_check = True
+
+        image_version_fallback = None
+        for check_version in sorted_versions:
+            if not images[image_id][check_version].get('inactive'):
+                if image_version_fallback is None:
+                    image_version_fallback = check_version
+                if skip_sync_check or images[image_id][check_version].get('synced'):
+                    image_version = check_version
+                    break
+        if image_version is None:
+            # no synced version found, maybe we run against old SUMA server
+            # try fallback to original behavior
+            if not image_version_fallback:
+                raise salt.exceptions.SaltException("No active image version found for image '{}'".format(image_id))
+            image_version = image_version_fallback
+
+        image_dict = images[image_id][image_version]
 
     if image_dict is None:
-        raise salt.exceptions.SaltException("requested image '{0}' not found in pillar".format(image_id))
+        raise salt.exceptions.SaltException("Requested image '{}' not found in pillar".format(image_id))
 
     return image_id, image_version, image_dict
 
-def _mangle_url(url):
+def _mangle_url(url: str) -> ParseResult:
     supported_protocols = [ 'http', 'https', 'ftp', 'tftp' ]
 
     url_p = urlparse(url)
-    download_server = __salt__['pillar.get']('saltboot_download_server')
+    download_server = __salt__['pillar.get']('saltboot_download_server', __salt__['pillar.get']('saltboot:download_server'))
     download_scheme = __salt__['pillar.get']('saltboot_download_protocol')
 
     if (download_scheme and download_scheme != url_p.scheme):
@@ -1773,8 +1780,15 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
         # make sure raid is configured on local boot
         __salt__['cmd.run_all']("mdadm --detail --scan > {0}".format(os.path.join(prefix, 'etc/mdadm.conf')), python_shell=True, output_loglevel='trace')
 
-        # notify branch server that the new config is in place
-        __salt__['cmd.run_all']("salt-call event.send suse/manager/pxe_update 'salt_device={0}' 'boot_image={1}' 'root={2}' 'terminal_kernel_parameters={3}' with_grains=True".format(salt_device, boot_image_id, root_device['device'], terminal_kernel_parameters), python_shell=False, output_loglevel='trace')
+        # notify server that the new config is in place
+        pxe_event = {
+            'salt_device': salt_device,
+            'boot_image': boot_image_id,
+            'root': root_device['device'],
+            'terminal_kernel_parameters': terminal_kernel_parameters,
+            'hwaddr_interfaces': __salt__['grains.get']('hwaddr_interfaces')
+        }
+        __salt__['event.send']('suse/manager/pxe_update', pxe_event)
 
         # this can be eventually used for kexec in verify_boot_image
         __salt__['cmd.run_all']("echo -n '{0} salt_device={1} root={2} {3}' >/update_kernel_cmdline".format(
