@@ -37,10 +37,15 @@ Formula for boot image of POS terminal.
 %install
 mkdir -p %{buildroot}/usr/share/susemanager/formulas/states/{%{fname},%{fname}-orchestrate,%{fname}-reactor,_states}
 mkdir -p %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}
+mkdir -p %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}-group
 cp -R %{fname}/* %{buildroot}/usr/share/susemanager/formulas/states/%{fname}
-cp -R metadata/* %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}
 cp -R _states/* %{buildroot}/usr/share/susemanager/formulas/states/_states
 cp -R %{fname}-reactor/* %{buildroot}/usr/share/susemanager/formulas/states/%{fname}-reactor
+cp metadata/form.yml %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}
+cp metadata/metadata.yml %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}
+cp metadata/*.example %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}
+cp metadata/%{fname}-group-form.yml %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}-group/form.yml
+cp metadata/%{fname}-group-metadata.yml %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}-group/metadata.yml
 
 mkdir -p %{buildroot}/etc/salt/master.d
 cp -R master.d/* %{buildroot}/etc/salt/master.d

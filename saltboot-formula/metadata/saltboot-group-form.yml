@@ -1,0 +1,44 @@
+saltboot:
+  $type: hidden-group
+
+  default_boot_image:
+    $name: Default boot image for new registrations
+    $type: text
+    $optional: True
+    $help: Clients not yet registered need to boot some default image. If automatic selection does not work for you, this option can be used to customize it.
+  default_boot_image_version:
+    $name: Default boot image version
+    $type: text
+    $optional: True
+    $visible: this.parent.value.default_boot_image != ''
+  default_kernel_parameters:
+    $name: Kernel parameters for the group
+    $type: text
+    $help: Kernel parameters to be appended for all terminals registered in this group
+    $optional: True
+  download_server:
+    $name: Image download server
+    $type: text
+    $optional: True
+    $help: Server to download images from. Enter saltboot group proxy server or SUSE Manager Server if connected directly.
+  minion_id_naming:
+    $name: Saltboot client naming scheme
+    $type: select
+    $values:
+      - FQDN
+      - Hostname
+      - HWType
+    $default: 'Hostname'
+    $help: HWType naming scheme names salt client by its hardware manufacturer and product. FQDN uses fully qualified domain name and Hostname uses only client hostname. If FQDN or Hostname are not avaliable, HWType naming scheme is used as fallback.
+  disable_id_prefix:
+    $name: Do not prefix salt client ID with saltboot group ID
+    $type: boolean
+    $default: False
+    $optional: True
+  disable_unique_suffix:
+    $name: Do not append unique suffix to the salt client ID
+    $type: boolean
+    $default: False
+    $optional: True
+    $disable: "formValues.pxe.minion_id_naming != 'HWType'"
+    $help: By default, salt client ID is suffixed by unique ID. This is to prevent naming conflict when client must be reregistered. With this option checked, client entry must be first removed from database before reregistration. Should not be used wiht HWType naming scheme

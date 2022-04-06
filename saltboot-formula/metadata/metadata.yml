@@ -1,4 +1,4 @@
 description:
-  Control deployment and boot of POS terminals
-group: SUSE_manager_for_retail
+  Partitioning and image selection for Saltboot deployment clients
+group: Saltboot
 pillar_only: True

@@ -1,0 +1,4 @@
+description:
+  Settings for Saltboot deployment group
+group: Saltboot
+pillar_only: True
