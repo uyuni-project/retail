@@ -5,7 +5,7 @@
 
 {% set branch_id = minion_grains.get('minion_id_prefix') %}
 {% set terminal_entry_pillar = {
-    'terminal_hwaddr_interfaces': minion_grains['hwaddr_interfaces'],
+    'terminal_hwaddr_interfaces': event_data.get('hwaddr_interfaces'),
     'salt_device': event_data.get('salt_device'),
     'root': event_data.get('root'),
     'boot_image': event_data['boot_image'],
