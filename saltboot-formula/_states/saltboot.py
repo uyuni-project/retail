@@ -980,7 +980,7 @@ def _get_image_for_part(images, part):
 
         skip_sync_check = False
         # check if we have bundles, thus we need to check for synced images, or we can download images directly
-        if images[image_id][sorted_versions[0]].get('sync', {}).get('bundle_url') is None:
+        if images[image_id][sorted_versions[0]].get('sync', {}).get('bundle_url') is None and __salt__['pillar.get']('saltboot') is not None:
             skip_sync_check = True
 
         image_version_fallback = None
@@ -1026,6 +1026,10 @@ def _mangle_url(url: str) -> ParseResult:
 
     if url_p.scheme not in supported_protocols:
         raise ValueError("Unknown scheme {0}.\n".format(url_p.scheme))
+
+    # Always append orgid so containerized proxy have this info
+    # Regular proxy ignores this orgid
+    url_p = url_p._replace(path="{}?orgid={}".format(url_p.path, __salt__['pillar.get']('org_id')))
 
     return url_p
 
@@ -1186,12 +1190,7 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
         ret['result'] = False
 
     try:
-        if image['sync'].get('bundle_url') is None:
-            # if bundle URL is missing, then we no longer use image-sync and download image through proxy directly
-            deploy_cmd = _deploy_cmd(image['sync']['url'])
-        else:
-            # if bundle URL is in pillars then image was build as bundle and thus we use image-sync
-            deploy_cmd = _deploy_cmd(image['url'])
+        deploy_cmd = _deploy_cmd(image['url'])
     except ValueError as e:
         ret['comment'] += str(e.args)
         ret['result']   = False
@@ -1806,23 +1805,20 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
             #
             # failures do matter only if kernel version differs and kexec fails, so do not set ret['result'] here
             try:
-                cmd = ""
-                if boot_image.get('sync',{}).get('kernel_url'):
-                    cmd = _download_url_cmd(boot_image['sync']['kernel_url'], os.path.join(prefix, 'boot/Image'))
-                else:
-                    cmd = _download_url_cmd(boot_image.get('kernel', {}).get('url', ''), os.path.join(prefix, 'boot/Image'))
+                # URL prefix is stable all the time. Hostname is mangled based on pillar data and decision between regular and containerized proxy is done
+                # by apache
+                cmd = _download_url_cmd(boot_image['kernel']['url'], os.path.join(prefix, 'boot/Image'))
                 res = __salt__['cmd.run_all'](cmd, python_shell=True)
                 if res['retcode'] > 0:
                     ret['comment'] += "\nKernel download failed:\n" + cmd + " : " + res['stdout'] + res['stderr']
-                if boot_image.get('sync', {}).get('initrd_url'):
-                    cmd = _download_url_cmd(boot_image['sync']['initrd_url'], os.path.join(prefix, 'boot/initrd'))
-                else:
-                    cmd = _download_url_cmd(boot_image.get('initrd', {}).get('url', ''), os.path.join(prefix, 'boot/initrd'))
+                cmd = _download_url_cmd(boot_image['initrd']['url'], os.path.join(prefix, 'boot/initrd'))
                 res = __salt__['cmd.run_all'](cmd, python_shell=True)
                 if res['retcode'] > 0:
                     ret['comment'] += "\nInitrd download failed:\n" + cmd + " : " + res['stdout'] + res['stderr']
             except ValueError as e:
                 ret['comment'] += "\nCan't download current kernel/initrd: " + str(e.args)
+            except KeyError as e:
+                ret['comment'] += "\nCannot find required info for boot image download: {}".format(e)
 
             # install bootloader
             res = __salt__['cmd.run_chroot'](prefix, "sh -c 'mount -a ; pbl --install ; pbl --config ; test -f /boot/grub2/grub.cfg '", binds=["/dev", "/proc", "/sys"])
