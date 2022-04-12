@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Mon Jan  3 13:25:18 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
-- Remove deprecated kiwi functions
+- Update to version 0.1.1645440615.7f1328c
+  * Remove deprecated kiwi functions
 
 -------------------------------------------------------------------
 Wed Apr 14 08:50:26 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
