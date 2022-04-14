@@ -1,9 +1,8 @@
 # update pxe config
 {% set minion_id = data['id'] %}
-{% set minion_grains = data['data']['grains'] %}
 {% set event_data = data['data'] %}
 
-{% set branch_id = minion_grains.get('minion_id_prefix') %}
+{% set branch_id = event_data.get('minion_id_prefix') %}
 {% set terminal_entry_pillar = {
     'terminal_hwaddr_interfaces': event_data.get('hwaddr_interfaces'),
     'salt_device': event_data.get('salt_device'),

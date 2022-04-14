@@ -2,6 +2,7 @@
 Tue Apr 12 09:09:42 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
 - Use always the same URL regardless bundle and non-bundle build
+- Fix handling pxe event for non-containerized branch
 
 -------------------------------------------------------------------
 Thu Apr  7 14:03:51 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
