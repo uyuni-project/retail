@@ -1781,6 +1781,7 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
 
         # notify server that the new config is in place
         pxe_event = {
+            'minion_id_prefix': __salt__['grains.get']('minion_id_prefix'),
             'salt_device': salt_device,
             'boot_image': boot_image_id,
             'root': root_device['device'],
