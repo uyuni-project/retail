@@ -27,7 +27,7 @@ def _part_device(disk_device, n):
 
 
 def _lsblk_compat(device):
-    res = __salt__['cmd.run_all']("lsblk -J -p {0}".format(device), output_loglevel='trace')
+    res = __salt__['cmd.run_all']("lsblk -J -p -o +MOUNTPOINT,TYPE,NAME {0}".format(device), output_loglevel='trace')
     if res['retcode'] == 0:
         return json.loads(res['stdout'])
 

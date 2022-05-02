@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 29 09:10:04 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Specify required columns in lsblk output
+
+-------------------------------------------------------------------
 Tue Apr 12 09:09:42 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
 - Use always the same URL regardless bundle and non-bundle build
