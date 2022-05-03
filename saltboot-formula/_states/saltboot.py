@@ -1,4 +1,3 @@
-from urllib.parse import ParseResult
 import salt.exceptions
 import random
 import string
@@ -1005,7 +1004,7 @@ def _get_image_for_part(images, part):
 
     return image_id, image_version, image_dict
 
-def _mangle_url(url: str) -> ParseResult:
+def _mangle_url(url):
     supported_protocols = [ 'http', 'https', 'ftp', 'tftp' ]
 
     url_p = urlparse(url)

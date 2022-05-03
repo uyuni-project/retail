@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue May  3 14:46:36 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
+
+- Remove annotations incompatible with SLE12 python2.7
+
+-------------------------------------------------------------------
 Fri Apr 29 09:10:04 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Specify required columns in lsblk output
@@ -6,8 +11,9 @@ Fri Apr 29 09:10:04 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 -------------------------------------------------------------------
 Tue Apr 12 09:09:42 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
-- Use always the same URL regardless bundle and non-bundle build
-- Fix handling pxe event for non-containerized branch
+- Update to version 0.1.1649927201.7ff486e
+  * Use always the same URL regardless bundle and non-bundle build
+  * Fix handling pxe event for non-containerized branch
 
 -------------------------------------------------------------------
 Thu Apr  7 14:03:51 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
