@@ -1,24 +1,5 @@
 #!/bin/bash
 
-if ! declare -f Echo > /dev/null ; then
-  Echo() {
-    echo "$@"
-  }
-fi
-
-if ! [ -s /etc/resolv.conf ] ; then
-    Echo "No network, skipping saltboot..."
-    exit 0
-fi
-
-IFCONFIG="$(compgen -G '/tmp/leaseinfo.*.dhcp.ipv*')"
-if [ -f "$IFCONFIG" ]; then
-    . "$IFCONFIG"
-else
-    Echo "No network details available, skipping saltboot";
-    exit 0
-fi
-
 NEWROOT=${NEWROOT:-/mnt}
 export NEWROOT
 
@@ -36,6 +17,36 @@ echo -n > /dc_progress
 bash -c 'tail -f /dc_progress | while true ; do read msg ; echo "$msg" >/progress ; done ' &
 DC_PROGRESS_PID=$!
 
+if ! declare -f Echo > /dev/null ; then
+  Echo() {
+    echo "$@"
+    echo "$@" > /progress
+  }
+fi
+
+NET_TIMEOUT=30
+IFCONFIG="$(compgen -G '/tmp/leaseinfo.*.dhcp.ipv4')"
+
+while [ $NET_TIMEOUT -gt 0 ] ; do
+    if [ -s /etc/resolv.conf -a -f "$IFCONFIG" ] ; then
+        break
+    fi
+    Echo "Waiting for network to setup (${NET_TIMEOUT}s)"
+    let NET_TIMEOUT=$NET_TIMEOUT-1
+    sleep 1
+done
+
+if [ -f "$IFCONFIG" -a -s /etc/resolv.conf ]; then
+    . "$IFCONFIG"
+else
+    Echo "No network available, aborting saltboot";
+    [ -n "$PROGRESS_PID" ] && kill $PROGRESS_PID
+    [ -n "$DC_PROGRESS_PID" ] && kill $DC_PROGRESS_PID
+    exit 0
+fi
+
+Echo "Preparing saltboot environment"
+
 rm -f /etc/machine-id
 mkdir -p /var/lib/dbus
 rm -f /var/lib/dbus/machine-id
@@ -49,10 +60,10 @@ udevadm settle -t 60
 udevproperty rd_NO_MD=1
 
 # This should be visible after pressing ESC
-Echo "Available disk devices" >&2
-Echo "ls -l /dev/disk/by-id" >&2
+echo "Available disk devices" >&2
+echo "ls -l /dev/disk/by-id" >&2
 ls -l /dev/disk/by-id >&2
-Echo "ls -l /dev/disk/by-path" >&2
+echo "ls -l /dev/disk/by-path" >&2
 ls -l /dev/disk/by-path >&2
 
 salt_device=${salt_device:-${root#block:}}
@@ -109,6 +120,7 @@ fi
 
 SALT_AUTOSIGN_GRAINS=$(getarg SALT_AUTOSIGN_GRAINS=)
 if [ -n "$SALT_AUTOSIGN_GRAINS" ] ; then
+    Echo "Storing auto-sign grain"
     grains=
     agrains=
     readarray -d , -t grains_arr <<< "$SALT_AUTOSIGN_GRAINS"
@@ -205,7 +217,6 @@ if [ -z "$CUR_MASTER" -o "salt" == "$CUR_MASTER" ] ; then
 fi
 
 Echo "Using Salt master: ${MASTER:-$CUR_MASTER}"
-echo "Using Salt master: ${MASTER:-$CUR_MASTER}" > /progress
 
 if [ -z "$kiwidebug" ];then
     salt-minion -d
@@ -218,8 +229,7 @@ sleep 1
 SALT_PID=`cat /var/run/salt-minion.pid`
 
 if [ -z "$SALT_PID" ] ; then
-    Echo "Salt Minion did not start"
-    echo "Salt Minion did not start" > /progress
+    Echo "Salt Minion did not start, rebooting in 10s"
     sleep 10
     reboot -f
 fi
@@ -227,22 +237,21 @@ fi
 MINION_ID="`salt-call --local --out newline_values_only grains.get id`"
 MINION_FINGERPRINT="`salt-call --local --out newline_values_only key.finger`"
 while [ -z "$MINION_FINGERPRINT" ] ; do
-  echo "Waiting for salt key..." > /progress
   Echo "Waiting for salt key..."
   sleep 1
   MINION_FINGERPRINT="`salt-call --local --out newline_values_only key.finger`"
 done
 
-Echo
-Echo "SALT Minion ID:"
-Echo "$MINION_ID"
-Echo
-Echo "SALT Minion key fingerprint:"
-Echo "$MINION_FINGERPRINT"
-Echo
+echo
+echo "SALT Minion ID:"
+echo "$MINION_ID"
+echo
+echo "SALT Minion key fingerprint:"
+echo "$MINION_FINGERPRINT"
+echo
 
 # split line into two to fit to screen. Need triple \ to properly pass through
-echo "Terminal ID: $MINION_ID\\\nFingerprint: $MINION_FINGERPRINT" > /progress
+Echo "Terminal ID: $MINION_ID\\\nFingerprint: $MINION_FINGERPRINT" > /progress
 
 SALT_TIMEOUT=${SALT_TIMEOUT:-60}
 num=0
@@ -254,8 +263,7 @@ while kill -0 "$SALT_PID" >/dev/null 2>&1; do
      mount ${root#block:} $NEWROOT && [ -f $NEWROOT/etc/ImageVersion ]; then
     export systemIntegrity=fine
     export imageName=`cat $NEWROOT/etc/ImageVersion`
-    echo "SUSE Manager server does not respond, trying local boot to\\\n$imageName" > /progress
-    Echo "SUSE Manager server does not respond, trying local boot to\\\n$imageName"
+    Echo "SUSE Manager server did not respond, trying local boot to\\\n$imageName"
     sleep 5
     kill "$SALT_PID"
     sleep 1
@@ -266,11 +274,8 @@ if [ -f /salt_config ] ; then
   . /salt_config
 fi
 
-[ -n "$PROGRESS_PID" ] && kill $PROGRESS_PID
-[ -n "$DC_PROGRESS_PID" ] && kill $DC_PROGRESS_PID
-
 if [ "$systemIntegrity" = "unknown" ] ; then
-    Echo "SALT Minion did not create valid configuration"
+    Echo "SALT Minion did not create valid configuration, rebooting in 10s"
     sleep 10
     reboot -f
 fi
@@ -301,13 +306,16 @@ if [ -n "$kernelAction" ] ; then
   umount -a
   sync
   if [ "$kernelAction" = "reboot" ] ; then
-    Echo "Reboot with correct kernel version"
+    Echo "Reboot with correct kernel version in 10s"
     sleep 10
     reboot -f
   elif [ "$kernelAction" = "kexec" ] ; then
     kexec -e
-    Echo "Kexec failed, reboot with correct kernel version"
+    Echo "Kexec failed, reboot with correct kernel version in 10s"
     sleep 10
     reboot -f
   fi
 fi
+
+[ -n "$PROGRESS_PID" ] && kill $PROGRESS_PID
+[ -n "$DC_PROGRESS_PID" ] && kill $DC_PROGRESS_PID
