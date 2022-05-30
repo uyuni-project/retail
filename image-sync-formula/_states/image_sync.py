@@ -78,7 +78,7 @@ def image_synced(name, rootdir, image_data):
 
        return ret
 
-    ret = __states__['file.managed'](name=local_file, source=image_data['sync']['url'], source_hash=image_hash, makedirs=True, force=True)
+    ret = __states__['file.managed'](name=local_file, source=image_data['sync']['url'], source_hash=image_hash, makedirs=True, force=True, show_changes=False)
     return ret
 
 
