@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 30 14:21:54 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Do not try to show changes in images (bsc#1199998)
+
+-------------------------------------------------------------------
 Wed Feb 10 11:53:58 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Create default for arm64 images: linux_arm64 and initrd_arm64
