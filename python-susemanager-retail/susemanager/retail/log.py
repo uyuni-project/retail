@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import logging
 import tempfile
+import argparse
 
 log = logging.getLogger()
 _log_file = None
