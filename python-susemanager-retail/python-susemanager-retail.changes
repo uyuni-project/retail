@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Thu May 26 11:56:13 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
-- Fix messages and logging in retail_create_delta (bsc#1199727)
+- Update to version 1.0.1653987003.92d4870
+  * Fix messages and logging in retail_create_delta (bsc#1199727)
 
 -------------------------------------------------------------------
 Tue Nov 24 14:27:23 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
