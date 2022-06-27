@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jun 27 17:23:35 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
+
+- Update dracut-saltboot dependencies (bsc#1200970)
+
+-------------------------------------------------------------------
 Wed May 25 21:46:07 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
 - Fix network loading when ipappend is used by limiting search to

@@ -27,6 +27,15 @@ BuildArch:      noarch
 BuildRequires:  dracut
 Requires:       dracut
 
+# Requires for saltboot functionality
+Requires:       bind-utils
+Requires:       cryptsetup
+Requires:       curl
+Requires:       device-mapper
+Requires:       kiwi-tools
+Requires:       parted
+Requires:       salt-minion
+
 %description
 dracut module for booting SALT-based PXE images.
 
