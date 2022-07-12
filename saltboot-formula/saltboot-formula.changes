@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May  4 08:36:36 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1651594561.7c2312c
+  * Remove annotations incompatible with SLE12 python2.7
+  * Specify required columns in lsblk output
+
+-------------------------------------------------------------------
 Tue May  3 14:46:36 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
 - Remove annotations incompatible with SLE12 python2.7
