@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Thu May 26 12:11:55 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
-- Fix error message on incorrect --log-level arg (bsc#1199727)
+- Update to version 1.0.1657643023.0d694ce
+  * Fix error message on incorrect --log-level arg (bsc#1199727)
 
 -------------------------------------------------------------------
 Tue Nov 24 14:27:23 UTC 2020 - Ondrej Holecek <oholecek@suse.com>
