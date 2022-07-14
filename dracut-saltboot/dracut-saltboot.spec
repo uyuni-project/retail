@@ -32,9 +32,9 @@ Requires:       bind-utils
 Requires:       cryptsetup
 Requires:       curl
 Requires:       device-mapper
-Requires:       kiwi-tools
 Requires:       parted
 Requires:       salt-minion
+Recommends:     kiwi-tools
 
 %description
 dracut module for booting SALT-based PXE images.
