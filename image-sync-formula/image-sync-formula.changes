@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Mon May 30 14:21:54 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
-- Do not try to show changes in images (bsc#1199998)
+- Update to version 1.0.1657643023.0d694ce
+  * Do not try to show changes in images (bsc#1199998)
 
 -------------------------------------------------------------------
 Wed Feb 10 11:53:58 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
