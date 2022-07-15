@@ -4,10 +4,10 @@ import sys
 import yaml
 import re
 import tempfile
-import tarfile
+import urllib.request
+import socket
 import subprocess
 import shutil
-import salt.utils.dictupdate
 import argparse
 import logging
 import susemanager
@@ -16,39 +16,53 @@ import susemanager.retail.log as retail_log
 log = logging.getLogger(__name__)
 
 _cat_list = {
-    'tar': 'cat',
-    'tgz': 'zcat',
-    'tar.xz': 'xzcat'
+    '.gz': '| zcat',
+    '.tgz': '| zcat',
+    '.xz': '| xzcat',
+    '': ''
 }
 
-def bundle_path(url):
-    return re.sub(r"^.*/os-images/", "/srv/www/os-images/", url)
-
-
-def generate_delta(src_bundle, target_bundle, src_pillar, target_pillar, img_path, args):
+def generate_bundle_delta(src_pillar, target_pillar, delta_path, args):
+    src_bundle_url = src_pillar.get('sync', {}).get('bundle_url')
+    target_bundle_url = target_pillar.get('sync', {}).get('bundle_url')
+    log.debug("source bundle url: {}".format(src_bundle_url))
+    log.debug("target bundle url: {}".format(target_bundle_url))
     tmpdir = tempfile.mkdtemp()
     try:
-        cat = _cat_list[next(filter(lambda x: target_bundle.endswith(x), _cat_list.keys()))]
+        src_cat = _cat_list[next(filter(lambda x: src_bundle_url.endswith(x), _cat_list.keys()))]
+        target_cat = _cat_list[next(filter(lambda x: target_bundle_url.endswith(x), _cat_list.keys()))]
 
-        with tarfile.open(img_path + src_bundle, "r") as tar:
-            tar.extractall(tmpdir)
-
-        delta_file = target_bundle + '-' + os.path.basename(src_bundle) + '.delta'
-
-        target_url = target_pillar.get('sync', {}).get('bundle_url')
-        delta_url = target_url + '-' + os.path.basename(src_bundle) + '.delta'
+        subprocess.check_call("cd '{}' ; curl -s -f -L '{}' {} | tar x".format(tmpdir, src_bundle_url, src_cat), shell=True)
 
         extra_args = ''
         if args.B is not None:
             extra_args += "-B " + args.B
 
-        subprocess.check_call("{} '{}' | xdelta3 -e {} -s '{}' > '{}'".format(cat, img_path + target_bundle, extra_args, os.path.join(tmpdir, src_pillar.get('filename')), img_path + delta_file), shell=True)
+        subprocess.check_call("curl -s -f -L '{}' {} | xdelta3 -e {} -s '{}' > '{}'".format(target_bundle_url, target_cat, extra_args, os.path.join(tmpdir, src_pillar.get('filename')), delta_path), shell=True)
     finally:
         shutil.rmtree(tmpdir)
 
-    return delta_file, delta_url
 
-def generate_pillar(src_name, src_version, src_revision, target_name, target_version, target_revision, delta_file, delta_url, org_id=1):
+def generate_system_delta(src_pillar, target_pillar, delta_path, args):
+    src_url = src_pillar.get('sync', {}).get('url')
+    target_url = target_pillar.get('sync', {}).get('url')
+    log.debug("source url: {}".format(src_url))
+    log.debug("target url: {}".format(target_url))
+    tmpdir = tempfile.mkdtemp()
+    try:
+        tmp_src = os.path.join(tmpdir, src_pillar.get('filename'))
+        urllib.request.urlretrieve(src_url, tmp_src)
+
+        extra_args = ''
+        if args.B is not None:
+            extra_args += "-B " + args.B
+
+        subprocess.check_call("curl -s -f -L '{}' | xdelta3 -e {} -s '{}' > '{}'".format(target_url, extra_args, tmp_src, delta_path), shell=True)
+    finally:
+        shutil.rmtree(tmpdir)
+
+
+def generate_pillar(src_name, src_version, src_revision, target_name, target_version, target_revision, delta_file, delta_url, org_id=1, delta_type='bundle_delta'):
 
     size = os.path.getsize(delta_file)
     delta_hash = subprocess.check_output(['sha512sum', delta_file]).decode().split(' ')[0]
@@ -58,7 +72,7 @@ def generate_pillar(src_name, src_version, src_revision, target_name, target_ver
             target_name: {
                 target_version + '-' + target_revision: {
                     'sync': {
-                        'bundle_delta': {
+                        delta_type: {
                             src_name: {
                                 src_version + '-' + src_revision: {
                                     'url': delta_url,
@@ -74,7 +88,6 @@ def generate_pillar(src_name, src_version, src_revision, target_name, target_ver
     }
 
     return pillar
-
 
 def list_images(images, deltas):
     image_dict = {}
@@ -182,12 +195,31 @@ try:
 
     src_pillar =  client.image.getPillar(key, src_id).get('images', {}).get(src_name, {}).get(src_version + '-' + src_revision, {})
     target_pillar =  client.image.getPillar(key, target_id).get('images', {}).get(target_name, {}).get(target_version + '-' + target_revision, {})
-    target_url = target_pillar.get('sync', {}).get('bundle_url')
     img_path = "/srv/www/os-images/{0}/".format(org_id)
 
-    delta_file, delta_url = generate_delta(src_image['files'][0]['file'], target_image['files'][0]['file'], src_pillar, target_pillar, img_path, args)
+    delta_file = "{0}-{1}-{2}-{3}-{4}-{5}.delta".format(
+                 target_image.get('name'), target_image.get('version'), target_image.get('revision'),
+                 src_image.get('name'), src_image.get('version'), src_image.get('revision'))
 
-    delta_pillar = generate_pillar(src_name, src_version, src_revision, target_name, target_version, target_revision, img_path + delta_file, delta_url, org_id)
+    fqdn = socket.getfqdn()
+    delta_url = "https://{0}/os-images/{1}/{2}".format(fqdn, org_id, delta_file)
+
+    src_bundle_url = src_pillar.get('sync', {}).get('bundle_url')
+    target_bundle_url = target_pillar.get('sync', {}).get('bundle_url')
+
+    src_url = src_pillar.get('sync', {}).get('url')
+    target_url = target_pillar.get('sync', {}).get('url')
+
+    if src_bundle_url and target_bundle_url:
+        generate_bundle_delta(src_pillar, target_pillar, img_path + delta_file, args)
+        delta_type = "bundle_delta"
+    elif src_url and target_url:
+        generate_system_delta(src_pillar, target_pillar, img_path + delta_file, args)
+        delta_type = "system_delta"
+    else:
+        raise RuntimeError("Inconsistent image pillars. Can't create delta")
+
+    delta_pillar = generate_pillar(src_name, src_version, src_revision, target_name, target_version, target_revision, img_path + delta_file, delta_url, org_id, delta_type)
 
     client.image.delta.createDeltaImage(key, src_id, target_id, delta_file, delta_pillar)
 

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jul 15 12:30:15 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Support deltas for system images (bsc#1201498)
+
+-------------------------------------------------------------------
 Thu May 26 12:11:55 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Update to version 1.0.1657643023.0d694ce
