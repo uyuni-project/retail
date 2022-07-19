@@ -1,5 +1,6 @@
 Fri Jul 15 12:31:42 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
+- Fix deleting of unused boot images
 - Support deltas for system images (bsc#1201498)
 
 -------------------------------------------------------------------

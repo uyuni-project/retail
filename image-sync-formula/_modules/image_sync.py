@@ -92,7 +92,7 @@ def deleted_boot_images(boot_images_in_use, arch_list = ['x86_64', 'i586', 'i686
     for boot_image_id, boot_image_data in grains_boot_images.items():
         if boot_image_id in boot_images_in_use:
             continue
-        if pillar_boot_images.get(boot_image_id, {}).get('arch') not in arch_list:
+        if grains_boot_images.get(boot_image_id, {}).get('arch') not in arch_list:
             continue
         if boot_image_id not in pillar_boot_images or boot_image_id in deleted_bundle_boot_images:
             res.append((boot_image_id, boot_image_data))
