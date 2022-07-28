@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 28 12:50:11 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use salt bundle
+
+-------------------------------------------------------------------
 Wed Aug  4 12:08:43 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Fix dependencies of python libs (bsc#1188846)

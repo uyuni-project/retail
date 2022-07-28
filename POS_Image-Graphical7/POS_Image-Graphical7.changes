@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 28 12:48:01 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use salt bundle
+
+-------------------------------------------------------------------
 Mon Jan  3 13:25:18 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
 - Remove deprecated kiwi functions

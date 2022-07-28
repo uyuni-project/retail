@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 28 12:48:50 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use salt bundle
+
+-------------------------------------------------------------------
 Mon Dec 13 16:46:22 UTC 2021 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to version 0.1.1639488226.7c9eab9
