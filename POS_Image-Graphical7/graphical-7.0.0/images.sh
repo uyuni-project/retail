@@ -28,6 +28,7 @@ if [ -f /usr/bin/venv-salt-call ] ; then
   # notify SUSE Manager about newly deployed image
   systemctl enable image-deployed-bundle.service
 
+  systemctl enable migrate-to-bundle.service
 else
   systemctl enable salt-minion.service
 
