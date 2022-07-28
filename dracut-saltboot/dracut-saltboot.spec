@@ -34,6 +34,7 @@ Requires:       curl
 Requires:       device-mapper
 Requires:       parted
 Requires:       salt-minion
+Requires:       e2fsprogs
 Recommends:     kiwi-tools
 
 %description

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 28 12:51:40 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Do not send events if syncing fails
+
+-------------------------------------------------------------------
 Fri Jul 15 12:31:42 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Update to version 0.1.1658330139.861779d

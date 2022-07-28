@@ -51,9 +51,16 @@ installkernel() {
 
 # called by dracut
 install() {
-    inst_multiple -o $(rpm -ql $(get_python_pkg_deps_recursive salt salt-minion) | \
+    if rpm -q venv-salt-minion ; then
+        export LD_LIBRARY_PATH=/usr/lib/venv-salt-minion/lib
+        inst_multiple -o $(rpm -ql venv-salt-minion | \
+                  grep -v '\.pyc$\|/etc/venv-salt-minion/minion_id\|/etc/venv-salt-minion/pki\|/usr/share/doc/\|/usr/share/man' | \
+                  fix_python_deps )
+    else
+        inst_multiple -o $(rpm -ql $(get_python_pkg_deps_recursive salt salt-minion) | \
                   grep -v '\.pyc$\|/etc/salt/minion_id\|/etc/salt/pki\|/usr/share/doc/\|/usr/share/man' | \
                   fix_python_deps )
+    fi
     inst_multiple -o /usr/lib64/libffi.so.7 # dracut dependency solver does not see this
     inst_multiple -o grep dig ldconfig date dbus-uuidgen systemd-machine-id-setup dmidecode seq parted \
                      lsblk partprobe mdadm dcounter mkswap curl head md5sum resize2fs mkfs mkfs.btrfs \

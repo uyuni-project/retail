@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 28 12:46:06 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use salt bundle
+
+-------------------------------------------------------------------
 Thu May 23 13:54:24 UTC 2019 - Ondrej Holecek <oholecek@suse.com>
 
 - Updated copyrights and bug reporting link
