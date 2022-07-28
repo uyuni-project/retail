@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 28 12:50:32 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Support salt bundle
+
+-------------------------------------------------------------------
 Fri Aug 19 12:02:53 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Fallback to local boot if the configured image is not synced

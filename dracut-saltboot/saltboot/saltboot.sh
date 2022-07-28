@@ -57,14 +57,30 @@ ls -l /dev/disk/by-path >&2
 
 salt_device=${salt_device:-${root#block:}}
 
+if [ -f /usr/bin/venv-salt-call ] ; then
+    INITRD_SALT_ETC=/etc/venv-salt-minion
+    INITRD_SALT_LOG=/var/log/venv-salt-minion.log
+    INITRD_SALT_CALL=venv-salt-call
+    INITRD_SALT_MINION=venv-salt-minion
+    INITRD_SALT_CACHE=/var/cache/venv-salt-minion
+else
+    INITRD_SALT_ETC=/etc/salt
+    INITRD_SALT_LOG=/var/log/salt/minion
+    INITRD_SALT_CALL=salt-call
+    INITRD_SALT_MINION=salt-minion
+    INITRD_SALT_CACHE=/var/cache/salt
+fi
+
 mkdir -p $NEWROOT
 if [ -n "$salt_device" ] && mount "$salt_device" $NEWROOT ; then
-    for sd in $NEWROOT/etc/salt $NEWROOT/salt $NEWROOT ; do
+    for sd in $NEWROOT/etc/venv-salt-minion $NEWROOT/venv-salt-minion $NEWROOT/etc/salt $NEWROOT/salt $NEWROOT ; do
         if [ -f $sd/minion_id ] ; then # find valid salt configuration
-            mkdir -p /etc/salt
-            cp -pr $sd/* /etc/salt
+            mkdir -p $INITRD_SALT_ETC
+            cp -pr $sd/* $INITRD_SALT_ETC
             # remove activation key grain copied from the disk with the rest of configuration
-            rm -f /etc/salt/minion.d/kiwi_activation_key.conf
+            rm -f $INITRD_SALT_ETC/minion.d/kiwi_activation_key.conf
+            #make sure we are not using venv config on normal minion
+            rm -f /etc/salt/minion.d/00-venv.conf
             HAVE_MINION_ID=y
             break
         fi
@@ -72,18 +88,18 @@ if [ -n "$salt_device" ] && mount "$salt_device" $NEWROOT ; then
     umount $NEWROOT
 fi
 
-mkdir -p /etc/salt/minion.d
-cat > /etc/salt/minion.d/grains-initrd.conf <<EOT
+mkdir -p $INITRD_SALT_ETC/minion.d
+cat > $INITRD_SALT_ETC/minion.d/grains-initrd.conf <<EOT
 grains:
   saltboot_initrd: True
 EOT
 
-MACHINE_ID=`salt-call --local --out newline_values_only grains.get machine_id`
+MACHINE_ID=`$INITRD_SALT_CALL --local --out newline_values_only grains.get machine_id`
 
 # store machine id in grains permanently so it does not change when we switch to
 # initrd and back
 # this is not needed for SALT but SUSE Manager seems to rely on it
-cat > /etc/salt/minion.d/grains-machine_id.conf <<EOT
+cat > $INITRD_SALT_ETC/minion.d/grains-machine_id.conf <<EOT
 grains:
   machine_id: $MACHINE_ID
 EOT
@@ -120,7 +136,7 @@ if [ -n "$SALT_AUTOSIGN_GRAINS" ] ; then
             grains="$grains    $name: $value"$'\n'
         fi
     done
-    cat > /etc/salt/minion.d/autosign-grains-onetime.conf <<EOT
+    cat > $INITRD_SALT_ETC/minion.d/autosign-grains-onetime.conf <<EOT
 grains:
 $grains
 
@@ -149,9 +165,9 @@ if [ -z "$HAVE_MINION_ID" ] ; then
     fi
 
     if [ -z "$HOSTNAME" ] || [ -n "$DISABLE_HOSTNAME_ID" ]; then
-        SMBIOS_MANUFACTURER=`salt-call --local --out newline_values_only smbios.get system-manufacturer | tr -d -c 'A-Za-z0-9_-'`
-        SMBIOS_PRODUCT=`salt-call --local --out newline_values_only smbios.get system-product-name | tr -d -c 'A-Za-z0-9_-'`
-        SMBIOS_SERIAL=-`salt-call --local --out newline_values_only smbios.get system-serial-number | tr -d -c 'A-Za-z0-9_-'`
+        SMBIOS_MANUFACTURER=`$INITRD_SALT_CALL --local --out newline_values_only smbios.get system-manufacturer | tr -d -c 'A-Za-z0-9_-'`
+        SMBIOS_PRODUCT=`$INITRD_SALT_CALL --local --out newline_values_only smbios.get system-product-name | tr -d -c 'A-Za-z0-9_-'`
+        SMBIOS_SERIAL=-`$INITRD_SALT_CALL --local --out newline_values_only smbios.get system-serial-number | tr -d -c 'A-Za-z0-9_-'`
 
         if [ "x$SMBIOS_SERIAL" == "x-None" ] ; then
             SMBIOS_SERIAL=
@@ -159,21 +175,21 @@ if [ -z "$HAVE_MINION_ID" ] ; then
 
         # MINION_ID_PREFIX can be specified on kernel cmdline
         if [ -n "$MINION_ID_PREFIX" ] && [ -z "$DISABLE_ID_PREFIX" ] ; then
-            echo "$MINION_ID_PREFIX.$SMBIOS_MANUFACTURER-$SMBIOS_PRODUCT$SMBIOS_SERIAL$UNIQUE_SUFFIX" > /etc/salt/minion_id
+            echo "$MINION_ID_PREFIX.$SMBIOS_MANUFACTURER-$SMBIOS_PRODUCT$SMBIOS_SERIAL$UNIQUE_SUFFIX" > $INITRD_SALT_ETC/minion_id
         else
-            echo "$SMBIOS_MANUFACTURER-$SMBIOS_PRODUCT$SMBIOS_SERIAL$UNIQUE_SUFFIX" > /etc/salt/minion_id
+            echo "$SMBIOS_MANUFACTURER-$SMBIOS_PRODUCT$SMBIOS_SERIAL$UNIQUE_SUFFIX" > $INITRD_SALT_ETC/minion_id
         fi
     else
 
         # MINION_ID_PREFIX can be specified on kernel cmdline
         if [ -n "$MINION_ID_PREFIX" ] && [ -z "$DISABLE_ID_PREFIX" ] ; then
-            echo "$MINION_ID_PREFIX.$HOSTNAME$UNIQUE_SUFFIX" > /etc/salt/minion_id
+            echo "$MINION_ID_PREFIX.$HOSTNAME$UNIQUE_SUFFIX" > $INITRD_SALT_ETC/minion_id
         else
-            echo "$HOSTNAME$UNIQUE_SUFFIX" > /etc/salt/minion_id
+            echo "$HOSTNAME$UNIQUE_SUFFIX" > $INITRD_SALT_ETC/minion_id
         fi
     fi
 
-    cat > /etc/salt/minion.d/grains-minion_id_prefix.conf <<EOT
+    cat > $INITRD_SALT_ETC/minion.d/grains-minion_id_prefix.conf <<EOT
 grains:
   minion_id_prefix: $MINION_ID_PREFIX
 EOT
@@ -181,14 +197,14 @@ fi
 
 # send basic grains in the minion start event. This allows salt master to work with saltboot minion
 # with 1 (new registration) or 0 (already existing registration) grains calls
-cat > /etc/salt/minion.d/grains-startup-event.conf <<EOT
+cat > $INITRD_SALT_ETC/minion.d/grains-startup-event.conf <<EOT
 start_event_grains:
   - machine_id
   - saltboot_initrd
   - susemanager
 EOT
 
-CUR_MASTER=`salt-call --local --out newline_values_only grains.get master`
+CUR_MASTER=`$INITRD_SALT_CALL --local --out newline_values_only grains.get master`
 # do we have master explicitly configured?
 if [ -z "$CUR_MASTER" -o "salt" == "$CUR_MASTER" ] ; then
     # either we have MASTER set on commandline
@@ -197,7 +213,7 @@ if [ -z "$CUR_MASTER" -o "salt" == "$CUR_MASTER" ] ; then
         MASTER=`dig $DIG_OPTIONS -t CNAME salt.$DNSDOMAIN | sed -e 's|;;.*||' -e 's|\.$||' `
     fi
     if [ -n "$MASTER" ] ; then
-        echo "master: $MASTER" > /etc/salt/minion.d/master.conf
+        echo "master: $MASTER" > $INITRD_SALT_ETC/minion.d/master.conf
     fi
     # else
     # ... if it fails, do nothing and let it fall back to 'salt'
@@ -208,14 +224,14 @@ Echo "Using Salt master: ${MASTER:-$CUR_MASTER}"
 echo "Using Salt master: ${MASTER:-$CUR_MASTER}" > /progress
 
 if [ -z "$kiwidebug" ];then
-    salt-minion -d
+    $INITRD_SALT_MINION -d
 else
-    salt-minion -d --log-file-level all
+    $INITRD_SALT_MINION -d --log-file-level all
 fi
 
 sleep 1
 
-SALT_PID=`cat /var/run/salt-minion.pid`
+SALT_PID=`cat /var/run/$INITRD_SALT_MINION.pid`
 
 if [ -z "$SALT_PID" ] ; then
     Echo "Salt Minion did not start"
@@ -224,13 +240,13 @@ if [ -z "$SALT_PID" ] ; then
     reboot -f
 fi
 
-MINION_ID="`salt-call --local --out newline_values_only grains.get id`"
-MINION_FINGERPRINT="`salt-call --local --out newline_values_only key.finger`"
+MINION_ID="`$INITRD_SALT_CALL --local --out newline_values_only grains.get id`"
+MINION_FINGERPRINT="`$INITRD_SALT_CALL --local --out newline_values_only key.finger`"
 while [ -z "$MINION_FINGERPRINT" ] ; do
   echo "Waiting for salt key..." > /progress
   Echo "Waiting for salt key..."
   sleep 1
-  MINION_FINGERPRINT="`salt-call --local --out newline_values_only key.finger`"
+  MINION_FINGERPRINT="`$INITRD_SALT_CALL --local --out newline_values_only key.finger`"
 done
 
 Echo
@@ -249,8 +265,8 @@ num=0
 while kill -0 "$SALT_PID" >/dev/null 2>&1; do
   sleep 1
   num=$(( num + 1 ))
-  if [ "$num" == "$SALT_TIMEOUT" -a -n "$root" -a ! -f '/var/cache/salt/minion/extmods/states/saltboot.py' ] && \
-     ! grep 'The Salt Master has cached the public key for this node' /var/log/salt/minion && \
+  if [ "$num" == "$SALT_TIMEOUT" -a -n "$root" -a ! -f "$INITRD_SALT_CACHE/minion/extmods/states/saltboot.py" ] && \
+     ! grep 'The Salt Master has cached the public key for this node' $INITRD_SALT_LOG && \
      mount ${root#block:} $NEWROOT && [ -f $NEWROOT/etc/ImageVersion ]; then
     export systemIntegrity=fine
     export imageName=`cat $NEWROOT/etc/ImageVersion`
@@ -275,27 +291,37 @@ if [ "$systemIntegrity" = "unknown" ] ; then
     reboot -f
 fi
 
-cat > /etc/salt/minion.d/grains-initrd.conf <<EOT
+cat > $INITRD_SALT_ETC/minion.d/grains-initrd.conf <<EOT
 grains:
   saltboot_initrd: False
 EOT
 
-rm -f /etc/salt/minion.d/autosign-grains-onetime.conf
+rm -f $INITRD_SALT_ETC/minion.d/autosign-grains-onetime.conf
+
+if [ -e $NEWROOT/etc/venv-salt-minion ] ; then
+    IMAGE_SALT_ETC=/etc/venv-salt-minion
+else
+    IMAGE_SALT_ETC=/etc/salt
+fi
 
 # copy salt, wicked and system configurations to deployed system
-cp -pr /etc/salt $NEWROOT/etc
+mkdir -p $NEWROOT/$IMAGE_SALT_ETC
+cp -pr $INITRD_SALT_ETC/* $NEWROOT/$IMAGE_SALT_ETC
+#make sure we are not using venv config on normal minion
+rm -f $NEWROOT/etc/salt/minion.d/00-venv.conf
+
 echo $MACHINE_ID > $NEWROOT/etc/machine-id
 
 mkdir -p $NEWROOT/var/lib/wicked
 cp /var/lib/wicked/lease* $NEWROOT/var/lib/wicked/
 
 # copy salt log files
-mkdir -p $NEWROOT/var/log/salt
+mkdir -p $NEWROOT/var/log/saltboot
 num=1
-while [ -e $NEWROOT/var/log/salt/saltboot_$num ] ; do
+while [ -e $NEWROOT/var/log/saltboot/saltboot_$num ] ; do
   num=$(( num + 1 ))
 done
-cp -pr /var/log/salt $NEWROOT/var/log/salt/saltboot_$num
+cp -pr $INITRD_SALT_LOG $NEWROOT/var/log/saltboot/saltboot_$num
 
 if [ -n "$kernelAction" ] ; then
   umount -a

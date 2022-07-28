@@ -1911,7 +1911,7 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
             ret['comment'] += 'Booting system'
             __salt__['cmd.run_all']("echo 'Booting system' > /progress ", python_shell=True, output_loglevel='trace')
 
-        res = __states__['cmd.run']('sleep 1; kill `cat /var/run/salt-minion.pid`', bg=True)
+        res = __states__['cmd.run']('sleep 1; kill `cat /var/run/venv-salt-minion.pid || cat /var/run/salt-minion.pid`', bg=True)
         ret['comment'] += "\n" + res['comment']
         return ret
 
@@ -1951,7 +1951,7 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
         text = 'export kernelAction={0}\n'.format(action)
         )
 
-    res = __states__['cmd.run']('sleep 1; kill `cat /var/run/salt-minion.pid`', bg=True)
+    res = __states__['cmd.run']('sleep 1; kill `cat /var/run/venv-salt-minion.pid || cat /var/run/salt-minion.pid`', bg=True)
     ret['comment'] += "\n" + res['comment']
     return ret
 
