@@ -203,7 +203,10 @@
         <package name="xfsprogs"/>
 
         <!-- packages for saltboot: -->
+        <package name="venv-salt-minion"/>
+        <!-- or
         <package name="salt-minion"/>
+        -->
         <package name="dmidecode"/>
         <package name="sles-release"/>
         <package name="kexec-tools"/>

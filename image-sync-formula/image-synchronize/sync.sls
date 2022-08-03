@@ -41,6 +41,8 @@ images:{{ image_id }}:{{ image_version }}:
         action: add
         image_name: {{ image_id }}
         image_version: {{ image_version }}
+    - require:
+        - image_sync: {{ local_file }}
 
 {%- endfor %}
 

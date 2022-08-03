@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 28 12:48:50 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use salt bundle
+
+-------------------------------------------------------------------
 Thu Jul 28 09:35:35 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
 - Add support fo VirtIO disks
