@@ -277,6 +277,7 @@
         <file name="libffi"/>
         <file name="libzmq"/>
         <file name="libstdc++"/>
+        <file name="libexpat"/>
     </strip>
     <strip type="tools">
         <file name="python"/>
@@ -285,7 +286,9 @@
         <file name="python3"/>
         <file name="python3.4"/>
         <file name="salt-call"/>
+        <file name="venv-salt-call"/>
         <file name="salt-minion"/>
+        <file name="venv-salt-minion"/>
         <file name="findmnt"/>
         <file name="date"/>
         <file name="dbus-uuidgen"/>
