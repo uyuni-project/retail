@@ -183,4 +183,8 @@ activateImage
 #======================================
 # 31) Unmount initrd / system init
 #--------------------------------------
+
+#workaround for bsc#1202165 - do not export non-utf8 environment variables
+unset BOOTABLE_FLAG
+
 bootImage
