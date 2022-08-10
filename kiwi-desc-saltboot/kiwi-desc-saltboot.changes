@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 10 13:32:15 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use standard susemanager.conf
+
+-------------------------------------------------------------------
 Thu Jul 28 12:48:50 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use salt bundle

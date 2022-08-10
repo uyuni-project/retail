@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 10 13:31:36 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Use standard susemanager.conf
+
+-------------------------------------------------------------------
 Thu Jul 28 12:50:11 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Move image services to dracut-saltboot package
