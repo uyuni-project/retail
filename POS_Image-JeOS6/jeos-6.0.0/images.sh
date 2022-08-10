@@ -29,6 +29,9 @@ if [ -f /usr/bin/venv-salt-call ] ; then
   systemctl enable image-deployed-bundle.service
 
   systemctl enable migrate-to-bundle.service
+
+  # move the activation key injected by SUMA
+  mv /etc/salt/minion.d/kiwi_activation_key.conf /etc/venv-salt-minion/minion.d
 else
   systemctl enable salt-minion.service
 
