@@ -1419,6 +1419,29 @@ def image_deployed(name, partitioning, images):
                 if res['result']:
                     _add_change(ret['changes'], res['changes'])
                 else:
+                    if existing:
+                        checkdevice = _luks_open(device, luks_pass)
+                        res = __salt__['cmd.run_all'](
+                            'e2fsck -y -f {0}'.format(checkdevice))
+                        if res['retcode'] == 0:
+                            # re-read the existing version to make sure the original image is still OK
+                            existing, existing_hash2 = _get_image_version(device, luks_pass)
+                            if existing and existing_hash and existing_hash == existing_hash2:
+                                ret['comment'] += "\nFallback to already installed image {0}\n".format(existing)
+                                if report_progress:
+                                    __salt__['cmd.run_all']("echo 'Fallback to already installed image {0}' > /progress ".format(existing), python_shell=True, output_loglevel='trace')
+
+                                ret1 = __states__['file.managed'](
+                                    '/salt_config',
+                                    contents = [
+                                    'export systemIntegrity=fine\n' +
+                                    'export imageName={0}\n'.format(existing) +
+                                    'export imageDiskDevice={0}\n'.format(devmap[name]['diskdevice'])
+                                ])
+
+                                __salt__['environ.setval']('saltboot_fallback', existing)
+                                return ret
+
                     ret['result'] = False
                     return ret
 
@@ -1708,6 +1731,9 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
         'pchanges': {},
         }
 
+    if __salt__['environ.get']('saltboot_fallback'):
+        ret['comment'] = "Fallback to already installed {0}".format(__salt__['environ.get']('saltboot_fallback'))
+        return ret
 
     devmap = _device_map(partitioning)
     root_device = None
@@ -1853,6 +1879,15 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
         report_progress = __salt__['file.is_fifo']("/progress")
 
     newroot = __salt__['environ.get']("NEWROOT", default="/mnt")
+
+    saltboot_fallback = __salt__['environ.get']('saltboot_fallback')
+    if saltboot_fallback:
+        ret['comment'] = "Fallback to already installed {0}".format(saltboot_fallback)
+        if report_progress:
+            __salt__['cmd.run_all']("echo 'Booting already installed {0}' > /progress ".format(saltboot_fallback), python_shell=True, output_loglevel='trace')
+        res = __states__['cmd.run']('sleep 1; kill `cat /var/run/venv-salt-minion.pid || cat /var/run/salt-minion.pid`', bg=True)
+        ret['comment'] += "\n" + res['comment']
+        return ret
 
     boot_image_id = _get_boot_image(partitioning, images)
     boot_image = boot_images.get(boot_image_id)
