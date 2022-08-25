@@ -107,7 +107,7 @@ def get_default_boot_image(boot_images_in_use):
     image_version is 'Major.Minor.Release' numeric version, we may have '-Revision' number at the end.
 
     """
-    if __pillar__.get('image-synchronize', {}).get('use_latest_boot_image', True):
+    if __pillar__.get('image-synchronize', {}).get('use_latest_boot_image', False):
         log.debug("Using latest version of boot image")
         version_template = r"^(?P<name>.+)-(?P<major>[0-9]+)\.(?P<minor>[0-9]+)\.(?P<release>[0-9]*)-?(?P<revision>[0-9]*)$"
         def _version_key(image_version):
