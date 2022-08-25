@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug 23 08:31:33 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Require e2fsprogs (bsc#1202614)
+
+-------------------------------------------------------------------
 Wed Aug 10 13:31:36 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use standard susemanager.conf
