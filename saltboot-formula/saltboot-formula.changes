@@ -1,12 +1,9 @@
 -------------------------------------------------------------------
-Fri Aug 19 12:02:53 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+Fri Aug 26 13:31:28 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
-- Fallback to local boot if the configured image is not synced
-
--------------------------------------------------------------------
-Thu Jul 28 12:50:32 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
-
-- Support salt bundle
+- Update to version 0.1.1661440542.6cbe0da 
+  * Fallback to local boot if the configured image is not synced
+  * Support salt bundle
 
 -------------------------------------------------------------------
 Wed May  4 08:36:36 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
@@ -18,12 +15,12 @@ Wed May  4 08:36:36 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 -------------------------------------------------------------------
 Tue May  3 14:46:36 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
-- Remove annotations incompatible with SLE12 python2.7
+- Remove annotations incompatible with SLE12 python2.7 (bsc#1199199)
 
 -------------------------------------------------------------------
 Fri Apr 29 09:10:04 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
-- Specify required columns in lsblk output
+- Specify required columns in lsblk output (bsc#1199200)
 
 -------------------------------------------------------------------
 Tue Apr 12 09:09:42 UTC 2022 - Ondrej Holecek <oholecek@suse.com>

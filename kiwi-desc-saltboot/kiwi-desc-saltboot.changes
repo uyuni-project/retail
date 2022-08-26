@@ -1,17 +1,10 @@
 -------------------------------------------------------------------
-Wed Aug 10 13:32:15 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+Fri Aug 26 13:29:50 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
-- Use standard susemanager.conf
-
--------------------------------------------------------------------
-Thu Jul 28 12:48:50 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
-
-- Use salt bundle
-
--------------------------------------------------------------------
-Thu Jul 28 09:35:35 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
-
-- Add support fo VirtIO disks
+- Update to version 0.1.1661440542.6cbe0da
+  * Use standard susemanager.conf
+  * Use salt bundle
+  * Add support fo VirtIO disks
 
 -------------------------------------------------------------------
 Mon Dec 13 16:46:22 UTC 2021 - Ondrej Holecek <oholecek@suse.com>
