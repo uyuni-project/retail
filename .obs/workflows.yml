@@ -1,0 +1,57 @@
+rebuild_master:
+  steps:
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: branch-network-formula
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: image-sync-formula
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: kiwi-desc-saltboot
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: python-susemanager-retail
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: saltboot-formula
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: dracut-saltboot
+  filters:
+    event: push
+    branches:
+      only:
+        - master
+
+pr_workflow:
+  steps:
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: branch-network-formula
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: image-sync-formula
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: kiwi-desc-saltboot
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: python-susemanager-retail
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: saltboot-formula
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: dracut-saltboot
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+  filters: 
+    event: pull_request
+    branches:
+       only:
+         - master

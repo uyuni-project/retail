@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Aug 26 08:31:33 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Update to version 0.1.1661440542.6cbe0da
+  * Use standard susemanager.conf
+  * Move image services to dracut-saltboot package
+  * Use salt bundle
+
+-------------------------------------------------------------------
 Tue Aug 23 08:31:33 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Require e2fsprogs (bsc#1202614)
