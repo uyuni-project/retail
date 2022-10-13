@@ -1,7 +1,7 @@
 #
 # spec file for package dracut-saltboot
 #
-# Copyright (c) 2020 SUSE LLC.
+# Copyright (c) 2022 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -15,10 +15,10 @@
 # Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
+
 Name:           dracut-saltboot
 Version:        0.1
 Release:        0
-BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source:         dracut-saltboot-%{version}.tar.xz
 Summary:        SALT-based PXE network boot dracut module
 License:        GPL-2.0
@@ -32,8 +32,11 @@ Requires:       bind-utils
 Requires:       cryptsetup
 Requires:       curl
 Requires:       device-mapper
-Requires:       parted
+Requires:       dmidecode
 Requires:       e2fsprogs
+Requires:       gzip
+Requires:       parted
+Requires:       xz
 Recommends:     kiwi-tools
 
 %description
@@ -45,14 +48,13 @@ dracut module for booting SALT-based PXE images.
 %build
 
 %install
-mkdir -p %{buildroot}/usr/lib/dracut/modules.d/50saltboot
-cp -R saltboot/* %{buildroot}/usr/lib/dracut/modules.d/50saltboot
-chmod 755 %{buildroot}/usr/lib/dracut/modules.d/50saltboot/*
+mkdir -p %{buildroot}%{_prefix}/lib/dracut/modules.d/50saltboot
+cp -R saltboot/* %{buildroot}%{_prefix}/lib/dracut/modules.d/50saltboot
+chmod 755 %{buildroot}%{_prefix}/lib/dracut/modules.d/50saltboot/*
 install -D -m 644 -t %{buildroot}%{_unitdir}/ services/*
 
 %files
-%defattr(-,root,root,-)
-/usr/lib/dracut/modules.d/50saltboot
+%{_prefix}/lib/dracut/modules.d/50saltboot
 %{_unitdir}/*
 
 %pre
@@ -66,6 +68,5 @@ install -D -m 644 -t %{buildroot}%{_unitdir}/ services/*
 
 %postun
 %service_del_postun image-deployed-bundle.service image-deployed.service install-local-bootloader.service migrate-to-bundle.service
-
 
 %changelog
