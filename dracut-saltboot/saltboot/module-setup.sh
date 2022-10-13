@@ -68,7 +68,7 @@ install() {
 
     if ! inst_multiple grep dig ldconfig date dbus-uuidgen systemd-machine-id-setup dmidecode seq parted \
                      lsblk partprobe mdadm dcounter mkswap curl head md5sum resize2fs \
-                     sync cryptsetup busybox swapon tail wipefs ; then
+                     sync cryptsetup busybox swapon tail wipefs xz gzip; then
         dfatal "Some of the required packages are missing"
         exit 1
     fi
