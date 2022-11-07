@@ -1,4 +1,8 @@
-- Add dependencies on xz and gzip to support compressed images
+-------------------------------------------------------------------
+Mon Nov  7 07:42:35 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1665997480.587fa10
+  * Add dependencies on xz and gzip to support compressed images
 
 -------------------------------------------------------------------
 Tue Aug 26 08:31:33 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
@@ -12,17 +16,6 @@ Tue Aug 26 08:31:33 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 Tue Aug 23 08:31:33 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Require e2fsprogs (bsc#1202614)
-
--------------------------------------------------------------------
-Wed Aug 10 13:31:36 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
-
-- Use standard susemanager.conf
-
--------------------------------------------------------------------
-Thu Jul 28 12:50:11 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
-
-- Move image services to dracut-saltboot package
-- Use salt bundle
 
 -------------------------------------------------------------------
 Tue Jul 12 17:02:03 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
