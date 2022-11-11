@@ -15,6 +15,7 @@ fi;
 export MASTER=$(getarg MASTER=)
 export MINION_ID_PREFIX=$(getarg MINION_ID_PREFIX=)
 export SALT_TIMEOUT=$(getarg SALT_TIMEOUT=)
+export SALT_STOP_TIMEOUT=$(getarg SALT_STOP_TIMEOUT=)
 export salt_device=$(getarg salt_device=)
 
 # Terminal naming modifiers
