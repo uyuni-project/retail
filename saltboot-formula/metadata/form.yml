@@ -155,3 +155,15 @@ terminal_kernel_parameters:
     $type: text
     $name: Additional kernel parameters
     $optional: True
+
+saltboot:
+    $type: hidden-group
+    kernel_action:
+        $type: select
+        $name: Kernel change method
+        $help: When Saltboot detects kernel version change or kernel parameters change it can either reboot machine or kexec to new kernel. This value selects desired method. Default is kexec.
+        $optional: True
+        $default: kexec
+        $values:
+          - kexec
+          - reboot
