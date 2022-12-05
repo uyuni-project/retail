@@ -7,13 +7,20 @@ image-synchronize:
 
     whitelist:
         $type: edit-group
-        $name: Synchronize only the listed images
+        $name: Synchronize only the listed images. Enter image names without image version.
         $minItems: 0
         $prototype:
             $type: text
             $help: Image name (without version)
 
+    use_latest_boot_image:
+        $name: Use latest boot image version as default boot image
+        $help: If set, newest boot image version is used as default boot image. If not set, first synchronized boot image is used as default boot image. Default boot image is used for not yet registered machines without specific PXE configuration.
+        $type: boolean
+        $disabled: this.parent.value.default_boot_image != ""
+        $default: true
+
     default_boot_image:
         $type: text
         $name: Default boot image
-        $help: Default boot image used for first boot of a terminal
+        $help: Default boot image used for first boot of not yest registered machines without specific PXE configuration. Setting default boot image disables any autodetection.
