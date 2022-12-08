@@ -82,9 +82,8 @@ install() {
 
     echo "rd.neednet=1 rd.auto" > "${initdir}/etc/cmdline.d/50saltboot.conf"
 
-    # wicked duid generation rules - use ll instead of default llt. ll does not include time, just mac address and generic prefix
-    mkdir -p "${initdir}/etc/wicked"
-    echo "<config><addrconf><dhcp6><default-duid><ll/></default-duid></dhcp6></addrconf></config>" > "${initdir}/etc/wicked/client.xml"
+    # install wicked duid generation rules from image (bsc#1173268, bsc#1205599)
+    inst -o /etc/wicked/local.xml
 
     inst -o /etc/salt/minion.d/autosign-grains.conf
 }
