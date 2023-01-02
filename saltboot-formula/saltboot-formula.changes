@@ -1,5 +1,6 @@
 - Add use case of saltboot group formula outside containerized env
-- Add 'kernel_action' to saltboot form
+  (bsc#1206186)
+- Add 'kernel_action' to saltboot form (bsc#1206055)
 -------------------------------------------------------------------
 Fri Aug 26 13:31:28 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
