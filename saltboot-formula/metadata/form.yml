@@ -167,3 +167,4 @@ saltboot:
         $values:
           - kexec
           - reboot
+          - fail
