@@ -7,7 +7,8 @@ image-synchronize:
 
     whitelist:
         $type: edit-group
-        $name: Synchronize only the listed images. Enter image names without image version.
+        $name: Synchronize only the listed images.
+        $help: Synchronize only the listed images. Enter image names without image version.
         $minItems: 0
         $prototype:
             $type: text
