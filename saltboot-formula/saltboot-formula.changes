@@ -1,3 +1,4 @@
+- Add failsafe stop file when salt-minion does not stop (bsc#1172110)
 - Add use case of saltboot group formula outside containerized env
   (bsc#1206186)
 - Add 'kernel_action' to saltboot form (bsc#1206055)
