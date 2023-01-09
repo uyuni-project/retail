@@ -1,3 +1,4 @@
+- Add failsafe stop file when salt-minion does not stop (bsc#1172110)
 - Copy existing wicked config instead of generating new (bsc#1205599)
 
 -------------------------------------------------------------------
