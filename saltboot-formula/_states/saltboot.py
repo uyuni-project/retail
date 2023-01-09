@@ -1864,19 +1864,13 @@ def _check_terminal_kernel_parameters(parameters):
         msg = 'OK'
     return ok, msg
 
-def _get_salt_pid():
-    pid_file = '/var/run/venv-salt-minion.pid'
-    res = __salt__['cmd.run_all']("ls /usr/bin/venv-salt-minion", python_shell=True)
-    if res['retcode'] > 0:
-        pid_file = '/var/run/salt-minion.pid'
-    res = __salt__['cmd.run_all']("cat {0}".format(pid_file), python_shell=True)
-    pid = res['stdout']
-    return pid
-
-def _request_salt_stop(pid):
-    __salt__['cmd.run_all']("echo {0} > /root/saltstop".format(pid), python_shell=True)
-    res = __states__['cmd.run']('sleep 3; kill {0}'.format(pid), bg=True)
-    return res
+def _request_salt_stop():
+    pid_file = '/var/run/salt-minion.pid'
+    if __salt__['file.file_exists']('/usr/bin/venv-salt-minion'):
+        pid_file = '/var/run/venv-salt-minion.pid'
+    pid = __salt__['file.read'](pid_file)
+    __salt__['file.write']('/root/saltstop', pid)
+    return __states__['cmd.run']('sleep 3; kill {0}'.format(pid), bg=True)
 
 def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fail', terminal_kernel_parameters=None):
 
@@ -1895,13 +1889,11 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
     newroot = __salt__['environ.get']("NEWROOT", default="/mnt")
     saltboot_fallback = __salt__['environ.get']('saltboot_fallback')
 
-    salt_pid = _get_salt_pid()
-
     if saltboot_fallback:
         ret['comment'] = "Fallback to already installed {0}".format(saltboot_fallback)
         if report_progress:
             __salt__['cmd.run_all']("echo 'Booting already installed {0}' > /progress ".format(saltboot_fallback), python_shell=True, output_loglevel='trace')
-        res = _request_salt_stop(salt_pid)
+        res = _request_salt_stop()
         ret['comment'] += "\n" + res['comment']
         return ret
 
@@ -1927,7 +1919,7 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
             ret['comment'] += 'Booting system'
             __salt__['cmd.run_all']("echo 'Booting system' > /progress ", python_shell=True, output_loglevel='trace')
 
-        res = _request_salt_stop(salt_pid)
+        res = _request_salt_stop()
         ret['comment'] += "\n" + res['comment']
         return ret
 
@@ -1967,8 +1959,6 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
         text = 'export kernelAction={0}\n'.format(action)
         )
 
-    res = _request_salt_stop(salt_pid)
+    res = _request_salt_stop()
     ret['comment'] += "\n" + res['comment']
     return ret
-
-
