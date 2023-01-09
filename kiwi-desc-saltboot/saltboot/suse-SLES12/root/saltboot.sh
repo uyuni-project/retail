@@ -217,7 +217,10 @@ if [ -e /progress ] ; then
 fi
 
 SALT_TIMEOUT=${SALT_TIMEOUT:-60}
+SALT_STOP_TIMEOUT=${SALT_STOP_TIMEOUT:-15}
+SALT_STOP='/root/saltstop'
 num=0
+snum=0
 while kill -0 "$SALT_PID" >/dev/null 2>&1; do
   sleep 1
   num=$(( num + 1 ))
@@ -226,9 +229,19 @@ while kill -0 "$SALT_PID" >/dev/null 2>&1; do
      mount $root $NEWROOT && [ -f $NEWROOT/etc/ImageVersion ]; then
     export systemIntegrity=fine
     export imageName=`cat $NEWROOT/etc/ImageVersion`
-    echo "SUSE Manager server does not respond, trying local boot to\\\n$imageName" > /progress
+    echo "SUSE Manager server did not respond, trying local boot to\\\n$imageName" > /progress
+    sleep 5
     kill "$SALT_PID"
     sleep 1
+  fi
+  #detect salt kill message
+  if [ -f "$SALT_STOP" ];then
+    snum=$(( snum + 1 ))
+    if [ "$snum" -gt "$SALT_STOP_TIMEOUT" ];then
+      kill -9 "$SALT_PID"
+      rm "$SALT_STOP"
+      sleep 1
+    fi
   fi
 done
 
