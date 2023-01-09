@@ -1,3 +1,4 @@
+- Add failsafe stop file when salt-minion does not stop (bsc#1172110)
 -------------------------------------------------------------------
 Thu Jul 28 12:50:11 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
