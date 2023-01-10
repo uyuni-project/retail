@@ -32,7 +32,6 @@ Requires:       bind-utils
 Requires:       cryptsetup
 Requires:       curl
 Requires:       device-mapper
-Requires:       dmidecode
 Requires:       e2fsprogs
 Requires:       gzip
 Requires:       parted

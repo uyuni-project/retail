@@ -1,4 +1,9 @@
-- Add form entry for use lates boot image pillar value (bsc#1206055)
+-------------------------------------------------------------------
+Mon Jan  9 15:58:52 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1673279145.e7616bd
+  * Add form entry for use lates boot image pillar value (bsc#1206055)
+
 -------------------------------------------------------------------
 Fri Aug 26 13:32:05 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 
