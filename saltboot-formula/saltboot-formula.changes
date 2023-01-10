@@ -1,7 +1,12 @@
-- Add failsafe stop file when salt-minion does not stop (bsc#1172110)
-- Add use case of saltboot group formula outside containerized env
-  (bsc#1206186)
-- Add 'kernel_action' to saltboot form (bsc#1206055)
+-------------------------------------------------------------------
+Mon Jan  9 16:01:04 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1673279145.e7616bd
+  * Add failsafe stop file when salt-minion does not stop (bsc#1172110)
+  * Add use case of saltboot group formula outside containerized env
+    (bsc#1206186)
+  * Add 'kernel_action' to saltboot form (bsc#1206055)
+
 -------------------------------------------------------------------
 Fri Aug 26 13:31:28 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
 

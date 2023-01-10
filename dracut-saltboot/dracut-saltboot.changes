@@ -1,5 +1,9 @@
-- Add failsafe stop file when salt-minion does not stop (bsc#1172110)
-- Copy existing wicked config instead of generating new (bsc#1205599)
+-------------------------------------------------------------------
+Mon Jan  9 16:00:24 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1673279145.e7616bd
+  * Add failsafe stop file when salt-minion does not stop (bsc#1172110)
+  * Copy existing wicked config instead of generating new (bsc#1205599)
 
 -------------------------------------------------------------------
 Mon Nov  7 07:42:35 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
