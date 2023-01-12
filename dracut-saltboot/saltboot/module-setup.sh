@@ -83,7 +83,8 @@ install() {
     echo "rd.neednet=1 rd.auto" > "${initdir}/etc/cmdline.d/50saltboot.conf"
 
     # install wicked duid generation rules from image (bsc#1173268, bsc#1205599)
-    inst -o /etc/wicked/local.xml
+    # install local.xml as client.xml as network-legacy does not have other wicked configs included
+    inst -o /etc/wicked/local.xml /etc/wicked/client.xml
 
     inst -o /etc/salt/minion.d/autosign-grains.conf
 }
