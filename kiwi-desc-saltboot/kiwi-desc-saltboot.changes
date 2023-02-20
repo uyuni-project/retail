@@ -1,8 +1,9 @@
-- Add failsafe stop file when salt-minion does not stop (bsc#1172110)
 -------------------------------------------------------------------
-Thu Jul 28 12:48:50 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+Mon Feb 20 15:49:27 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
 
-- Use salt bundle
+- Update to version 
+  * Add failsafe stop file when salt-minion does not stop (bsc#1208418)
+  * Use salt bundle (bsc#1208499)
 
 -------------------------------------------------------------------
 Mon Dec 13 16:46:22 UTC 2021 - Ondrej Holecek <oholecek@suse.com>
