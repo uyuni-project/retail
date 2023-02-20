@@ -1,9 +1,10 @@
-- Add failsafe stop file when salt-minion does not stop (bsc#1172110)
 -------------------------------------------------------------------
-Thu Jul 28 12:50:11 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
+Mon Feb 20 15:47:45 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
 
-- Move image services to dracut-saltboot package
-- Use salt bundle
+- Update to version 
+  * Add failsafe stop file when salt-minion does not stop (bsc#1208418)
+  * Move image services to dracut-saltboot package
+  * Use salt bundle (bsc#1208499)
 
 -------------------------------------------------------------------
 Wed Aug  4 12:08:43 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
