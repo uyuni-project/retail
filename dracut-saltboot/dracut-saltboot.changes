@@ -1,4 +1,8 @@
-- Install copied wicked config as client.xml
+-------------------------------------------------------------------
+Tue Feb 21 09:25:22 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to verion 0.1.1674034019.a93ff61
+  * Install copied wicked config as client.xml (bsc#1205599)
 
 -------------------------------------------------------------------
 Mon Jan  9 16:00:24 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
