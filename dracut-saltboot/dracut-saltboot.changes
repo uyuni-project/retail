@@ -2,6 +2,13 @@
   (bsc#1210640)
 
 -------------------------------------------------------------------
+Wed Apr 19 11:49:39 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1681904360.84ef141
+  * Load network configuration even when missing protocol version
+    (bsc#1210640)
+
+-------------------------------------------------------------------
 Tue Feb 21 09:25:22 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to verion 0.1.1674034019.a93ff61

@@ -1,8 +1,14 @@
 -------------------------------------------------------------------
+Thu Mar 30 09:43:31 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1680167239.23f2fec
+  * Remove unnecessary import of "salt.ext.six"
+
+-------------------------------------------------------------------
 Fri May 28 09:27:21 UTC 2021 - Vladimir Nadvornik <nadvornik@suse.com>
 
 - Use kernel parameters from PXE formula also for local boot
-- Update to version 0.1.1627546504.96a0b3e
+- Update to version 0.1.1628156312.dbd0dec
 
 -------------------------------------------------------------------
 Wed Mar 31 10:04:32 UTC 2021 - Ondrej Holecek <oholecek@suse.com>
