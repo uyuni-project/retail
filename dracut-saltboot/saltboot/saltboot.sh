@@ -25,18 +25,18 @@ if ! declare -f Echo > /dev/null ; then
 fi
 
 NET_TIMEOUT=30
-IFCONFIG="$(compgen -G '/tmp/leaseinfo.*.dhcp.ipv4')"
-
 while [ $NET_TIMEOUT -gt 0 ] ; do
-    if [ -s /etc/resolv.conf -a -f "$IFCONFIG" ] ; then
+    IFCONFIG="$(compgen -G '/tmp/leaseinfo.*.dhcp.ipv*')"
+    if [ -s /etc/resolv.conf ] && [ -f "$IFCONFIG" ] ; then
         break
     fi
     Echo "Waiting for network to setup (${NET_TIMEOUT}s)"
-    let NET_TIMEOUT=$NET_TIMEOUT-1
+    NET_TIMEOUT=$((NET_TIMEOUT-1))
     sleep 1
 done
 
-if [ -f "$IFCONFIG" -a -s /etc/resolv.conf ]; then
+if [ -f "$IFCONFIG" ] && [ -s /etc/resolv.conf ]; then
+    # shellcheck disable=SC1090
     . "$IFCONFIG"
 else
     Echo "No network available, aborting saltboot";

@@ -1,3 +1,6 @@
+- Load network configuration even when missing protocol version
+  (bsc#1210640)
+
 -------------------------------------------------------------------
 Tue Feb 21 09:25:22 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
 
