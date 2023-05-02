@@ -255,6 +255,7 @@
         <package name="psmisc"/>
         <package name="sysvinit-tools"/>
         <package name="e2fsprogs"/>
+        <package name="rhn-org-trusted-ssl-cert-osimage"/>
     </packages>
     <packages type="delete" profiles="default,diskless,xen,wireless">
         <package name="cracklib-dict-full"/>
