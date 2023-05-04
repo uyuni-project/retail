@@ -51,12 +51,18 @@ images:{{ image_id }}:{{ image_version }}:
 {%-     set local_path_relative = image_data['sync'].get('local_path') %}
 {%-     set local_path = rootdir + '/' + local_path_relative %}
 {%-     set local_file = local_path + '/' + name %}
+{%-     set local_bundle_cache = salt["cp.is_cached"](image_data['sync'].get('bundle_url', "missing")) %}
 
 {%- if local_path_relative %}
 {{ local_path }}:
   file.absent
 {%- else %}
 {{ local_file }}:
+  file.absent
+{%- endif %}
+
+{%- if local_bundle_cache %}
+{{ local_bundle_cache }}:
   file.absent
 {%- endif %}
 
@@ -133,18 +139,16 @@ default_boot_image_not_synced:
 
 {%- if boot_image_data['sync']['kernel_url'] is defined %}
 {{ local_kernel_file }}:
-  file.managed:
+  image_sync.file_synced:
     - source: {{ boot_image_data['sync']['kernel_url'] }}
     - source_hash: {{ kernel_hash }}
-    - makedirs: True
 {%- endif %}
 
 {%- if boot_image_data['sync']['initrd_url'] is defined %}
 {{ local_initrd_file }}:
-  file.managed:
+  image_sync.file_synced:
     - source: {{ boot_image_data['sync']['initrd_url'] }}
     - source_hash: {{ initrd_hash }}
-    - makedirs: True
 {%- endif %}
 
 # store synced boot images in grains

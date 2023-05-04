@@ -2,6 +2,7 @@
 Thu May  4 11:01:54 UTC 2023 - Vladimir Nadvornik <nadvornik@suse.cz>
 
 - Add support to filter individual image versions in whitelist
+- Delete cache files that are no longer needed
 
 -------------------------------------------------------------------
 Thu Apr 27 13:56:56 UTC 2023 - Vladimir Nadvornik <nadvornik@suse.cz>

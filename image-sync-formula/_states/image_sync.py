@@ -86,7 +86,24 @@ def image_synced(name, rootdir, image_data):
             ret['changes'] = {'new': local_file}
             return ret
 
-    ret = __states__['file.managed'](name=local_file, source=image_data['sync']['url'], source_hash=image_hash, makedirs=True, force=True, show_changes=False)
+    ret = __states__['file.managed'](name=local_file, source=image_data['sync']['url'], source_hash=image_hash, makedirs=True, force=True, show_changes=False, keep_source=False)
     return ret
 
 
+def file_synced(name, source, source_hash):
+    ret = {
+        'name': name,
+        'changes': {},
+        'result': True,
+        'comment': '',
+        'pchanges': {},
+        }
+    parsed_hash = __salt__['file.get_source_sum'](source_hash=source_hash)
+    have_sum = __salt__['file.get_sum'](name, parsed_hash['hash_type'])
+
+    if (have_sum == parsed_hash['hsum']):
+        ret['comment'] = "File hash OK"
+        return ret
+
+    ret = __states__['file.managed'](name=name, source=source, source_hash=source_hash, makedirs=True, force=True, show_changes=False, keep_source=False)
+    return ret
