@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu May  4 11:01:54 UTC 2023 - Vladimir Nadvornik <nadvornik@suse.cz>
+
+- Add support to filter individual image versions in whitelist
+
+-------------------------------------------------------------------
 Thu Apr 27 13:56:56 UTC 2023 - Vladimir Nadvornik <nadvornik@suse.cz>
 
 - Do not delete boot images which are referenced in PXE entries
