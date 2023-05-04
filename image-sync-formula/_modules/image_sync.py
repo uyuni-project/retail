@@ -67,10 +67,16 @@ def filter_images(whitelist = [], arch_list = ['x86_64', 'i586', 'i686']):
 def deleted_images(arch_list = ['x86_64', 'i586', 'i686']):
     pillar_images = __pillar__.get('images', {})
     grains_images = __grains__.get('images', {})
+    grains_boot_images = __grains__.get('boot_images', {})
+    grains_pxe_entries = __grains__.get('pxe_entries', {}).values()
     res = []
     for image_id, image_versions in grains_images.items():
         for image_version, image_data in image_versions.items():
             if image_data.get('arch') not in arch_list:
+                continue
+            if (image_data.get('boot_image') in grains_pxe_entries
+               and grains_boot_images.get(image_data.get('boot_image'), {}).get('sync', {}).get('kernel_link')):
+                # this is a bundle and the bundled boot image is still in use in a pxe entry
                 continue
             if not pillar_images.get(image_id, {}).get(image_version, {}).get('filename'):
                 res.append((image_id, image_version, image_data))
@@ -80,6 +86,7 @@ def deleted_images(arch_list = ['x86_64', 'i586', 'i686']):
 def deleted_boot_images(boot_images_in_use, arch_list = ['x86_64', 'i586', 'i686']):
     pillar_boot_images = __pillar__.get('boot_images', {})
     grains_boot_images = __grains__.get('boot_images', {})
+    grains_pxe_entries = __grains__.get('pxe_entries', {}).values()
 
     deleted_bundle_boot_images = []
     for image_id, image_version, image_data in deleted_images():
@@ -92,6 +99,8 @@ def deleted_boot_images(boot_images_in_use, arch_list = ['x86_64', 'i586', 'i686
     res = []
     for boot_image_id, boot_image_data in grains_boot_images.items():
         if boot_image_id in boot_images_in_use:
+            continue
+        if boot_image_id in grains_pxe_entries:
             continue
         if grains_boot_images.get(boot_image_id, {}).get('arch') not in arch_list:
             continue
