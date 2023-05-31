@@ -169,6 +169,15 @@ def _mount(mountpoint, device, luks_pass = None):
         return False
     return __salt__['mount.mount'](mountpoint, device, True)
 
+def _is_luks(device):
+    tree = _lsblk_compat(device)
+    if tree:
+        devtree = tree['blockdevices'][0] # there should be exactly one device in the lsblk output
+
+        children = devtree.get('children', [])
+        if len(children) == 1 and children[0].get('type') == 'crypt':
+            return True
+    return False
 
 # if the device is already mounted, return mountpoint
 # otherwise create a new mountpoint and mount it
@@ -955,6 +964,27 @@ def _write_image_version(device, namever, h, luks_pass = None):
 def _get_image_for_part(images, part):
     image_id = part.get('image')
     image_version = part.get('image_version')
+
+    freeze = __salt__['pillar.get']('saltboot:freeze_image') or __salt__['pillar.get']('custom_info:saltboot_freeze_image')
+    if freeze:
+        if _is_luks(part.get('device')):
+            # the image is encrypted and we do not know, which image it is
+            for check_image in images.keys():
+                for check_version in images[check_image].keys():
+                    namever, _ = _get_image_version(part.get('device'), images[check_image][check_version].get('luks_pass'))
+                    if namever:
+                        break
+                if namever:
+                    break
+        else:
+            namever, _ = _get_image_version(part.get('device'))
+        for check_image in images.keys():
+            if namever and namever.startswith(check_image + '-'):
+                image_id = check_image
+                image_version = namever[len(image_id) + 1:]
+                log.info("freezing image '{}' version '{}'".format(image_id, image_version))
+                break
+
     image_dict = None
     sorted_versions = None
     if image_id not in images:
@@ -1788,7 +1818,7 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
             ret['result'] = False
         return ret
 
-    boot_image_id = _get_boot_image(partitioning, images)
+    boot_image_id = _get_boot_image(devmap, images)
     boot_image = boot_images.get(boot_image_id)
 
     if salt_device is None:
@@ -1854,28 +1884,16 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
     return ret
 
 # return boot image corresponding to system image mounted on /
-def _get_boot_image(partitioning, images):
+def _get_boot_image(devmap, images):
 
     boot_image_id = 'default'
-    for disk_id in partitioning.keys():
-        disk_data = partitioning[disk_id]
-        if disk_data.get('disklabel') != 'none':
-            part = disk_data.get('partitions')
-            for part_id in sorted(part):
-                p = part[part_id]
-                if p.get('mountpoint') != '/' or p.get('image') is None:
-                    continue
-                image_id, image_version, image = _get_image_for_part(images, p)
-                if image:
-                    boot_image_id = image.get('boot_image', 'default')
-                    break
-        else:
-            if disk_data.get('mountpoint') != '/' or disk_data.get('image') is None:
-                continue
-            image_id, image_version, image = _get_image_for_part(images, disk_data)
-            if image:
-                boot_image_id = image.get('boot_image', 'default')
-                break
+    for p in devmap.values():
+        if p.get('mountpoint') != '/' or p.get('image') is None:
+            continue
+        image_id, image_version, image = _get_image_for_part(images, p)
+        if image:
+            boot_image_id = image.get('boot_image', 'default')
+            break
 
     return boot_image_id
 
@@ -1929,7 +1947,8 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
         ret['comment'] += "\n" + res['comment']
         return ret
 
-    boot_image_id = _get_boot_image(partitioning, images)
+    devmap = _device_map(partitioning)
+    boot_image_id = _get_boot_image(devmap, images)
     boot_image = boot_images.get(boot_image_id)
     if boot_image is None:
         ret['comment'] += 'Boot image "{0}" not found in pillar.\n'.format(boot_image_id)
