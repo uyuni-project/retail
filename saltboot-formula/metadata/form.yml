@@ -168,3 +168,9 @@ saltboot:
           - kexec
           - reboot
           - fail
+    freeze_image:
+      $name: Freeze Image
+      $help: Keep the deployed image even if a new version is available.
+      $type: boolean
+      $default: False
+      $optional: True

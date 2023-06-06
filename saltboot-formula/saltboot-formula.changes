@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed May 31 09:29:54 UTC 2023 - Vladimir Nadvornik <nadvornik@suse.cz>
+
+- Add option to freeze the deployed image
+
+-------------------------------------------------------------------
 Mon Jan  9 16:01:04 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to version 0.1.1673279145.e7616bd
