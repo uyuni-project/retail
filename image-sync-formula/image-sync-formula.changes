@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Thu Apr 27 13:56:56 UTC 2023 - Vladimir Nadvornik <nadvornik@suse.cz>
 
-- Do not delete boot images which are referenced in PXE entries
+- Update to version 0.1.1687520761.cefb248
+  * Do not delete boot images which are referenced in PXE entries
 
 -------------------------------------------------------------------
 Mon Jan  9 15:58:52 UTC 2023 - Ondrej Holecek <oholecek@suse.com>

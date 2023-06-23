@@ -1,4 +1,9 @@
-- Add osimage cert package to bootstrap for SLE12 images (bsc#1204089)
+-------------------------------------------------------------------
+Fri Jun 23 13:47:10 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1687520761.cefb248
+  * Add osimage cert package to bootstrap for
+    SUSE Linux Enterprise 12 images (bsc#1204089)
 
 -------------------------------------------------------------------
 Mon Jan  9 15:59:28 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
