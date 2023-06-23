@@ -12,6 +12,9 @@ except ImportError:
 from distutils.version import LooseVersion
 log = logging.getLogger(__name__)
 
+def _is_true(value):
+   return value not in [False, "False", "false", 0]
+
 # return device file for partition n on disk disk_device
 def _part_device(disk_device, n):
 
@@ -479,8 +482,11 @@ def disk_partitioned(name, data):
             raise e
 
     existing_disklabel = existing['info'].get('partition table')
-    force_repartition = __grains__.get('saltboot_force_repartition', False)
+    force_repartition = (__salt__['pillar.get']('saltboot:force_repartition', False) or
+                         _is_true(__salt__['pillar.get']('custom_info:saltboot_force_repartition', False)) or
+                         __grains__.get('saltboot_force_repartition', False))
 
+    log.debug(f'force_repartition is {force_repartition}')
     if existing_disklabel != data['disklabel'] or force_repartition:
         if __opts__['test']:
             ret['comment'] += 'Disk "{0}" will be formatted with label {1}.\n'.format(name, data['disklabel'])
@@ -965,7 +971,8 @@ def _get_image_for_part(images, part):
     image_id = part.get('image')
     image_version = part.get('image_version')
 
-    freeze = __salt__['pillar.get']('saltboot:freeze_image', False) or __salt__['pillar.get']('custom_info:saltboot_freeze_image', False) not in [False, 'false', 'False', '0']
+    freeze = __salt__['pillar.get']('saltboot:freeze_image', False) or _is_true(__salt__['pillar.get']('custom_info:saltboot_freeze_image', False))
+    log.debug(f'freeze_image is {freeze}')
     if freeze:
         if _is_luks(part.get('device')):
             # the image is encrypted and we do not know, which image it is
@@ -982,7 +989,7 @@ def _get_image_for_part(images, part):
             if namever and namever.startswith(check_image + '-'):
                 image_id = check_image
                 image_version = namever[len(image_id) + 1:]
-                log.info("freezing image '{}' version '{}'".format(image_id, image_version))
+                log.info("Freezing image '{}' version '{}'".format(image_id, image_version))
                 break
 
     image_dict = None
@@ -1419,8 +1426,11 @@ def image_deployed(name, partitioning, images):
     luks_pass = image.get('luks_pass')
 
     existing, existing_hash = _get_image_version(device, luks_pass)
-    force_redeploy = __grains__.get('saltboot_force_redeploy', False)
+    force_redeploy = (__salt__['pillar.get']('saltboot:force_redeploy', False) or
+                      _is_true(__salt__['pillar.get']('custom_info:saltboot_force_redeploy', False)) or
+                      __grains__.get('saltboot_force_redeploy', False))
 
+    log.debug(f'force_redeploy is {force_redeploy}')
     if ( existing is None or
          existing != '{0}-{1}'.format(image_id, image_version) or
          ('hash' in image and existing_hash != image['hash'] ) or
