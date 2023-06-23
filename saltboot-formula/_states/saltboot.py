@@ -965,7 +965,7 @@ def _get_image_for_part(images, part):
     image_id = part.get('image')
     image_version = part.get('image_version')
 
-    freeze = __salt__['pillar.get']('saltboot:freeze_image') or __salt__['pillar.get']('custom_info:saltboot_freeze_image') in ['true', 'True']
+    freeze = __salt__['pillar.get']('saltboot:freeze_image') or __salt__['pillar.get']('custom_info:saltboot_freeze_image') not in [None, 'false', 'False', '0']
     if freeze:
         if _is_luks(part.get('device')):
             # the image is encrypted and we do not know, which image it is
