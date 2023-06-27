@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jun 27 13:01:42 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
+
+- Fix custom info freeze boolean check (bsc#1212771)
+
+-------------------------------------------------------------------
 Wed May 31 09:29:54 UTC 2023 - Vladimir Nadvornik <nadvornik@suse.cz>
 
 - Update to version 0.1.1687520761.cefb248
