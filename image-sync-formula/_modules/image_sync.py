@@ -50,9 +50,9 @@ def filter_images(whitelist = [], arch_list = ['x86_64', 'i586', 'i686']):
     images = __pillar__.get('images', {})
     res = []
     for image_id, image_versions in images.items():
-        if whitelist and image_id not in whitelist:
-            continue
         for image_version, image_data in image_versions.items():
+            if whitelist and image_id not in whitelist and image_id + '-' + image_version not in whitelist:
+                continue
             if 'filename' not in image_data:
                 continue
             if image_data.get('arch') not in arch_list:
