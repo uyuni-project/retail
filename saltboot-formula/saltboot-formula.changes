@@ -1,3 +1,6 @@
+- Add pillar based saltboot redeploy and repartitioning
+  (jsc#SUMA-158)
+
 -------------------------------------------------------------------
 Tue Jun 27 13:01:42 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
 
