@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug  8 09:00:00 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
+
+- Fix boot image version compare to use numeric instead of string
+  (bsc#1214002)
+
+-------------------------------------------------------------------
 Thu May  4 11:01:54 UTC 2023 - Vladimir Nadvornik <nadvornik@suse.cz>
 
 - Add support to filter individual image versions in whitelist
