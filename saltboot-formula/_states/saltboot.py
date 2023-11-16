@@ -486,7 +486,7 @@ def disk_partitioned(name, data):
                          _is_true(__salt__['pillar.get']('custom_info:saltboot_force_repartition', False)) or
                          __grains__.get('saltboot_force_repartition', False))
 
-    log.debug(f'force_repartition is {force_repartition}')
+    log.debug("force_repartition is {}".format(force_repartition))
     if existing_disklabel != data['disklabel'] or force_repartition:
         if __opts__['test']:
             ret['comment'] += 'Disk "{0}" will be formatted with label {1}.\n'.format(name, data['disklabel'])
@@ -972,7 +972,7 @@ def _get_image_for_part(images, part):
     image_version = part.get('image_version')
 
     freeze = __salt__['pillar.get']('saltboot:freeze_image', False) or _is_true(__salt__['pillar.get']('custom_info:saltboot_freeze_image', False))
-    log.debug(f'freeze_image is {freeze}')
+    log.debug("freeze_image is {}".format(freeze))
     if freeze:
         if _is_luks(part.get('device')):
             # the image is encrypted and we do not know, which image it is
@@ -1430,7 +1430,7 @@ def image_deployed(name, partitioning, images):
                       _is_true(__salt__['pillar.get']('custom_info:saltboot_force_redeploy', False)) or
                       __grains__.get('saltboot_force_redeploy', False))
 
-    log.debug(f'force_redeploy is {force_redeploy}')
+    log.debug("force_redeploy is {}".format(force_redeploy))
     if ( existing is None or
          existing != '{0}-{1}'.format(image_id, image_version) or
          ('hash' in image and existing_hash != image['hash'] ) or

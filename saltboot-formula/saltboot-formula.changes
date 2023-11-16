@@ -1,5 +1,11 @@
-- Add pillar based saltboot redeploy and repartitioning
-  (jsc#SUMA-158)
+* Remove f-formating to be compatible with python <3.6
+
+-------------------------------------------------------------------
+Wed Aug 16 14:12:27 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1692188980.9aa0455
+  * Add pillar based saltboot redeploy and repartitioning
+    (jsc#SUMA-158)
 
 -------------------------------------------------------------------
 Tue Jun 27 13:01:42 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
