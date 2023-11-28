@@ -26,6 +26,8 @@ Group:          System/Packages
 BuildArch:      noarch
 Requires:       salt-master
 Requires:       susemanager-sls
+BuildRequires:  salt-master
+BuildRequires:  susemanager-sls
 %define fname saltboot
 
 %description
