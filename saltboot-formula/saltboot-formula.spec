@@ -24,6 +24,8 @@ Summary:        Formula for boot image of POS terminal
 License:        GPL-2.0
 Group:          System/Packages
 BuildArch:      noarch
+Requires:       salt-master
+Requires:       susemanager-sls
 %define fname saltboot
 
 %description
@@ -35,7 +37,7 @@ Formula for boot image of POS terminal.
 %build
 
 %install
-mkdir -p %{buildroot}/usr/share/susemanager/formulas/states/{%{fname},%{fname}-orchestrate,%{fname}-reactor,_states}
+mkdir -p %{buildroot}/usr/share/susemanager/formulas/states/{%{fname},%{fname}-reactor,_states}
 mkdir -p %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}
 mkdir -p %{buildroot}/usr/share/susemanager/formulas/metadata/%{fname}-group
 cp -R %{fname}/* %{buildroot}/usr/share/susemanager/formulas/states/%{fname}
@@ -53,8 +55,11 @@ cp -R master.d/* %{buildroot}/etc/salt/master.d
 
 %files
 %defattr(-,root,root,-)
-/usr/share/susemanager
-%dir /etc/salt
-/etc/salt/master.d
+/usr/share/susemanager/formulas/states/%{fname}
+/usr/share/susemanager/formulas/states/%{fname}-reactor
+/usr/share/susemanager/formulas/states/_states
+/usr/share/susemanager/formulas/metadata/%{fname}
+/usr/share/susemanager/formulas/metadata/%{fname}-group
+/etc/salt/master.d/saltboot.conf
 
 %changelog
