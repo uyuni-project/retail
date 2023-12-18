@@ -1,3 +1,4 @@
+* Handle missing salt PID file (bsc#1212985)
 * Remove f-formating to be compatible with python <3.6
 
 -------------------------------------------------------------------

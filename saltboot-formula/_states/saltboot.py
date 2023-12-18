@@ -1928,9 +1928,17 @@ def _request_salt_stop():
     pid_file = '/var/run/salt-minion.pid'
     if __salt__['file.file_exists']('/usr/bin/venv-salt-minion'):
         pid_file = '/var/run/venv-salt-minion.pid'
-    pid = __salt__['file.read'](pid_file)
-    __salt__['file.write']('/root/saltstop', pid)
-    return __states__['cmd.run']('sleep 3; kill {0}'.format(pid), bg=True)
+    if __salt__['file.file_exists'](pid_file):
+        pid = __salt__['file.read'](pid_file)
+        __salt__['file.write']('/root/saltstop', pid)
+        return __states__['cmd.run']('sleep 3; kill {0}'.format(pid), bg=True)
+    else:
+        ret = {
+            'result': True,
+            'comment': 'Cannot stop salt process. PID file not found',
+            'pchanges': {},
+            }
+        return ret
 
 def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fail', terminal_kernel_parameters=None):
 
