@@ -1,4 +1,9 @@
-* Remove f-formating to be compatible with python <3.6
+-------------------------------------------------------------------
+Mon Jan 15 10:25:47 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1701196218.b6b8ca1
+  * Remove f-formating to be compatible with python <3.6
+  * Update packaging not to package salt directories
 
 -------------------------------------------------------------------
 Wed Aug 16 14:12:27 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
