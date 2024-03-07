@@ -1,3 +1,5 @@
+- Load only first available leaseinfo (bsc#1221092)
+
 -------------------------------------------------------------------
 Wed Apr 19 11:49:39 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
 

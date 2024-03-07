@@ -26,7 +26,10 @@ fi
 
 NET_TIMEOUT=30
 while [ $NET_TIMEOUT -gt 0 ] ; do
-    IFCONFIG="$(compgen -G '/tmp/leaseinfo.*.dhcp.ipv*')"
+    IFCONFIG="$(compgen -G '/tmp/leaseinfo.*.dhcp.ipv*' | xargs grep -l BOOTFILE | head -1)"
+    if [ ! -f "$IFCONFIG" ] ; then
+        IFCONFIG="$(compgen -G '/tmp/leaseinfo.*.dhcp.ipv*' | head -1)"
+    fi
     if [ -s /etc/resolv.conf ] && [ -f "$IFCONFIG" ] ; then
         break
     fi
