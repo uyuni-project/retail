@@ -1,8 +1,9 @@
 -------------------------------------------------------------------
 Thu Jul 28 12:48:25 UTC 2022 - Vladimir Nadvornik <nadvornik@suse.com>
 
-- Move image services to dracut-saltboot package
-- Use salt bundle
+- Update to version 0.1.1710765237.46af599
+  * Move image services to dracut-saltboot package
+  * Use salt bundle
 
 -------------------------------------------------------------------
 Mon Jan  3 13:25:36 UTC 2022 - Ondrej Holecek <oholecek@suse.com>
