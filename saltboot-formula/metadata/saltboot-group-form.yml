@@ -36,9 +36,10 @@ saltboot:
       - FQDN
       - Hostname
       - HWType
+      - MAC
     $default: 'Hostname'
     $visible: this.parent.value.containerized_proxy
-    $help: HWType naming scheme names salt client by its hardware manufacturer and product. FQDN uses fully qualified domain name and Hostname uses only client hostname. If FQDN or Hostname are not avaliable, HWType naming scheme is used as fallback.
+    $help: HWType naming scheme names salt client by its hardware manufacturer and product. FQDN uses fully qualified domain name and Hostname uses only client hostname. If FQDN or Hostname are not avaliable, HWType naming scheme is used as fallback. MAC naming scheme uses MAC address of the interface used for network boot.
   disable_id_prefix:
     $name: Do not prefix salt client ID with saltboot group ID
     $type: boolean

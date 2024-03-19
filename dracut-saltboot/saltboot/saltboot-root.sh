@@ -23,6 +23,7 @@ export DISABLE_UNIQUE_SUFFIX=$(getarg DISABLE_UNIQUE_SUFFIX=)
 export DISABLE_HOSTNAME_ID=$(getarg DISABLE_HOSTNAME_ID=)
 export DISABLE_ID_PREFIX=$(getarg DISABLE_ID_PREFIX=)
 export USE_FQDN_MINION_ID=$(getarg USE_FQDN_MINION_ID=)
+export USE_MAC_MINION_ID=$(getarg USE_MAC_MINION_ID=)
 
 # Debugging
 export kiwidebug=$(getarg kiwidebug=)

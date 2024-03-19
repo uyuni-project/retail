@@ -120,9 +120,9 @@ EOT
 
 echo $MACHINE_ID > /etc/machine-id
 
-curl -s http://salt/saltboot/defaults > /tmp/defaults
-if [ \! -s /tmp/defaults ] ; then
-    busybox tftp -g -l /tmp/defaults -r defaults $BOOTSERVERADDR
+curl -s "http://${MASTER:-$BOOTSERVERADDR}/saltboot/defaults" > /tmp/defaults
+if [ ! -s /tmp/defaults ] ; then
+    busybox tftp -g -l /tmp/defaults -r defaults "${MASTER:-$BOOTSERVERADDR}"
 fi
 
 if [ -s /tmp/defaults ] ; then
@@ -166,20 +166,28 @@ if dig -h | grep -q '\[no\]cookie'; then
 fi
 
 if [ -z "$HAVE_MINION_ID" ] ; then
-    FQDN=`dig $DIG_OPTIONS -x "${IPADDR%/*}" | sed -e 's|;;.*||' -e 's|\.$||' `
-    if [ -n "$USE_FQDN_MINION_ID" ]; then
-        HOSTNAME="$FQDN"
-    else
-        HOSTNAME=${FQDN%%.*}
+    MINION_ID=""
+    if [ -n "$USE_MAC_MINION_ID" ]; then
+        # ip output has multiple hw addressed, we need the one beginning with ether
+        # first grep gets `ether MAC`, second one extracts MAC.
+        MAC_MASK="..:..:..:..:..:.."
+        MINION_ID=$(ip addr show dev "$INTERFACE" | grep -o -E "ether $MAC_MASK" | grep -o -E "$MAC_MASK")
+        if [ -z "$MINION_ID" ]; then
+            Echo "Unable to get MAC based minion id."
+            sleep 5
+        fi
     fi
 
-    if [ -n "$DISABLE_UNIQUE_SUFFIX" ] ; then
-        UNIQUE_SUFFIX=
-    else
-        UNIQUE_SUFFIX="-${MACHINE_ID:0:4}"
+    if [ -z "$MINION_ID" ] && [ -z "$DISABLE_HOSTNAME_ID" ]; then
+        FQDN=$(dig $DIG_OPTIONS -x "${IPADDR%/*}" | sed -e 's|;;.*||' -e 's|\.$||')
+        if [ -n "$USE_FQDN_MINION_ID" ]; then
+            MINION_ID="$FQDN"
+        else
+            MINION_ID="${FQDN%%.*}"
+        fi
     fi
 
-    if [ -z "$HOSTNAME" ] || [ -n "$DISABLE_HOSTNAME_ID" ]; then
+    if [ -z "$MINION_ID" ]; then
         SMBIOS_MANUFACTURER=`$INITRD_SALT_CALL --local --out newline_values_only smbios.get system-manufacturer | tr -d -c 'A-Za-z0-9_-'`
         SMBIOS_PRODUCT=`$INITRD_SALT_CALL --local --out newline_values_only smbios.get system-product-name | tr -d -c 'A-Za-z0-9_-'`
         SMBIOS_SERIAL=-`$INITRD_SALT_CALL --local --out newline_values_only smbios.get system-serial-number | tr -d -c 'A-Za-z0-9_-'`
@@ -188,21 +196,28 @@ if [ -z "$HAVE_MINION_ID" ] ; then
             SMBIOS_SERIAL=
         fi
 
-        # MINION_ID_PREFIX can be specified on kernel cmdline
-        if [ -n "$MINION_ID_PREFIX" ] && [ -z "$DISABLE_ID_PREFIX" ] ; then
-            echo "$MINION_ID_PREFIX.$SMBIOS_MANUFACTURER-$SMBIOS_PRODUCT$SMBIOS_SERIAL$UNIQUE_SUFFIX" > $INITRD_SALT_ETC/minion_id
-        else
-            echo "$SMBIOS_MANUFACTURER-$SMBIOS_PRODUCT$SMBIOS_SERIAL$UNIQUE_SUFFIX" > $INITRD_SALT_ETC/minion_id
-        fi
-    else
-
-        # MINION_ID_PREFIX can be specified on kernel cmdline
-        if [ -n "$MINION_ID_PREFIX" ] && [ -z "$DISABLE_ID_PREFIX" ] ; then
-            echo "$MINION_ID_PREFIX.$HOSTNAME$UNIQUE_SUFFIX" > $INITRD_SALT_ETC/minion_id
-        else
-            echo "$HOSTNAME$UNIQUE_SUFFIX" > $INITRD_SALT_ETC/minion_id
-        fi
+        MINION_ID="${SMBIOS_MANUFACTURER}-${SMBIOS_PRODUCT}${SMBIOS_SERIAL}"
     fi
+
+    UNIQUE_SUFFIX=""
+    if [ -z "$DISABLE_UNIQUE_SUFFIX" ] ; then
+        UNIQUE_SUFFIX="-${MACHINE_ID:0:4}"
+    fi
+
+    # MINION_ID_PREFIX is mandatory
+    if [ -z "$MINION_ID_PREFIX" ]; then
+        Echo "Missing MINION_ID_PREFIX value. Check branch server configuration. Rebooting..."
+        sleep 10
+        reboot -f
+    fi
+
+    if [ -z "$DISABLE_ID_PREFIX" ] ; then
+        BRANCH_ID_PREFIX="${MINION_ID_PREFIX}."
+    else
+        BRANCH_ID_PREFIX=""
+    fi
+
+    echo "${BRANCH_ID_PREFIX}${MINION_ID}${UNIQUE_SUFFIX}" > $INITRD_SALT_ETC/minion_id
 
     cat > $INITRD_SALT_ETC/minion.d/grains-minion_id_prefix.conf <<EOT
 grains:
