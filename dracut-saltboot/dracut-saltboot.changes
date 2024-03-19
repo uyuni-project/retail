@@ -1,4 +1,8 @@
-- Load only first available leaseinfo (bsc#1221092)
+-------------------------------------------------------------------
+Tue Mar 19 13:54:46 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1710765237.46af599
+  * Load only first available leaseinfo (bsc#1221092)
 
 -------------------------------------------------------------------
 Wed Apr 19 11:49:39 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
