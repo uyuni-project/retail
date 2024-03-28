@@ -1,7 +1,7 @@
 #
 # spec file for package image-sync-formula
 #
-# Copyright (c) 2020 SUSE LLC.
+# Copyright (c) 2024 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -22,9 +22,11 @@ Name:           image-sync-formula
 Version:        0.1
 Release:        0
 Summary:        Salt formula for syncing images to Branch Server
-License:        GPL-2.0
+License:        GPL-2.0-only
 Group:          System/Packages
-Source:         image-sync-formula-%{version}.tar.xz
+URL:            https://github.com/uyuni-project/retail
+Source:         %{name}-%{version}.tar.xz
+Source1:        %{name}.rpmlintrc
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 
