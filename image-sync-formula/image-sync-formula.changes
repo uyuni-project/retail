@@ -1,3 +1,8 @@
+- Add missing URL tag
+- Update license to SPDX syntax
+- Silence rpmlint warnings description-shorter-than-summary filename-too-long-for-joliet
+  Add: image-sync-formula.rpmlintrc
+
 -------------------------------------------------------------------
 Tue Aug  8 09:00:00 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
 
