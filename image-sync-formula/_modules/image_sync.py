@@ -121,7 +121,10 @@ def get_default_boot_image(boot_images_in_use):
         version_template = r"^(?P<name>.+)-(?P<major>[0-9]+)\.(?P<minor>[0-9]+)\.(?P<release>[0-9]*)-?(?P<revision>[0-9]*)$"
         def _version_key(image_version):
             ver = re.search(version_template, image_version)
-            return [int(v) for v in ver.group("major", "minor", "release", "revision")]
+            if ver is None:
+              log.error(f'Unsupported version scheme for image {image_version}.')
+              return [0]
+            return [int(v) for v in ver.group("major", "minor", "release", "revision") if v != '']
         return sorted(boot_images_in_use,key=_version_key, reverse=True)[0]
     log.debug("Using first alphabetical boot image")
     return sorted(boot_images_in_use)[0]
