@@ -1,7 +1,14 @@
-- Add missing URL tag
-- Update license to SPDX syntax
-- Silence rpmlint warnings description-shorter-than-summary filename-too-long-for-joliet
-  Add: image-sync-formula.rpmlintrc
+- Ignore non-numeric version parts when sorting images
+  (bsc#1220420)
+
+-------------------------------------------------------------------
+Thu Mar 28 17:31:16 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1711646883.4a44375
+  * Add missing URL tag
+  * Update license to SPDX syntax
+  * Silence rpmlint warnings description-shorter-than-summary filename-too-long-for-joliet
+    Add: image-sync-formula.rpmlintrc
 
 -------------------------------------------------------------------
 Tue Aug  8 09:00:00 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
