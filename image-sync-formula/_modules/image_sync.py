@@ -118,7 +118,7 @@ def get_default_boot_image(boot_images_in_use):
     """
     if __pillar__.get('image-synchronize', {}).get('use_latest_boot_image', True):
         log.debug("Using latest version of boot image")
-        version_template = r"^(?P<name>.+)-(?P<major>[0-9]+)\.(?P<minor>[0-9]+)\.(?P<release>[0-9]*)-?(?P<revision>[0-9]*)$"
+        version_template = r"^(?P<name>.+)-(?P<major>[0-9]+)\.(?P<minor>[0-9]+)\.(?P<release>[0-9]+)-?(?P<revision>[0-9]*)$"
         def _version_key(image_version):
             ver = re.search(version_template, image_version)
             if ver is None:
