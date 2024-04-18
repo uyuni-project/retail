@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 16 12:50:02 UTC 2024 - Vladimir Nadvornik <nadvornik@suse.cz>
+
+- do not specify keytable
+
+-------------------------------------------------------------------
 Mon Jan  3 08:41:45 UTC 2022 - Michael Calmer <mc@suse.com>
 
  - remove obsolete suseConfig call
