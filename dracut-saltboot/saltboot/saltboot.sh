@@ -3,6 +3,11 @@
 NEWROOT=${NEWROOT:-/mnt}
 export NEWROOT
 
+if getargbool 0 rd.saltboot.skip-run ; then
+    echo "Skipping Saltboot run on request"
+    exit 0
+fi
+
 if [ -e /usr/bin/plymouth ] ; then
     mkfifo /progress
     bash -c 'while true ; do read msg < /progress ; plymouth message --text="$msg" ; done ' &

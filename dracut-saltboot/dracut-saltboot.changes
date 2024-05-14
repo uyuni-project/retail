@@ -1,3 +1,6 @@
+- Add option to skip saltboot run on request by using
+  rd.saltboot.skip-run
+
 -------------------------------------------------------------------
 Tue Mar 19 13:54:46 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
 
