@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug  7 15:21:51 UTC 2024 - Vladimir Nadvornik <nadvornik@suse.cz>
+
+- Handle containerized branch server (bsc#1222128)
+
+-------------------------------------------------------------------
 Fri Aug  2 13:47:05 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to version 1.0.1722253762.9f01ce8

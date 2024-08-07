@@ -135,7 +135,6 @@ class Branch:
                 'pxe_root_directory': SRV_DIRECTORY
             }
         }
-        self.groups.add(self.branch_prefix, "Group for branch {}".format(branch))
 
     def configure_dhcp(self, domain, nic=None, ip=None, netmask=None, dyn_range=['192.168.1.10', '192.168.1.250'], terminals=[]):
         """ configure DHCPD formula """
@@ -377,6 +376,30 @@ class Branch:
                     continue
                 self.formulas['bind']['bind']['available_zones'][domain]['records']['A'][t.hostname] = t.ip
 
+
+    def configure_saltboot_group(self, server_name, server_domain, terminal_naming = None):
+        """ configure saltboot group """
+        if "saltboot_group" in self.exclude_formulas:
+            return
+
+        if terminal_naming is None:
+            terminal_naming = {
+                'minion_id_naming': 'Hostname',
+                'disable_id_prefix': False,
+                'disable_unique_suffix': False
+            }
+
+        self.saltboot_group = {
+
+            'saltboot': {
+                'download_server': server_name + '.' + server_domain,
+                'containerized_proxy': self.containerized,
+                'minion_id_naming': terminal_naming['minion_id_naming'],
+                'disable_id_prefix': terminal_naming['disable_id_prefix'],
+                'disable_unique_suffix': terminal_naming['disable_unique_suffix']
+            }
+        }
+
     def configure_branch_prefix(self, branch_prefix):
         self.branch_prefix = branch_prefix
         self.formulas['branch-network']['pxe']['branch_id'] = self.branch_prefix
@@ -390,6 +413,23 @@ class Branch:
             }
         self.formulas['branch-network']['pxe'] = terminal_naming
         self.formulas['branch-network']['pxe']['branch_id'] = self.branch_prefix
+
+    def detect_containerized(self):
+        entitlements = self.client.system.getEntitlements(self.key, self.bs_system_id)
+        if "foreign_entitled" in entitlements:
+            self.foreign = True
+            self.containerized = True
+            return
+
+        self.foreign = False
+        channels = self.client.system.listSubscribedChildChannels(self.key, self.bs_system_id)
+        for c in channels:
+            # we can safely assume that branch server on sle-micro or leap-micro is containerized
+            # the branch formulas would not work on micro anyway
+            if "sle-micro" in c['label'] or "leap-micro" in c['label']:
+                self.containerized = True
+                return
+        self.containerized = False
 
     def connect(self, client, key):
         """
@@ -414,6 +454,12 @@ class Branch:
         self.bs_system_id = ids[0]['id']
 
         self.bs_net_devices = self.client.system.getNetworkDevices(self.key, self.bs_system_id)
+
+        self.detect_containerized()
+        if self.containerized:
+            # currently we don't support these formulas on container host
+            # in the future, we may eventually fix and enable some of them
+            self.exclude_formulas += ["pxe", "tftpd", "vsftpd", 'branch-network', "dhcpd", "bind"]
 
         return True
 
@@ -458,7 +504,10 @@ class Branch:
 
 
         # do not touch excluded formulas
-        enabled_formulas = set(self.client.formula.getFormulasByServerId(self.key, self.bs_system_id))
+        if not self.foreign:
+            enabled_formulas = set(self.client.formula.getFormulasByServerId(self.key, self.bs_system_id))
+        else:
+            enabled_formulas = set()
         not_excluded = set(self.formulas.keys()).difference(self.exclude_formulas)
         enabled_formulas.update(not_excluded)
 
@@ -466,16 +515,22 @@ class Branch:
         enabled_formulas.difference_update(disable_formulas)
         enabled_formulas = list(enabled_formulas)
 
-        self.client.formula.setFormulasOfServer(self.key, self.bs_system_id, enabled_formulas)
-        for formula in not_excluded:
-            if self.formulas[formula] is not None:
-                self.client.formula.setSystemFormulaData(self.key, self.bs_system_id, formula, self.formulas[formula])
+        if not self.foreign:
+            self.client.formula.setFormulasOfServer(self.key, self.bs_system_id, enabled_formulas)
+
+            for formula in not_excluded:
+                if self.formulas[formula] is not None:
+                    self.client.formula.setSystemFormulaData(self.key, self.bs_system_id, formula, self.formulas[formula])
 
 
         self.groups.upload(self.client, self.key)
         self.client.systemgroup.addOrRemoveSystems(self.key, "SERVERS", [self.bs_system_id], True)
         if self.branch_prefix:
             self.client.systemgroup.addOrRemoveSystems(self.key, self.branch_prefix, [self.bs_system_id], True)
+            if self.containerized:
+                group_id = self.groups.get_id(self.branch_prefix)
+                self.client.formula.setFormulasOfGroup(self.key, group_id, ["saltboot-group"])
+                self.client.formula.setGroupFormulaData(self.key, group_id,"saltboot-group", self.saltboot_group)
 
         for t in self.terminals:
             t.connect(self.client, self.key)
@@ -503,29 +558,47 @@ class Branch:
         if self.bs_system_id is None:
             raise RuntimeError("Branch server '%s' does not exist", self.branch_server_id)
 
-        enabled_formulas = set(self.client.formula.getFormulasByServerId(self.key, self.bs_system_id))
-        self.exclude_formulas = []
+        self.groups.download(self.client, self.key)
+
+        if not self.foreign:
+            enabled_formulas = set(self.client.formula.getFormulasByServerId(self.key, self.bs_system_id))
+        else:
+            enabled_formulas = set()
+
         for formula in self.formulas:
-            if formula in enabled_formulas:
+            if formula in enabled_formulas and not self.foreign:
                 self.formulas[formula] = self.client.formula.getSystemFormulaData(self.key, self.bs_system_id, formula)
             else:
-                self.formulas[formula] = None
+                self.formulas[formula] = {}
                 self.exclude_formulas.append(formula)
 
-        try:
-            branch_prefix = self.formulas['branch-network']['pxe']['branch_id']
-            self.branch_prefix = branch_prefix
-        except:
-            raise RuntimeError("Branch server '%s' does not have Branch ID set in Branch Network form", self.branch_server_id)
+        if self.containerized:
+            self.branch_prefix = None
+            for g in self.groups.existing_groups:
+                group_id = self.groups.get_id(g)
+                formulas = self.client.formula.getFormulasByGroupId(self.key, group_id)
+                if "saltboot-group" in formulas:
+                    saltboot_group = self.client.formula.getGroupFormulaData(self.key, group_id,"saltboot-group")
+                    if saltboot_group.get("saltboot", {}).get("download_server", "") == self.branch_server_id:
+                       self.saltboot_group = saltboot_group
+                       self.branch_prefix = g
+                       break
+            if self.branch_prefix is None:
+                raise RuntimeError("Branch server '%s' is not configured in any saltboot_group", self.branch_server_id)
+        else:
+            try:
+                self.branch_prefix = self.formulas['branch-network']['pxe']['branch_id']
+            except:
+                raise RuntimeError("Branch server '%s' does not have Branch ID set in Branch Network form", self.branch_server_id)
 
 
         self.terminals = []
-        systems = self.client.systemgroup.listSystems(self.key, branch_prefix)
+        systems = self.client.systemgroup.listSystems(self.key, self.branch_prefix)
         for s in systems:
             sysid = s['id']
             if sysid == self.bs_system_id:
                 continue
-            to = Terminal(branch_prefix, s.get('hostname') or s.get('profile_name'), system_id=sysid)
+            to = Terminal(self.branch_prefix, s.get('hostname') or s.get('profile_name'), system_id=sysid)
             to.connect(self.client, self.key)
             to.download()
             self.terminals.append(to)
@@ -536,7 +609,7 @@ class Branch:
         server_name = yaml.get('server_name')
         server_domain = yaml.get('server_domain')
         branch_prefix = yaml.get('branch_prefix')
-        self.exclude_formulas = yaml.get('exclude_formulas', [])
+        self.exclude_formulas += yaml.get('exclude_formulas', [])
 
         if server_name is None:
             server_name = re.compile('\..*$').sub('', self.branch_server_id)
@@ -583,6 +656,9 @@ class Branch:
             self.configure_dhcp(server_domain, nic=nic, ip=branch_ip, netmask=netmask, dyn_range=dyn_range, terminals=self.terminals)
             self.configure_bind(server_name, server_domain, branch_ip=branch_ip, salt_cname=salt_cname, contact=contact, options=bind_options, terminals=self.terminals)
 
+        self.groups.add(self.branch_prefix, "Group for branch {}".format(server_domain))
+
+        self.configure_saltboot_group(server_name, server_domain, yaml.get('terminal_naming'))
         self.configure_terminal_naming(yaml.get('terminal_naming'))
         self.configure_vsftpd()
         self.configure_tftpd()
@@ -605,23 +681,42 @@ class Branch:
         if self.formulas['dhcpd']:
             server_domain = self.formulas['dhcpd'].get('dhcpd', {}).get('domain_name')
 
-        if server_domain is None:
+        if server_domain is None and self.formulas['bind']:
             for domain in self.formulas['bind'].get('bind', {}).get('available_zones', {}):
                 if not domain.endswith('in-addr.arpa'):
                     server_domain = domain
                     break
-        server_name = self.formulas['bind'].get('bind', {}).get('available_zones', {}).get(server_domain, {}).get('records', {}).get('NS', {}).get('@', [''])[0]
-        terminal_naming = self.formulas['branch-network'].get('pxe')
-        branch_prefix = terminal_naming.pop('branch_id')
 
-        dedicated_nic = self.formulas['branch-network'].get('branch_network', {}).get('dedicated_NIC', False)
+        terminal_naming = {}
+
+        if self.containerized:
+            server_name = re.compile('\..*$').sub('', self.saltboot_group.get("saltboot", {}).get("download_server", ""))
+            server_domain = re.compile('^[^.]*\.').sub('', self.saltboot_group.get("saltboot", {}).get("download_server", ""))
+            terminal_naming['minion_id_naming'] = self.saltboot_group.get("saltboot", {}).get("minion_id_naming", 'Hostname')
+            terminal_naming['disable_id_prefix'] = self.saltboot_group.get("saltboot", {}).get("disable_id_prefix", False)
+            terminal_naming['disable_unique_suffix'] = self.saltboot_group.get("saltboot", {}).get("disable_unique_suffix", False)
+            branch_prefix = self.branch_prefix
+            dedicated_nic = False
+            default_kernel_parameters = self.saltboot_group.get("saltboot", {}).get("default_kernel_parameters", '')
+        else:
+            server_name = self.formulas['bind'].get('bind', {}).get('available_zones', {}).get(server_domain, {}).get('records', {}).get('NS', {}).get('@', [''])[0]
+            terminal_naming['minion_id_naming'] = self.formulas['branch-network'].get('pxe', {}).get("minion_id_naming", 'Hostname')
+            terminal_naming['disable_id_prefix'] = self.formulas['branch-network'].get('pxe', {}).get("disable_id_prefix", False)
+            terminal_naming['disable_unique_suffix'] = self.formulas['branch-network'].get('pxe', {}).get("disable_unique_suffix", False)
+            branch_prefix = terminal_naming.pop('branch_id')
+            dedicated_nic = self.formulas['branch-network'].get('branch_network', {}).get('dedicated_NIC', False)
+            default_kernel_parameters = self.formulas['pxe'].get('pxe', {}).get('default_kernel_parameters', '')
+
         yaml = {
             'server_name': server_name,
-            'server_domain': server_domain,
             'branch_prefix': branch_prefix,
-            'dedicated_nic': dedicated_nic
+            'dedicated_nic': dedicated_nic,
+            'default_kernel_parameters': default_kernel_parameters,
+            'terminal_naming': terminal_naming
         }
-        yaml['terminal_naming'] = terminal_naming
+
+        if server_domain:
+            yaml['server_domain'] = server_domain
 
         if dedicated_nic:
             yaml['nic'] = self.formulas['branch-network'].get('branch_network', {}).get('nic', False)
@@ -652,15 +747,16 @@ class Branch:
         if yaml['configure_firewall']:
             yaml['firewall'] = self.formulas['branch-network'].get('branch_network', {}).get('firewall', {})
 
-        yaml['configure_bind_options'] = self.formulas['bind'].get('bind', {}).get('config', {})
+        if self.formulas['bind']:
+            yaml['configure_bind_options'] = self.formulas['bind'].get('bind', {}).get('config', {})
 
-        yaml['salt_cname'] = self.formulas['bind'].get('bind', {}).get('available_zones', {}).get(server_domain, {}).get('records', {}).get('CNAME', {}).get('salt')
-        if yaml['salt_cname'] and yaml['salt_cname'].endswith('.'):
-            yaml['salt_cname'] = yaml['salt_cname'][:-1]
+            yaml['salt_cname'] = self.formulas['bind'].get('bind', {}).get('available_zones', {}).get(server_domain, {}).get('records', {}).get('CNAME', {}).get('salt')
+            if yaml['salt_cname'] and yaml['salt_cname'].endswith('.'):
+                yaml['salt_cname'] = yaml['salt_cname'][:-1]
+
         if self.hwAddress is not None:
             yaml['hwAddress'] = self.hwAddress
 
-        yaml['default_kernel_parameters'] = self.formulas['pxe'].get('pxe', {}).get('default_kernel_parameters', '')
 
         if len(self.terminals) > 0:
             yaml['terminals'] = {}
@@ -668,7 +764,7 @@ class Branch:
                 yaml['terminals'].update(t.to_yaml())
 
         if len(self.exclude_formulas) > 0:
-            yaml['exclude_formulas'] = self.exclude_formulas
+            yaml['exclude_formulas'] = list(set(self.exclude_formulas))
 
         return yaml
 
