@@ -1925,12 +1925,26 @@ def _check_terminal_kernel_parameters(parameters):
     return ok, msg
 
 def _request_salt_stop():
+    '''
+    Tries to stop our salt minion.
+    As a preventative measure for situation salt is unable to stop itself, it touches /root/saltstop file.
+    dracut-saltboot initrd which is supposed to run this salt-minion watches for existence of this file and
+    stop salt minion from the outside if needed.
+    '''
     pid_file = '/var/run/salt-minion.pid'
     if __salt__['file.file_exists']('/usr/bin/venv-salt-minion'):
         pid_file = '/var/run/venv-salt-minion.pid'
-    pid = __salt__['file.read'](pid_file)
-    __salt__['file.write']('/root/saltstop', pid)
-    return __states__['cmd.run']('sleep 3; kill {0}'.format(pid), bg=True)
+
+    pid = __grains__.get('pid')
+    if not pid and __salt__['file.file_exists'](pid_file):
+        pid = __salt__['file.read'](pid_file)
+
+    __salt__['file.touch']('/root/saltstop')
+
+    if pid:
+        return __states__['cmd.run']('sleep 3; kill {0}'.format(pid), bg=True)
+
+    return {'comment': "PID not found, relying on external stop signal"}
 
 def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fail', terminal_kernel_parameters=None):
 
