@@ -1,5 +1,11 @@
-* Rework request stop function to avoid unnecessary warnings
-  (bsc#1212985)
+* Add MAC based terminal naming option (jsc#SUMA-314)
+
+-------------------------------------------------------------------
+Fri Aug 23 09:09:24 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1723628891.ffb1da5
+  * Rework request stop function to avoid unnecessary warnings
+    (bsc#1212985)
 
 -------------------------------------------------------------------
 Mon Jan 15 10:25:47 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
