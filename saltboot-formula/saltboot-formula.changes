@@ -1,4 +1,8 @@
-* Add MAC based terminal naming option (jsc#SUMA-314)
+-------------------------------------------------------------------
+Fri Oct 25 11:40:14 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1728559936.c16d4fb
+  * Add MAC based terminal naming option (jsc#SUMA-314)
 
 -------------------------------------------------------------------
 Fri Aug 23 09:09:24 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
@@ -24,7 +28,8 @@ Wed Aug 16 14:12:27 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
 -------------------------------------------------------------------
 Tue Jun 27 13:01:42 UTC 2023 - Ondrej Holecek <oholecek@suse.com>
 
-- Fix custom info freeze boolean check (bsc#1212771)
+- Update to version 0.1.1687872218.961c926
+  * Fix custom info freeze boolean check (bsc#1212771)
 
 -------------------------------------------------------------------
 Wed May 31 09:29:54 UTC 2023 - Vladimir Nadvornik <nadvornik@suse.cz>
