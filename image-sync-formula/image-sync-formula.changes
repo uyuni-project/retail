@@ -1,5 +1,9 @@
-- Ignore non-numeric version parts when sorting images
-  (bsc#1220420)
+-------------------------------------------------------------------
+Fri May 10 08:15:35 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1713446632.c61236a
+  * Ignore non-numeric version parts when sorting images
+    (bsc#1220420)
 
 -------------------------------------------------------------------
 Thu Mar 28 17:31:16 UTC 2024 - Ondrej Holecek <oholecek@suse.com>

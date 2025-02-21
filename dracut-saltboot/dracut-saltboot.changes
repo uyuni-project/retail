@@ -1,4 +1,8 @@
-* Add MAC based terminal naming option (jsc#SUMA-314)
+-------------------------------------------------------------------
+Fri Oct 25 11:36:30 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 0.1.1728559936.c16d4fb
+  * Add MAC based terminal naming option (jsc#SUMA-314)
 
 -------------------------------------------------------------------
 Tue Mar 19 13:54:46 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
