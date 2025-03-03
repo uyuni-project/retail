@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar  3 14:38:30 UTC 2025 - Vladimir Nadvornik <nadvornik@suse.cz>
+
+- Reboot on salt key timeout (bsc#1237495)
+
+-------------------------------------------------------------------
 Fri Oct 25 11:36:30 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to version 0.1.1728559936.c16d4fb
