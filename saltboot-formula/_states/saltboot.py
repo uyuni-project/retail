@@ -1,10 +1,12 @@
 import salt.exceptions
 import random
+import re
 import string
 import logging
 import time
 import os
 import json
+
 try:
     from urlparse import urlparse
 except ImportError:
@@ -1893,6 +1895,36 @@ def bootloader_updated(name, partitioning, images, boot_images, terminal_kernel_
 
     return ret
 
+def _get_kernel_versions(devmap, images):
+    """
+    Lookup system disk, mount it and get all available kernel modules
+    """
+    root_device = None
+
+    for p in devmap.values():
+        if p.get('mountpoint') == '/':
+            root_device = p
+            if 'image' in p:
+                image_id, image_version, image = _get_image_for_part(images, p)
+                luks_pass = image.get('luks_pass')
+            else:
+                luks_pass = p.get('luks_pass')
+            break
+    if not root_device:
+        return []
+
+    prefix, need_umount = _tmp_mount(root_device['device'], mount = False, luks_pass = luks_pass)
+
+    kernel_pattern = re.compile('vmlinuz-(.+)')
+    boot_files = os.path.join(prefix, 'boot')
+    available_kernels = [m.group(1) for f in os.listdir(boot_files) for m in [kernel_pattern.search(f)] if m]
+
+    if need_umount:
+        _try_umount_device(root_device['device'])
+
+    return available_kernels
+
+
 # return boot image corresponding to system image mounted on /
 def _get_boot_image(devmap, images):
 
@@ -1984,9 +2016,26 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
 
     kernel_parameters_ok, kernel_parameters_msg = _check_terminal_kernel_parameters(terminal_kernel_parameters)
 
-    if actual_kernel_version == requested_kernel_version and kernel_parameters_ok:
-        ret['comment'] += 'Actual kernel version "{0}" matches the pillar for boot image "{1}, parameters are OK".\n'.format(requested_kernel_version, boot_image_id)
+    # Check currently running kernel version against kernel version requested in pillar and what kernel modules are actually deployed on the system
+    # running == requested, running in deployed and running != requested, running in deployed => pivot root
+    # else do kexec/reboot
 
+    available_modules = _get_kernel_versions(devmap, images)
+    kernel_version_match = False
+
+    if actual_kernel_version in available_modules:
+        if actual_kernel_version != requested_kernel_version:
+            ret['comment'] += 'Continuing with kernel version {0} despite not matching pillar version.'.format(actual_kernel_version)
+        kernel_version_match = True
+    else:
+        ret['comment'] += 'Deployed kernel version differs from running kernel version {0}. Trying {1}'.format(actual_kernel_version, action)
+        kernel_version_match = False
+
+    if not kernel_parameters_ok:
+        ret['comment'] += '{0}\n'.format(kernel_parameters_msg)
+        kernel_version_match = False
+
+    if kernel_version_match:
         if __opts__['test']:
             return ret
 
@@ -1997,12 +2046,6 @@ def verify_and_boot_system(name, partitioning, images, boot_images, action = 'fa
         res = _request_salt_stop()
         ret['comment'] += "\n" + res['comment']
         return ret
-
-    if actual_kernel_version != requested_kernel_version:
-        ret['comment'] += 'Actual kernel version "{0}" does not match "{1}" from the pillar for boot image "{2}".\n'.format(actual_kernel_version, requested_kernel_version, boot_image_id)
-
-    if not kernel_parameters_ok:
-        ret['comment'] += '{0}\n'.format(kernel_parameters_msg)
 
     if report_progress:
         __salt__['cmd.run_all']("echo '{0}' > /progress ".format(ret['comment']), python_shell=True, output_loglevel='trace')
