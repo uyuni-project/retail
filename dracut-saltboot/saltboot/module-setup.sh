@@ -12,7 +12,7 @@ depends() {
 }
 
 get_python_pkg_deps() {
-    rpm -q --requires "$@" |grep ^python3 | while read req ver; do
+    rpm -q --requires "$@" | grep ^python3 | while read -r req _; do
         rpm -q --whatprovides "$req"
     done | sort -u
 }
@@ -24,18 +24,18 @@ get_python_pkg_deps_recursive() {
        deps=$(get_python_pkg_deps $deps)
        res=$(echo -e "$res\n$deps" |sort -u)
     done
-    echo $res
+    echo "$res"
 }
 
 # fix for bsc#1188846 - solve dependencies of nonexecutable python libs
 fix_python_deps() {
-    while read file ; do
-        echo "$file"
-        if [[ $file = *.so && ! -x $file ]] ; then
-            for lib in $(ldd "$file" 2>/dev/null ); do
-                [[ $lib != /* ]] && continue
-                [[ -f $lib ]] || continue
-                echo $lib
+    while read -r f ; do
+        echo "$f"
+        if [[ $f = *.so && ! -x $f ]] ; then
+            for lib in $(ldd "$f" 2>/dev/null ); do
+                [[ "$lib" != /* ]] && continue
+                [[ -f "$lib" ]] || continue
+                echo "$lib"
             done
         fi
     done
@@ -88,4 +88,3 @@ install() {
 
     inst -o /etc/salt/minion.d/autosign-grains.conf
 }
-
