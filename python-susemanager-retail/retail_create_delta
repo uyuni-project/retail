@@ -17,25 +17,23 @@ import susemanager.retail.log as retail_log
 
 log = logging.getLogger(__name__)
 
-_cat_list = {
-    '.gz': '| zcat',
-    '.tgz': '| zcat',
-    '.xz': '| xzcat',
-    '': ''
-}
+_cat_list = {".gz": "| zcat", ".tgz": "| zcat", ".xz": "| xzcat", "": ""}
+
 
 def _mangle_url(url, host):
     url_p = urlparse(url)
-    url_p = url_p._replace(netloc = host)
+    url_p = url_p._replace(netloc=host)
     return url_p.geturl()
+
 
 def _getFqdn(url):
     url_p = urlparse(url)
     return url_p.hostname
 
+
 def generate_bundle_delta(src_pillar, target_pillar, delta_path, args):
-    src_bundle_url = src_pillar.get('sync', {}).get('bundle_url')
-    target_bundle_url = target_pillar.get('sync', {}).get('bundle_url')
+    src_bundle_url = src_pillar.get("sync", {}).get("bundle_url")
+    target_bundle_url = target_pillar.get("sync", {}).get("bundle_url")
     log.debug("source bundle url: {}".format(src_bundle_url))
     log.debug("target bundle url: {}".format(target_bundle_url))
     src_bundle_url = _mangle_url(src_bundle_url, args.api_host)
@@ -44,23 +42,41 @@ def generate_bundle_delta(src_pillar, target_pillar, delta_path, args):
     log.debug("mangled target url: {}".format(target_buntle_url))
     tmpdir = tempfile.mkdtemp()
     try:
-        src_cat = _cat_list[next(filter(lambda x: src_bundle_url.endswith(x), _cat_list.keys()))]
-        target_cat = _cat_list[next(filter(lambda x: target_bundle_url.endswith(x), _cat_list.keys()))]
+        src_cat = _cat_list[
+            next(filter(lambda x: src_bundle_url.endswith(x), _cat_list.keys()))
+        ]
+        target_cat = _cat_list[
+            next(filter(lambda x: target_bundle_url.endswith(x), _cat_list.keys()))
+        ]
 
-        subprocess.check_call("cd '{}' ; curl -s -k -f -L '{}' {} | tar x".format(tmpdir, src_bundle_url, src_cat), shell=True)
+        subprocess.check_call(
+            "cd '{}' ; curl -s -k -f -L '{}' {} | tar x".format(
+                tmpdir, src_bundle_url, src_cat
+            ),
+            shell=True,
+        )
 
-        extra_args = ''
+        extra_args = ""
         if args.B is not None:
             extra_args += "-B " + args.B
 
-        subprocess.check_call("curl -s -k -f -L '{}' {} | xdelta3 -e {} -s '{}' > '{}'".format(target_bundle_url, target_cat, extra_args, os.path.join(tmpdir, src_pillar.get('filename')), delta_path), shell=True)
+        subprocess.check_call(
+            "curl -s -k -f -L '{}' {} | xdelta3 -e {} -s '{}' > '{}'".format(
+                target_bundle_url,
+                target_cat,
+                extra_args,
+                os.path.join(tmpdir, src_pillar.get("filename")),
+                delta_path,
+            ),
+            shell=True,
+        )
     finally:
         shutil.rmtree(tmpdir)
 
 
 def generate_system_delta(src_pillar, target_pillar, delta_path, args):
-    src_url = src_pillar.get('sync', {}).get('url')
-    target_url = target_pillar.get('sync', {}).get('url')
+    src_url = src_pillar.get("sync", {}).get("url")
+    target_url = target_pillar.get("sync", {}).get("url")
     log.debug("source url: {}".format(src_url))
     log.debug("target url: {}".format(target_url))
     src_url = _mangle_url(src_url, args.api_host)
@@ -69,35 +85,57 @@ def generate_system_delta(src_pillar, target_pillar, delta_path, args):
     log.debug("mangled target url: {}".format(target_url))
     tmpdir = tempfile.mkdtemp()
     try:
-        tmp_src = os.path.join(tmpdir, src_pillar.get('filename'))
+        tmp_src = os.path.join(tmpdir, src_pillar.get("filename"))
         ssl._create_default_https_context = ssl._create_unverified_context
         urllib.request.urlretrieve(src_url, tmp_src)
 
-        extra_args = ''
+        extra_args = ""
         if args.B is not None:
             extra_args += "-B " + args.B
 
-        subprocess.check_call("curl -s -k -f -L '{}' | xdelta3 -e {} -s '{}' > '{}'".format(target_url, extra_args, tmp_src, delta_path), shell=True)
+        subprocess.check_call(
+            "curl -s -k -f -L '{}' | xdelta3 -e {} -s '{}' > '{}'".format(
+                target_url, extra_args, tmp_src, delta_path
+            ),
+            shell=True,
+        )
     finally:
         shutil.rmtree(tmpdir)
 
 
-def generate_pillar(src_name, src_version, src_revision, target_name, target_version, target_revision, delta_file, delta_url, org_id=1, delta_type='bundle_delta'):
+def generate_pillar(
+    src_name,
+    src_version,
+    src_revision,
+    target_name,
+    target_version,
+    target_revision,
+    delta_file,
+    delta_url,
+    org_id=1,
+    delta_type="bundle_delta",
+):
 
     size = os.path.getsize(delta_file)
-    delta_hash = subprocess.check_output(['sha512sum', delta_file]).decode().split(' ')[0]
+    delta_hash = (
+        subprocess.check_output(["sha512sum", delta_file]).decode().split(" ")[0]
+    )
 
     pillar = {
-        'images': {
+        "images": {
             target_name: {
-                target_version + '-' + target_revision: {
-                    'sync': {
+                target_version
+                + "-"
+                + target_revision: {
+                    "sync": {
                         delta_type: {
                             src_name: {
-                                src_version + '-' + src_revision: {
-                                    'url': delta_url,
-                                    'size': str(size),
-                                    'delta_hash': delta_hash
+                                src_version
+                                + "-"
+                                + src_revision: {
+                                    "url": delta_url,
+                                    "size": str(size),
+                                    "delta_hash": delta_hash,
                                 }
                             }
                         }
@@ -109,46 +147,62 @@ def generate_pillar(src_name, src_version, src_revision, target_name, target_ver
 
     return pillar
 
+
 def list_images(images, deltas):
     image_dict = {}
     print("Images:")
     for i in images:
-        image_dict[i['id']] = i
+        image_dict[i["id"]] = i
 
-        print("  {0}-{1}-{2}".format(i.get('name'), i.get('version'), i.get('revision')))
+        print(
+            "  {0}-{1}-{2}".format(i.get("name"), i.get("version"), i.get("revision"))
+        )
 
-    print("Deltas:");
+    print("Deltas:")
     for d in deltas:
-        s = image_dict[d['source_id']]
-        t = image_dict[d['target_id']]
-        print("  {0}-{1}-{2} from {3}-{4}-{5}".format(t.get('name'), t.get('version'), t.get('revision'), s.get('name'), s.get('version'), s.get('revision')))
+        s = image_dict[d["source_id"]]
+        t = image_dict[d["target_id"]]
+        print(
+            "  {0}-{1}-{2} from {3}-{4}-{5}".format(
+                t.get("name"),
+                t.get("version"),
+                t.get("revision"),
+                s.get("name"),
+                s.get("version"),
+                s.get("revision"),
+            )
+        )
     print()
 
 
-parser = argparse.ArgumentParser(description='Generate delta image')
+parser = argparse.ArgumentParser(description="Generate delta image")
 
-parser.add_argument('--api-host', default='localhost', help='API host')
-parser.add_argument('--api-user', default='admin', help='API user')
-parser.add_argument('--api-pass', help='API password')
+parser.add_argument("--api-host", default="localhost", help="API host")
+parser.add_argument("--api-user", default="admin", help="API user")
+parser.add_argument("--api-pass", help="API password")
 
-parser.add_argument('target', help='Target image (Name-Version-Revision)', nargs='?')
-parser.add_argument('source', help='Source image (Name-Version-Revision)', nargs='?')
-parser.add_argument('-B', metavar='bytes', help='Passed to xdelta3')
+parser.add_argument("target", help="Target image (Name-Version-Revision)", nargs="?")
+parser.add_argument("source", help="Source image (Name-Version-Revision)", nargs="?")
+parser.add_argument("-B", metavar="bytes", help="Passed to xdelta3")
 
-parser.add_argument('--log-level', default='INFO', dest='log_level',
-                    type=retail_log.log_level_string_to_int, nargs='?',
-                    help='Set the logging output level. {0}'.format(retail_log.LOG_LEVEL_STRINGS))
-parser.add_argument('--log-file', help='save log to file')
+parser.add_argument(
+    "--log-level",
+    default="INFO",
+    dest="log_level",
+    type=retail_log.log_level_string_to_int,
+    nargs="?",
+    help="Set the logging output level. {0}".format(retail_log.LOG_LEVEL_STRINGS),
+)
+parser.add_argument("--log-file", help="save log to file")
 
 args = parser.parse_args()
 retail_log.init_logging(args.log_level, os.path.basename(__file__), args.log_file)
 
 
-
 try:
     client, key = susemanager.retail.connect(args)
 
-    org_id = client.user.getDetails(key, args.api_user)['org_id']
+    org_id = client.user.getDetails(key, args.api_user)["org_id"]
 
     images = client.image.listImages(key)
     deltas = client.image.delta.listDeltas(key)
@@ -164,8 +218,7 @@ except Exception as e:
     sys.exit(1)
 
 
-
-namever_re = re.compile(r'^(.*)-([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)$')
+namever_re = re.compile(r"^(.*)-([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)$")
 match = namever_re.match(args.target)
 if match:
     target_name = match.group(1)
@@ -173,7 +226,9 @@ if match:
     target_revision = match.group(3)
 else:
     list_images(images, deltas)
-    log.error("Target is not given as 'name-version-revision': '{}'".format(args.target))
+    log.error(
+        "Target is not given as 'name-version-revision': '{}'".format(args.target)
+    )
     sys.exit(1)
 
 match = namever_re.match(args.source)
@@ -183,49 +238,80 @@ if match:
     src_revision = match.group(3)
 else:
     list_images(images, deltas)
-    log.error("Source is not given as 'name-version-revision': '{}'".format(args.source))
+    log.error(
+        "Source is not given as 'name-version-revision': '{}'".format(args.source)
+    )
     sys.exit(1)
 
 
 try:
 
-    org_id = client.user.getDetails(key, args.api_user)['org_id']
+    org_id = client.user.getDetails(key, args.api_user)["org_id"]
 
     images = client.image.listImages(key)
     deltas = client.image.delta.listDeltas(key)
 
     try:
-        src_id = [i['id'] for i in images if i['name'] == src_name and i['version'] == src_version and i['revision'] == int(src_revision)][0]
+        src_id = [
+            i["id"]
+            for i in images
+            if i["name"] == src_name
+            and i["version"] == src_version
+            and i["revision"] == int(src_revision)
+        ][0]
     except IndexError:
         list_images(images, deltas)
         raise RuntimeError("Source image not found")
 
     try:
-        target_id = [i['id'] for i in images if i['name'] == target_name and i['version'] == target_version and i['revision'] == int(target_revision)][0]
+        target_id = [
+            i["id"]
+            for i in images
+            if i["name"] == target_name
+            and i["version"] == target_version
+            and i["revision"] == int(target_revision)
+        ][0]
     except IndexError:
         list_images(images, deltas)
         raise RuntimeError("Target image not found")
 
-    existing = [d for d in deltas if d['source_id'] == src_id and d['target_id'] == target_id]
+    existing = [
+        d for d in deltas if d["source_id"] == src_id and d["target_id"] == target_id
+    ]
     if existing:
         raise RuntimeError("Delta already exists")
 
     src_image = client.image.getDetails(key, src_id)
     target_image = client.image.getDetails(key, target_id)
 
-    src_pillar =  client.image.getPillar(key, src_id).get('images', {}).get(src_name, {}).get(src_version + '-' + src_revision, {})
-    target_pillar =  client.image.getPillar(key, target_id).get('images', {}).get(target_name, {}).get(target_version + '-' + target_revision, {})
+    src_pillar = (
+        client.image.getPillar(key, src_id)
+        .get("images", {})
+        .get(src_name, {})
+        .get(src_version + "-" + src_revision, {})
+    )
+    target_pillar = (
+        client.image.getPillar(key, target_id)
+        .get("images", {})
+        .get(target_name, {})
+        .get(target_version + "-" + target_revision, {})
+    )
     img_path = "/srv/www/os-images/{0}/".format(org_id)
 
     delta_file = "{0}-{1}-{2}-{3}-{4}-{5}.delta".format(
-                 target_image.get('name'), target_image.get('version'), target_image.get('revision'),
-                 src_image.get('name'), src_image.get('version'), src_image.get('revision'))
+        target_image.get("name"),
+        target_image.get("version"),
+        target_image.get("revision"),
+        src_image.get("name"),
+        src_image.get("version"),
+        src_image.get("revision"),
+    )
 
-    src_bundle_url = src_pillar.get('sync', {}).get('bundle_url')
-    target_bundle_url = target_pillar.get('sync', {}).get('bundle_url')
+    src_bundle_url = src_pillar.get("sync", {}).get("bundle_url")
+    target_bundle_url = target_pillar.get("sync", {}).get("bundle_url")
 
-    src_url = src_pillar.get('sync', {}).get('url')
-    target_url = target_pillar.get('sync', {}).get('url')
+    src_url = src_pillar.get("sync", {}).get("url")
+    target_url = target_pillar.get("sync", {}).get("url")
 
     fqdn = _getFqdn(target_url)
     if src_bundle_url and target_bundle_url:
@@ -239,9 +325,22 @@ try:
         raise RuntimeError("Inconsistent image pillars. Can't create delta")
 
     delta_url = "https://{0}/os-images/{1}/{2}".format(fqdn, org_id, delta_file)
-    delta_pillar = generate_pillar(src_name, src_version, src_revision, target_name, target_version, target_revision, img_path + delta_file, delta_url, org_id, delta_type)
+    delta_pillar = generate_pillar(
+        src_name,
+        src_version,
+        src_revision,
+        target_name,
+        target_version,
+        target_revision,
+        img_path + delta_file,
+        delta_url,
+        org_id,
+        delta_type,
+    )
 
-    client.image.delta.createDeltaImage(key, src_id, target_id, delta_file, delta_pillar)
+    client.image.delta.createDeltaImage(
+        key, src_id, target_id, delta_file, delta_pillar
+    )
 
     log.info("Delta image '{0}' registered.".format(delta_file))
 except Exception as e:
