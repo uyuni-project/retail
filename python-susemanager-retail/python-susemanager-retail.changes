@@ -1,3 +1,5 @@
+* Fix delta size maxint by using string (bsc#1247951)
+
 -------------------------------------------------------------------
 Wed Aug  7 15:21:51 UTC 2024 - Vladimir Nadvornik <nadvornik@suse.cz>
 

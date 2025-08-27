@@ -96,7 +96,7 @@ def generate_pillar(src_name, src_version, src_revision, target_name, target_ver
                             src_name: {
                                 src_version + '-' + src_revision: {
                                     'url': delta_url,
-                                    'size': size,
+                                    'size': str(size),
                                     'delta_hash': delta_hash
                                 }
                             }
