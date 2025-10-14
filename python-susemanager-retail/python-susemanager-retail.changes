@@ -1,9 +1,9 @@
-* Fix delta size maxint by using string (bsc#1247951)
-
 -------------------------------------------------------------------
-Wed Aug  7 15:21:51 UTC 2024 - Vladimir Nadvornik <nadvornik@suse.cz>
+Tue Oct 14 14:22:20 UTC 2025 - Ondrej Holecek <oholecek@suse.com>
 
-- Handle containerized branch server (bsc#1222128)
+- Update to version 1.1.0:
+  * Fix delta size maxint by using string (bsc#1247951)
+  * Handle containerized branch server (bsc#1222128)
 
 -------------------------------------------------------------------
 Fri Aug  2 13:47:05 UTC 2024 - Ondrej Holecek <oholecek@suse.com>
