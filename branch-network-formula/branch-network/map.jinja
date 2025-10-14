@@ -1,0 +1,17 @@
+{% set map = salt['grains.filter_by']({
+  'Suse': {
+        'containerized': True,
+        'network': 'networkmanager',
+        'firewall': 'firewalld'
+  }
+}, merge=salt['grains.filter_by']({
+  'SLES-12': {
+        'containerized': False,
+        'firewall': 'susefirewall',
+        'network': 'netconfig',
+  },
+  'SLES-15': {
+        'containerized': False,
+        'network': 'netconfig',
+  },
+}, grain='osfinger')) %}

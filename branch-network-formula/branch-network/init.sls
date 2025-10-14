@@ -1,7 +1,9 @@
+{% from "branch-network/map.jinja" import map with context %}
 {% set branch_network_setup = salt['pillar.get']('branch_network') %}
 {% set nic = salt['pillar.get']('branch_network:nic') %}
 
 {%- if salt['pillar.get']('branch_network:dedicated_NIC') %}
+{%- if map.network == 'netconfig' %}
 restart_{{ nic }}:
   cmd.run:
     - names:
@@ -17,13 +19,25 @@ restart_{{ nic }}:
     - template: jinja
     - onchanges_in:
       - cmd: restart_{{ nic }}
+{%- elif map.network == 'networkmanager' %}
+network-connection-file:
+  file.managed:
+    - name: /etc/NetworkManager/system-connections/{{ nic }}.nmconnection
+    - source: salt://branch-network/files/nmconnection.template
+    - user: root
+    - group: root
+    - mode: 600
+    - template: jinja
+{%- endif %}
 {%- endif %}
 
 # Firewall configuration
 {%- if salt['pillar.get']('branch_network:configure_firewall') %}
-  {%- if salt['grains.get']('os_family') == 'Suse' %}
-    {%- if salt['grains.get']('osfullname') == 'SLES' and salt['grains.get']('osmajorrelease')|int() == 12 %}
+  {%- if map.firewall == 'susefirewall' %}
       {%- include 'branch-network/files/susefirewall.jinja' with context %}
+  {%- elif map.firewall == 'firewalld' %}
+    {%- if grains.get('transactional') %}
+      {%- include 'branch-network/files/firewalld_transactional.jinja' with context %}
     {%- else %}
       {%- include 'branch-network/files/firewalld.jinja' with context %}
     {%- endif %}
@@ -43,10 +57,30 @@ named_dir:
   file.directory:
     - name: /etc/named.d
     - mode: 755
+{%- if map.network == "netconfig" %}
     - require_in:
       - cmd: netconfig_update
 {%- endif %}
 
+{%- if map.network != "netconfig" %}
+/etc/named.d/forwarders.conf:
+  file.managed:
+    - user: root
+    - group: root
+    - mode: 644
+    - require:
+      - file: /etc/named.d
+    - contents: |
+        forwarders {
+{%- for ip in salt['grains.get']('dns:ip4_nameservers') %}
+            {{ ip }};
+{%- endfor %}
+        };
+
+{%- endif %}
+{%- endif %}
+
+{%- if map.network == "netconfig" %}
 netconfig_update:
   cmd.run:
     - name: netconfig update
@@ -66,7 +100,9 @@ configure_forwarder_fallback:
         NETCONFIG_DNS_FORWARDER_FALLBACK: "{{ "yes" if branch_network_setup.forwarder_fallback else "no" }}"
     - onchanges_in:
       - cmd: netconfig_update
+{%- endif %}
 
+{%- if not map.containerized %}
 server_directory_setup:
   file.directory:
     - user:  {{ branch_network_setup.srv_directory_user }}
@@ -116,6 +152,7 @@ apache2:
     - watch:
       - file: /etc/apache2/conf.d/susemanager-retail.conf
 
+
 {{ branch_network_setup.srv_directory }}/defaults:
   file.managed:
     - source: salt://branch-network/files/defaults.template
@@ -123,3 +160,5 @@ apache2:
     - group: root
     - mode: 644
     - template: jinja
+
+{% endif %}

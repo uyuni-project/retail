@@ -1,0 +1,114 @@
+{%- set use_dedicated = salt['pillar.get']('branch_network:dedicated_NIC') %}
+{%- set fw_pillar = salt['pillar.get']('branch_network:firewall', {}) %}
+
+# Ensure firewalld installed & running
+firewalld_installed:
+  pkg.installed:
+    - name: firewalld
+
+firewalld_service:
+  cmd.run:
+    - name: systemctl enable firewalld
+    - require:
+      - pkg: firewalld
+
+{%- if use_dedicated %}
+# Dedicated NIC - internal zone config
+/etc/firewalld/zones/internal.xml:
+  file.managed:
+    - user: root
+    - group: root
+    - mode: "0644"
+    - require:
+      - pkg: firewalld
+    - contents: |
+        <?xml version="1.0" encoding="utf-8"?>
+        <zone>
+          <short>internal</short>
+          <description>Internal network zone</description>
+          <service name="dhcp"/>
+          <service name="dns"/>
+          <service name="tftp"/>
+          <service name="http"/>
+          <service name="https"/>
+          <service name="salt-master"/>
+        </zone>
+
+/etc/firewalld/zones/public.xml:
+  file.managed:
+    - user: root
+    - group: root
+    - mode: "0644"
+    - require:
+      - pkg: firewalld
+    - contents: |
+        <?xml version="1.0" encoding="utf-8"?>
+        <zone>
+          <short>public</short>
+{%- if fw_pillar.get('open_ssh_port') %}
+          <service name="ssh"/>
+{%- endif %}
+{%- if fw_pillar.get('enable_NAT') %}
+          <masquerade/>
+{%- endif %}
+        </zone>
+
+{%- else %}
+# Shared NIC - public zone config
+/etc/firewalld/zones/public.xml:
+  file.managed:
+    - user: root
+    - group: root
+    - mode: "0644"
+    - require:
+      - pkg: firewalld
+    - contents: |
+        <?xml version="1.0" encoding="utf-8"?>
+        <zone>
+          <short>public</short>
+          <description>Shared NIC services for terminals</description>
+{%- if fw_pillar.get('open_dhcp_port') %}
+          <service name="dhcp"/>
+{%- endif %}
+{%- if fw_pillar.get('open_dns_port') %}
+          <service name="dns"/>
+{%- endif %}
+{%- if fw_pillar.get('open_tftp_port') %}
+          <service name="tftp"/>
+{%- endif %}
+{%- if fw_pillar.get('open_http_port') %}
+          <service name="http"/>
+{%- endif %}
+{%- if fw_pillar.get('open_https_port') %}
+          <service name="https"/>
+{%- endif %}
+{%- if fw_pillar.get('open_salt_ports') %}
+          <service name="salt-master"/>
+{%- endif %}
+{%- if fw_pillar.get('open_ssh_port') %}
+        <service name="ssh"/>
+{%- endif %}
+{%- if fw_pillar.get('enable_NAT') %}
+        <masquerade/>
+{%- endif %}
+        </zone>
+{%- endif %}
+
+
+# Sysctl configuration
+/etc/sysctl.d/99-firewall.conf:
+  file.managed:
+    - user: root
+    - group: root
+    - mode: "0644"
+    - contents: |
+        net.ipv4.conf.all.forwarding={{ 1 if fw_pillar.get('enable_route') else 0 }}
+{%- for iface in (salt['grains.get']('ip6_interfaces').keys()|reject('eq','lo')|list) %}
+{%- if use_dedicated and iface == nic %}
+{# skip dedicated NIC from SLAAC list #}
+{%- else %}
+        net.ipv6.conf.{{ iface }}.accept_ra={{ 2 if fw_pillar.get('enable_SLAAC_with_routing') else 1 }}
+{%- endif %}
+{%- endfor %}
+        net.ipv6.conf.all.accept_ra={{ 2 if fw_pillar.get('enable_SLAAC_with_routing') else 1 }}
+
