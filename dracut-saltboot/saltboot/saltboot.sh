@@ -278,9 +278,18 @@ if [ -z "$SALT_PID" ] ; then
     reboot -f
 fi
 
+SALT_TIMEOUT=${SALT_TIMEOUT:-60}
+
 MINION_ID="`$INITRD_SALT_CALL --local --out newline_values_only grains.get id`"
 MINION_FINGERPRINT="`$INITRD_SALT_CALL --local --out newline_values_only key.finger`"
+num=0
 while [ -z "$MINION_FINGERPRINT" ] ; do
+  num=$(( num + 1 ))
+  if [ "$num" == "$SALT_TIMEOUT" ] ; then
+    Echo "Can't get salt key, rebooting in 10s"
+    sleep 10
+    reboot -f
+  fi
   Echo "Waiting for salt key..."
   sleep 1
   MINION_FINGERPRINT="`$INITRD_SALT_CALL --local --out newline_values_only key.finger`"
@@ -297,7 +306,6 @@ echo
 # split line into two to fit to screen. Need triple \ to properly pass through
 Echo "Terminal ID: $MINION_ID\\\nFingerprint: $MINION_FINGERPRINT" > /progress
 
-SALT_TIMEOUT=${SALT_TIMEOUT:-60}
 SALT_STOP_TIMEOUT=${SALT_STOP_TIMEOUT:-15}
 SALT_STOP='/root/saltstop'
 num=0

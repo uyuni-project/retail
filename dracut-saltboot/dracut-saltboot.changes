@@ -1,3 +1,5 @@
+- Reboot on salt key timeout (bsc#1237495)
+
 -------------------------------------------------------------------
 Thu Jun 19 12:32:41 UTC 2025 - Ondrej Holecek <oholecek@suse.com>
 
