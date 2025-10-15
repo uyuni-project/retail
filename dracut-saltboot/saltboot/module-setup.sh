@@ -12,31 +12,32 @@ depends() {
 }
 
 get_python_pkg_deps() {
-    rpm -q --requires "$@" |grep ^python3 | while read req ver; do
+    rpm -q --requires "$@" | grep ^python3 | while read -r req _; do
         rpm -q --whatprovides "$req"
     done | sort -u
 }
 
 get_python_pkg_deps_recursive() {
-    deps="$@"
-    res=$deps
+    deps="$*"
+    res="$deps"
     while [ -n "$deps" ] ; do
+       #shellcheck disable=SC2086
        deps=$(get_python_pkg_deps $deps)
        res=$(echo -e "$res\n$deps" |sort -u)
     done
-    echo $res
+    echo "$res"
 }
 
 # fix for bsc#1188846 - solve dependencies of nonexecutable python libs
 fix_python_deps() {
-    while read file ; do
-        echo "$file"
-        if [[ $file = *.so && ! -x $file ]] ; then
-            for lib in $(ldd "$file" 2>/dev/null ); do
-                [[ $lib != /* ]] && continue
-                [[ -f $lib ]] || continue
-                echo $lib
-            done
+    while IFS= read -r file ; do
+        if [[ -e $file ]]; then
+            echo "$file"
+            if [[ $file = *.so && ! -x $file ]] ; then
+                ldd "$file" 2>/dev/null | grep -o '/[^ ]*' | while IFS= read -r lib; do
+                    [[ -f "$lib" ]] && echo "$lib"
+                done
+            fi
         fi
     done
 }
@@ -51,19 +52,29 @@ installkernel() {
 
 # called by dracut
 install() {
+    local files_to_install=()
+
     if rpm -q venv-salt-minion ; then
         export LD_LIBRARY_PATH=/usr/lib/venv-salt-minion/lib
-        inst_multiple -o $(rpm -ql venv-salt-minion | \
-                  grep -v '\.pyc$\|/etc/venv-salt-minion/minion_id\|/etc/venv-salt-minion/pki\|/usr/share/doc/\|/usr/share/man' | \
-                  fix_python_deps )
+
+        # shellcheck disable=SC2046
+        mapfile -t files_to_install < <(rpm -ql venv-salt-minion | \
+            grep -v '\.pyc$\|/etc/venv-salt-minion/minion_id\|/etc/venv-salt-minion/pki\|/usr/share/doc/\|/usr/share/man' | \
+            fix_python_deps)
+        inst_multiple "${files_to_install[@]}"
+
     elif rpm -q salt-minion ; then
-        inst_multiple -o $(rpm -ql $(get_python_pkg_deps_recursive salt salt-minion) | \
-                  grep -v '\.pyc$\|/etc/salt/minion_id\|/etc/salt/pki\|/usr/share/doc/\|/usr/share/man' | \
-                  fix_python_deps )
+        # shellcheck disable=SC2046
+        mapfile -t files_to_install < <(rpm -ql $(get_python_pkg_deps_recursive salt salt-minion) | \
+            grep -v '\.pyc$\|/etc/salt/minion_id\|/etc/salt/pki\|/usr/share/doc/\|/usr/share/man' | \
+            fix_python_deps)
+        inst_multiple "${files_to_install[@]}"
+
     else
         dfatal "Salt minion package not found"
         exit 1
     fi
+
     inst_multiple -o /usr/lib64/libffi.so.7 # dracut dependency solver does not see this
 
     if ! inst_multiple grep dig ldconfig date dbus-uuidgen systemd-machine-id-setup dmidecode seq parted \
@@ -76,10 +87,11 @@ install() {
     # optional, for creating custom partitions
     inst_multiple -o mkfs mkfs.btrfs mkfs.ext2 mkfs.ext3 mkfs.ext4 mkfs.fat mkfs.vfat mkfs.xfs
 
-    inst_hook cmdline 91 "$moddir/saltboot-root.sh"
-    inst_hook pre-mount 99 "$moddir/saltboot.sh"
-    inst_hook initqueue/timeout 99 "$moddir/saltboot-timeout.sh"
-
+    # shellcheck disable=SC2154
+    inst_hook cmdline 91 "${moddir}/saltboot-root.sh"
+    inst_hook pre-mount 99 "${moddir}/saltboot.sh"
+    inst_hook initqueue/timeout 99 "${moddir}/saltboot-timeout.sh"
+    # shellcheck disable=SC2154
     echo "rd.neednet=1 rd.auto" > "${initdir}/etc/cmdline.d/50saltboot.conf"
 
     # install wicked duid generation rules from image (bsc#1173268, bsc#1205599)
