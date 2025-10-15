@@ -1,7 +1,7 @@
 #
 # spec file for package branch-network-formula
 #
-# Copyright (c) 2021 SUSE LLC.
+# Copyright (c) 2025 SUSE LLC.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -19,7 +19,7 @@
 %define fname branch-network
 %define fdir  %{_datadir}/susemanager/formulas
 Name:           branch-network-formula
-Version:        0.1
+Version:        1.0.0
 Release:        0
 Summary:        Salt formula for configuring Branch Server network
 License:        Apache-2.0

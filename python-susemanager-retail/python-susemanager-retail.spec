@@ -1,7 +1,7 @@
 #
 # spec file for package python-susemanager-retail
 #
-# Copyright (c) 2020 SUSE LLC.
+# Copyright (c) 2025 SUSE LLC.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -28,7 +28,7 @@
 %define libname susemanager-retail
 
 Name:           python-%{libname}
-Version:        1.0
+Version:        1.1.0
 Release:        0
 License:        GPL-2.0
 Summary:        Python library for SUSE Manager for Retail automation
