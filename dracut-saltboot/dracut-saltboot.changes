@@ -3,6 +3,7 @@ Tue Oct 14 10:43:47 UTC 2025 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to version 1.0.0
   * Reboot on salt key timeout (bsc#1237495)
+  * Fix parsing files with space in the name (bsc#1252100)
 
 -------------------------------------------------------------------
 Thu Jun 19 12:32:41 UTC 2025 - Ondrej Holecek <oholecek@suse.com>
