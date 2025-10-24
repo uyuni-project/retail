@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Oct 24 12:18:36 UTC 2025 - Vladimir Nadvornik <nadvornik@suse.com>
+
+- Enable supported formulas on containerized branch server.
+
+-------------------------------------------------------------------
 Tue Oct 14 14:22:20 UTC 2025 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to version 1.1.0:

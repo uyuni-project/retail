@@ -394,9 +394,9 @@ class Branch:
             'saltboot': {
                 'download_server': server_name + '.' + server_domain,
                 'containerized_proxy': self.containerized,
-                'minion_id_naming': terminal_naming['minion_id_naming'],
-                'disable_id_prefix': terminal_naming['disable_id_prefix'],
-                'disable_unique_suffix': terminal_naming['disable_unique_suffix']
+                'minion_id_naming': terminal_naming.get('minion_id_naming', 'Hostname'),
+                'disable_id_prefix': terminal_naming.get('disable_id_prefix', False),
+                'disable_unique_suffix': terminal_naming.get('disable_unique_suffix', False)
             }
         }
 
@@ -426,7 +426,7 @@ class Branch:
         for c in channels:
             # we can safely assume that branch server on sle-micro or leap-micro is containerized
             # the branch formulas would not work on micro anyway
-            if "sle-micro" in c['label'] or "leap-micro" in c['label']:
+            if "sle-micro" in c['label'] or "sl-micro" in c['label'] or "leap-micro" in c['label']:
                 self.containerized = True
                 return
         self.containerized = False
@@ -459,7 +459,7 @@ class Branch:
         if self.containerized:
             # currently we don't support these formulas on container host
             # in the future, we may eventually fix and enable some of them
-            self.exclude_formulas += ["pxe", "tftpd", "vsftpd", 'branch-network', "dhcpd", "bind"]
+            self.exclude_formulas += ["pxe", "tftpd", "vsftpd"]
 
         return True
 
@@ -696,7 +696,7 @@ class Branch:
             terminal_naming['disable_id_prefix'] = self.saltboot_group.get("saltboot", {}).get("disable_id_prefix", False)
             terminal_naming['disable_unique_suffix'] = self.saltboot_group.get("saltboot", {}).get("disable_unique_suffix", False)
             branch_prefix = self.branch_prefix
-            dedicated_nic = False
+            dedicated_nic = self.formulas['branch-network'].get('branch_network', {}).get('dedicated_NIC', False)
             default_kernel_parameters = self.saltboot_group.get("saltboot", {}).get("default_kernel_parameters", '')
         else:
             server_name = self.formulas['bind'].get('bind', {}).get('available_zones', {}).get(server_domain, {}).get('records', {}).get('NS', {}).get('@', [''])[0]
