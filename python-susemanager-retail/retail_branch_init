@@ -70,6 +70,7 @@ if __name__ == "__main__":
     try:
         branch.configure_branch_prefix(args.branch_prefix)
         branch.configure_terminal_naming({'minion_id_naming':args.terminal_naming_scheme})
+        branch.configure_saltboot_group(args.server_name, args.server_domain, {'minion_id_naming':args.terminal_naming_scheme})
         if args.dedicated_nic:
             if args.branch_ip is None:
                 args.branch_ip = '192.168.1.1'
