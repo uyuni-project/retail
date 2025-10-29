@@ -19,8 +19,9 @@
 Name:           dracut-saltboot
 Version:        1.0.0
 Release:        0
-Source:         dracut-saltboot-%{version}.tar.xz
-Summary:        SALT-based PXE network boot dracut module
+Source:         dracut-saltboot-%{version}.tar.gz
+Summary:        Salt-based PXE network boot dracut module
+Url:            https://github.com/uyuni-project/retail
 License:        GPL-2.0
 Group:          System/Packages
 BuildArch:      noarch

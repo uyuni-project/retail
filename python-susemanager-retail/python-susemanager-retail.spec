@@ -31,10 +31,10 @@ Name:           python-%{libname}
 Version:        1.1.0
 Release:        0
 License:        GPL-2.0
-Summary:        Python library for SUSE Manager for Retail automation
-Url:            https://gitlab.suse.de/SLEPOS/SUMA_Retail
+Summary:        Python library for SUSE Multi-Linux Manager for Retail automation
+Url:            https://github.com/uyuni-project/retail
 Group:          Development/Languages/Python
-Source:         python-susemanager-retail-%{version}.tar.xz
+Source:         python-susemanager-retail-%{version}.tar.gz
 BuildRequires:  %{python_module setuptools}
 BuildRequires:  %{python_module rpm-macros}
 BuildRequires:  unzip
@@ -44,16 +44,16 @@ BuildArch:      noarch
 %python_subpackages
 
 %description
-Python library implementing SUSE Manager for Retail bindings.
+Python library implementing SUSE Multi-Linux Manager for Retail bindings.
 
 %package -n susemanager-retail-tools
-Summary:    SUSE Manager for Retail command-line tools
+Summary:    SUSE Multi-Linux Manager for Retail command-line tools
 Group:      Productivity/Networking/Other
 Requires:   %{python_flavor}-%{libname} = %{version}
 Requires:   xdelta3
 
 %description -n susemanager-retail-tools
-Command-line tools for managing a SUSE Manager for Retail environment.
+Command-line tools for managing a SUSE Multi-Linux Manager for Retail environment.
 
 retail_branch_init initializes and configures a Branch Server,
 using data feed in from the command-line.
