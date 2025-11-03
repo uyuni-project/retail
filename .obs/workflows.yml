@@ -18,6 +18,21 @@ rebuild_master:
     - trigger_services:
         project: systemsmanagement:Uyuni:Retail:Devel
         package: dracut-saltboot
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: POS_Image-RPi-Bootstrap
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: POS_Image-JeOS7
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: POS_Image-JeOS6
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: POS_Image-Graphical7
+    - trigger_services:
+        project: systemsmanagement:Uyuni:Retail:Devel
+        package: POS_Image-Graphical6
   filters:
     event: push
     branches:
@@ -49,6 +64,26 @@ pr_workflow:
     - branch_package:
         source_project: systemsmanagement:Uyuni:Retail:Devel
         source_package: dracut-saltboot
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: POS_Image-RPi-Bootstrap
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: POS_Image-JeOS7
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: POS_Image-JeOS6
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: POS_Image-Graphical7
+        target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
+    - branch_package:
+        source_project: systemsmanagement:Uyuni:Retail:Devel
+        source_package: POS_Image-Graphical6
         target_project: systemsmanagement:Uyuni:Retail:Devel:PRs
   filters: 
     event: pull_request
