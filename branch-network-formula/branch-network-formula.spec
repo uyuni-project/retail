@@ -24,8 +24,8 @@ Release:        0
 Summary:        Salt formula for configuring Branch Server network
 License:        Apache-2.0
 Group:          System/Packages
-Url:            https://github.com/SUSE/salt-formulas
-Source:         branch-network-formula-%{version}.tar.xz
+Url:            https://github.com/uyuni-project/retail
+Source:         branch-network-formula-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 
