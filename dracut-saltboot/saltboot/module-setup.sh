@@ -92,7 +92,7 @@ install() {
     inst_hook pre-mount 99 "${moddir}/saltboot.sh"
     inst_hook initqueue/timeout 99 "${moddir}/saltboot-timeout.sh"
     # shellcheck disable=SC2154
-    echo "rd.neednet=1 rd.auto" > "${initdir}/etc/cmdline.d/50saltboot.conf"
+    echo "rd.neednet=1 rd.auto rd.net.dhcp.retry=3" > "${initdir}/etc/cmdline.d/50saltboot.conf"
 
     # install wicked duid generation rules from image (bsc#1173268, bsc#1205599)
     # install local.xml as client.xml as network-legacy does not have other wicked configs included
