@@ -14,4 +14,8 @@
         'containerized': False,
         'network': 'netconfig',
   },
-}, grain='osfinger')) %}
+}, grain='osfinger', merge=salt['grains.filter_by']({
+  'SUSE Linux Enterprise Server 15 SP7': {
+        'containerized': True,
+  },
+}, grain='oscodename'))) %}
