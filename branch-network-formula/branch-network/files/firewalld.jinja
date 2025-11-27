@@ -84,12 +84,13 @@ net.ipv4.conf.all.forwarding:
     - value: 0
 {%- endif %}
 
-{%- set ip6ifaces = salt['grains.get']('ip6_interfaces').keys()|reject('eq', 'lo') %}
+{%- set ip6ifaces = salt['grains.get']('ip6_interfaces').keys()|reject('match', '^(lo$|veth|podman)') %}
 {%- if salt['pillar.get']('branch_network:dedicated_NIC') %}
   {%- set ip6ifaces = ip6ifaces|reject('eq', nic ) %}
 {%- endif %}
 {%- set ra_list = ip6ifaces|list %}
 {%- do ra_list.append('all') %}
+{%- do ra_list.append('default') %}
 
 {%- if salt['pillar.get']('branch_network:firewall:enable_SLAAC_with_routing') %}
   {%- for iface in ra_list %}

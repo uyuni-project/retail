@@ -103,7 +103,7 @@ firewalld_service:
     - mode: "0644"
     - contents: |
         net.ipv4.conf.all.forwarding={{ 1 if fw_pillar.get('enable_route') else 0 }}
-{%- for iface in (salt['grains.get']('ip6_interfaces').keys()|reject('eq','lo')|list) %}
+{%- for iface in (salt['grains.get']('ip6_interfaces').keys()|reject('match', '^(lo$|veth|podman)')|list) %}
 {%- if use_dedicated and iface == nic %}
 {# skip dedicated NIC from SLAAC list #}
 {%- else %}
@@ -111,4 +111,5 @@ firewalld_service:
 {%- endif %}
 {%- endfor %}
         net.ipv6.conf.all.accept_ra={{ 2 if fw_pillar.get('enable_SLAAC_with_routing') else 1 }}
+        net.ipv6.conf.default.accept_ra={{ 2 if fw_pillar.get('enable_SLAAC_with_routing') else 1 }}
 
