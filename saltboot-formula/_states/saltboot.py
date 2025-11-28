@@ -1610,7 +1610,7 @@ def fstab_updated(name, partitioning, images):
 
     devmap = _device_map(partitioning)
     root_device = None
-
+    luks_pass = None
 
     report_progress = False
     if not __opts__['test']:
@@ -1634,7 +1634,6 @@ def fstab_updated(name, partitioning, images):
                 ret['comment'] = "Device for mountpoint {0} does not exist.".format(p.get('mountpoint'))
                 ret['result'] = False
             return ret
-
 
 
     if not __opts__['test']:
@@ -1719,10 +1718,10 @@ def fstab_updated(name, partitioning, images):
         else:
             if out == 'new':
                 _add_change(ret['changes'], {'add': name})
-                ret['comment'] += "\n{0} added".format(name)
+                ret['comment'] += "\n{0} added as {1}".format(name, uuid)
             if out == 'change':
                 _add_change(ret['changes'], {'update': name})
-                ret['comment'] += "\n{0} updated".format(name)
+                ret['comment'] += "\n{0} updated as {1}".format(name, uuid)
 
         if out == 'bad config':
             ret['result'] = False
