@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jan  5 12:47:13 UTC 2026 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 1.1.0
+  * Retry DHCP requests up to 3 times (bsc#1253004) 
+
+-------------------------------------------------------------------
 Tue Oct 14 10:43:47 UTC 2025 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to version 1.0.0

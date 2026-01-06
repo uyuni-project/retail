@@ -19,7 +19,7 @@
 %define fname branch-network
 %define fdir  %{_datadir}/susemanager/formulas
 Name:           branch-network-formula
-Version:        1.0.0
+Version:        1.1.0
 Release:        0
 Summary:        Salt formula for configuring Branch Server network
 License:        Apache-2.0

@@ -1,5 +1,9 @@
-- Enable containers on SLE15SP7
-- Exclude podman interfaces from sysctl setting
+-------------------------------------------------------------------
+Mon Jan  5 12:46:06 UTC 2026 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 1.1.0 
+  * Enable containers on SLE15SP7
+  * Exclude podman interfaces from sysctl setting
 
 -------------------------------------------------------------------
 Tue Oct 14 10:38:33 UTC 2025 - Ondrej Holecek <oholecek@suse.com>
