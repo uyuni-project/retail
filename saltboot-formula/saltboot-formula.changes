@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar  4 18:11:49 UTC 2026 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 1.0.0
+  * Always send branch id as a string (bsc#1258382)
+
+-------------------------------------------------------------------
 Wed Jun 18 08:52:44 UTC 2025 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to version 0.1.1750679229.f368550
