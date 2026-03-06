@@ -19,7 +19,7 @@ Name:           saltboot-formula
 Version:        1.0.0
 Release:        0
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Source:         saltboot-formula-%{version}.tar.xz
+Source:         saltboot-formula-%{version}.tar.gz
 Summary:        Formula for boot image of POS terminal
 License:        GPL-2.0
 Group:          System/Packages
