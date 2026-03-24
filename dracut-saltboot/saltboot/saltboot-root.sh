@@ -16,7 +16,9 @@ export MASTER=$(getarg MASTER=)
 export MINION_ID_PREFIX=$(getarg MINION_ID_PREFIX=)
 export SALT_TIMEOUT=$(getarg SALT_TIMEOUT=)
 export SALT_STOP_TIMEOUT=$(getarg SALT_STOP_TIMEOUT=)
-export salt_device=$(getarg salt_device=)
+export SALT_DEVICE=$(getarg salt_device=)
+export SALT_START_TIMEOUT=$(getarg rd.saltboot.salt_start_timeout=)
+export SALT_KEY_TIMEOUT=$(getarg rd.saltboot.salt_key_timeout=)
 
 # Terminal naming modifiers
 export DISABLE_UNIQUE_SUFFIX=$(getarg DISABLE_UNIQUE_SUFFIX=)
@@ -26,4 +28,4 @@ export USE_FQDN_MINION_ID=$(getarg USE_FQDN_MINION_ID=)
 export USE_MAC_MINION_ID=$(getarg USE_MAC_MINION_ID=)
 
 # Debugging
-export kiwidebug=$(getarg kiwidebug=)
+export KIWIDEBUG=$(getarg kiwidebug=)
