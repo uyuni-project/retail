@@ -1,7 +1,7 @@
 #
 # spec file for package saltboot-formula
 #
-# Copyright (c) 2020 SUSE LLC.
+# Copyright (c) 2026 SUSE LLC.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -21,7 +21,7 @@ Release:        0
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source:         saltboot-formula-%{version}.tar.gz
 Summary:        Formula for boot image of POS terminal
-License:        GPL-2.0
+License:        GPL-2.0-only
 Group:          System/Packages
 BuildArch:      noarch
 Requires:       salt-master
