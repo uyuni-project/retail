@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 27 14:56:52 UTC 2026 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 1.1.0
+  * When autoselecting saltboot device, ignore cd/dvd (bsc#1259960)
+
+-------------------------------------------------------------------
 Wed Mar  4 18:11:49 UTC 2026 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to version 1.0.0

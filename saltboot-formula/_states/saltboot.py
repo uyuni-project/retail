@@ -438,13 +438,15 @@ def _get_disk_device(name, data):
 
     if device is not None:
         if not __salt__['file.is_blkdev'](device):
-            path, name = os.path.split(device)
+            path, device_name = os.path.split(device)
             if path == '':
-                path = '/dev/disk/by-path';
-            found = __salt__['file.find'](path, name=name, type='b')
-            if found:
-                # the list is sorted so partitions come after the main device
-                device = found[0]
+                path = '/dev/disk/by-path'
+            found = __salt__['file.find'](path, name=device_name, type='b')
+            for dev in found:
+                res = __salt__['cmd.run_stdout'](f"lsblk -d -n -o TYPE {dev}")
+                if res.strip() != 'rom':
+                    device = dev
+                    break
     if device is None and data.get('type') == 'RAID':
        device = '/dev/{0}'.format(name)
     return device
