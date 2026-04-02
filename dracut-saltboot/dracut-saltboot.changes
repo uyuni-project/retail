@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Tue Mar 24 10:43:46 UTC 2026 - Ondrej Holecek <oholecek@suse.com>
+
+- Update to version 1.2.0
+  * Add wait check for minion start (default 10s), configurable
+    using rd.saltboot.salt_start_timeout option (bsc#1260870)
+  * Decouple salt key wait check to use separate configurable
+    option rd.saltboot.salt_key_timeout, with default 60s
+  * Introduce rd.saltboot namespace for all options, mark old as
+    deprecated
+
+-------------------------------------------------------------------
 Mon Jan  5 12:47:13 UTC 2026 - Ondrej Holecek <oholecek@suse.com>
 
 - Update to version 1.1.0

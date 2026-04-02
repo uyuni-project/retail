@@ -1,7 +1,7 @@
 #
 # spec file for package dracut-saltboot
 #
-# Copyright (c) 2025 SUSE LLC
+# Copyright (c) 2026 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -17,7 +17,7 @@
 
 
 Name:           dracut-saltboot
-Version:        1.1.0
+Version:        1.2.0
 Release:        0
 Source:         dracut-saltboot-%{version}.tar.gz
 Summary:        Salt-based PXE network boot dracut module

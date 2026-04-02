@@ -69,7 +69,7 @@ ls -l /dev/disk/by-id >&2
 echo "ls -l /dev/disk/by-path" >&2
 ls -l /dev/disk/by-path >&2
 
-salt_device=${salt_device:-${root#block:}}
+SALT_DEVICE=${SALT_DEVICE:-${root#block:}}
 
 if [ -f /usr/bin/venv-salt-call ] ; then
     INITRD_SALT_ETC=/etc/venv-salt-minion
@@ -86,7 +86,7 @@ else
 fi
 
 mkdir -p $NEWROOT
-if [ -n "$salt_device" ] && mount "$salt_device" $NEWROOT ; then
+if [ -n "$SALT_DEVICE" ] && mount "$SALT_DEVICE" $NEWROOT ; then
     for sd in $NEWROOT/etc/venv-salt-minion $NEWROOT/venv-salt-minion $NEWROOT/etc/salt $NEWROOT/salt $NEWROOT ; do
         if [ -f $sd/minion_id ] ; then # find valid salt configuration
             mkdir -p $INITRD_SALT_ETC
@@ -262,15 +262,20 @@ EOT
     rm -f $INITRD_SALT_ETC/minion.d/grains-startup-event.conf
 fi
 
-if [ -z "$kiwidebug" ];then
+if [ -z "$KIWIDEBUG" ];then
     $INITRD_SALT_MINION -d
 else
     $INITRD_SALT_MINION -d --log-file-level all
 fi
 
-sleep 1
+SALT_START_TIMEOUT=${SALT_START_TIMEOUT:-10}
+while [ ! -s "/var/run/$INITRD_SALT_MINION.pid" ] && [ "$SALT_START_TIMEOUT" -gt 0 ]; do
+    Echo "Waiting for minion to start ... (${SALT_START_TIMEOUT}s)"
+    sleep 1
+    SALT_START_TIMEOUT=$((SALT_START_TIMEOUT - 1))
+done
 
-SALT_PID=`cat /var/run/$INITRD_SALT_MINION.pid`
+SALT_PID=$(cat "/var/run/$INITRD_SALT_MINION.pid" 2>/dev/null)
 
 if [ -z "$SALT_PID" ] ; then
     Echo "Salt Minion did not start, rebooting in 10s"
@@ -278,22 +283,22 @@ if [ -z "$SALT_PID" ] ; then
     reboot -f
 fi
 
-SALT_TIMEOUT=${SALT_TIMEOUT:-60}
-
 MINION_ID="`$INITRD_SALT_CALL --local --out newline_values_only grains.get id`"
 MINION_FINGERPRINT="`$INITRD_SALT_CALL --local --out newline_values_only key.finger`"
-num=0
-while [ -z "$MINION_FINGERPRINT" ] ; do
-  num=$(( num + 1 ))
-  if [ "$num" == "$SALT_TIMEOUT" ] ; then
-    Echo "Can't get salt key, rebooting in 10s"
-    sleep 10
-    reboot -f
-  fi
-  Echo "Waiting for salt key..."
+
+SALT_KEY_TIMEOUT=${SALT_KEY_TIMEOUT:-60}
+while [ -z "$MINION_FINGERPRINT" ] && [ "$SALT_KEY_TIMEOUT" -gt 0 ]; do
+  Echo "Waiting for salt key... (${SALT_KEY_TIMEOUT}s)"
   sleep 1
   MINION_FINGERPRINT="`$INITRD_SALT_CALL --local --out newline_values_only key.finger`"
+  SALT_KEY_TIMEOUT=$((SALT_KEY_TIMEOUT - 1))
 done
+
+if [ -z "$MINION_FINGERPRINT" ] ; then
+    Echo "Cannot obtain salt key, rebooting in 10s"
+    sleep 10
+    reboot -f
+fi
 
 echo
 echo "SALT Minion ID:"
@@ -318,7 +323,7 @@ while kill -0 "$SALT_PID" >/dev/null 2>&1; do
      mount ${root#block:} $NEWROOT && [ -f $NEWROOT/etc/ImageVersion ]; then
     export systemIntegrity=fine
     export imageName=`cat $NEWROOT/etc/ImageVersion`
-    Echo "SUSE Manager server did not respond, trying local boot to\\\n$imageName"
+    Echo "Salt master did not respond, trying local boot to\\\n$imageName"
     sleep 5
     kill "$SALT_PID"
     sleep 1
@@ -339,7 +344,7 @@ if [ -f /salt_config ] ; then
 fi
 
 if [ "$systemIntegrity" = "unknown" ] ; then
-    Echo "SALT Minion did not create valid configuration, rebooting in 10s"
+    Echo "Salt minion did not create valid configuration, rebooting in 10s"
     sleep 10
     reboot -f
 fi
