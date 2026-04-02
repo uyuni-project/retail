@@ -1,18 +1,47 @@
-import salt.exceptions
+# -*- coding: utf-8 -*-
+
+# SPDX-FileCopyrightText: 2026 SUSE LLC
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
+"""
+Saltboot states implementations
+"""
+
+from distutils.version import LooseVersion
+import json
+import logging
+import os
+from pathlib import Path
 import random
 import re
+import salt.exceptions
 import string
-import logging
 import time
-import os
-import json
+
+# Fake definitions for IDE, lint and static analysis. Real objects are loaded by salt's loader
+__salt__ = {}
+__states__ = {}
+__opts__ = {}
+__grains__ = {}
 
 try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
-from distutils.version import LooseVersion
+
 log = logging.getLogger(__name__)
+
+def report(message, level=logging.INFO):
+    log.log(level, message)
+    fifo_path = "/progress"
+    if os.path.exists(fifo_path) and Path(fifo_path).is_fifo():
+        try:
+            with open(fifo_path, 'w', buffering=1) as f:
+                f.write(str(message) + '\n')
+                f.flush()
+        except (OSError, IOError) as e:
+            log.warning(f"Error reporting message to the report pipe: {e}")
 
 def _is_true(value):
    return value not in [False, "False", "false", 0]
@@ -409,13 +438,15 @@ def _get_disk_device(name, data):
 
     if device is not None:
         if not __salt__['file.is_blkdev'](device):
-            path, name = os.path.split(device)
+            path, device_name = os.path.split(device)
             if path == '':
-                path = '/dev/disk/by-path';
-            found = __salt__['file.find'](path, name=name, type='b')
-            if found:
-                # the list is sorted so partitions come after the main device
-                device = found[0]
+                path = '/dev/disk/by-path'
+            found = __salt__['file.find'](path, name=device_name, type='b')
+            for dev in found:
+                res = __salt__['cmd.run_stdout'](f"lsblk -d -n -o TYPE {dev}")
+                if res.strip() != 'rom':
+                    device = dev
+                    break
     if device is None and data.get('type') == 'RAID':
        device = '/dev/{0}'.format(name)
     return device
@@ -484,6 +515,10 @@ def disk_partitioned(name, data):
             raise e
 
     existing_disklabel = existing['info'].get('partition table')
+    if existing_disklabel is None:
+        report(f"Selected disklabel for disk {device} is None. Is the correct device selected? {existing['info']}", logging.ERROR)
+        existing_disklabel = 'None'
+
     force_repartition = (__salt__['pillar.get']('saltboot:force_repartition', False) or
                          _is_true(__salt__['pillar.get']('custom_info:saltboot_force_repartition', False)) or
                          __grains__.get('saltboot_force_repartition', False))
