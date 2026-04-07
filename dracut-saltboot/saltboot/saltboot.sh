@@ -2,13 +2,15 @@
 
 # Default variables
 PROGRESS="/progress"
+DIG_OPTIONS=(+short)
+dig -h | grep -q '\[no\]cookie' && DIG_OPTIONS=("${DIG_OPTIONS[@]}" +nocookie +short)
 
 is_plymouth_available() {
 	[ -e /usr/bin/plymouth ]
 }
 
 read_progress() {
-    sleep 1
+	sleep 1
 	if is_plymouth_available; then
 		while true; do
 			#shellcheck disable=SC2162
@@ -29,7 +31,7 @@ read_progress() {
 }
 
 read_dc_progress() {
-    sleep 1
+	sleep 1
 	echo -n >/dc_progress
 	#shellcheck disable=SC2162
 	exec tail -f /dc_progress | while true; do
@@ -53,8 +55,8 @@ setup_progress_pipes() {
 }
 
 cleanup() {
-	[ -n "$PROGRESS_PID" ] && kill $PROGRESS_PID 2>/dev/null
-	[ -n "$DC_PROGRESS_PID" ] && kill $DC_PROGRESS_PID 2>/dev/null
+	[ -n "$PROGRESS_PID" ] && kill "$PROGRESS_PID" 2>/dev/null
+	[ -n "$DC_PROGRESS_PID" ] && kill "$DC_PROGRESS_PID" 2>/dev/null
 }
 
 Echo() {
@@ -107,20 +109,20 @@ configure_salt_vars() {
 }
 
 load_existing_salt_config() {
-	if [ -n "$SALT_DEVICE" ] && mount "$SALT_DEVICE" $NEWROOT; then
-		for sd in $NEWROOT/etc/venv-salt-minion $NEWROOT/venv-salt-minion $NEWROOT/etc/salt $NEWROOT/salt $NEWROOT; do
-			if [ -f $sd/minion_id ]; then # find valid salt configuration
-				mkdir -p $INITRD_SALT_ETC
-				cp -pr $sd/* $INITRD_SALT_ETC
+	if [ -n "$SALT_DEVICE" ] && mount "$SALT_DEVICE" "$NEWROOT"; then
+		for sd in "${NEWROOT}/etc/venv-salt-minion" "${NEWROOT}/venv-salt-minion" "${NEWROOT}/etc/salt" "${NEWROOT}/salt" "$NEWROOT"; do
+			if [ -f "${sd}/minion_id" ]; then # find valid salt configuration
+				mkdir -p "$INITRD_SALT_ETC"
+				cp -pr "$sd"/* "$INITRD_SALT_ETC"
 				# remove activation key grain copied from the disk with the rest of configuration
-				rm -f $INITRD_SALT_ETC/minion.d/kiwi_activation_key.conf
+				rm -f "${INITRD_SALT_ETC}/minion.d/kiwi_activation_key.conf"
 				#make sure we are not using venv config on normal minion
 				rm -f /etc/salt/minion.d/00-venv.conf
 				HAVE_MINION_ID=y
 				break
 			fi
 		done
-		umount $NEWROOT
+		umount "$NEWROOT"
 	fi
 }
 
@@ -131,24 +133,22 @@ fetch_terminal_defaults() {
 	fi
 
 	if [ -s /tmp/defaults ]; then
-		[ -z "$MINION_ID_PREFIX" ] && eval $(grep ^MINION_ID_PREFIX= /tmp/defaults)
-		[ -z "$DISABLE_ID_PREFIX" ] && eval $(grep ^DISABLE_ID_PREFIX= /tmp/defaults)
-		[ -z "$DISABLE_UNIQUE_SUFFIX" ] && eval $(grep ^DISABLE_UNIQUE_SUFFIX= /tmp/defaults)
-		if [ -z "$USE_FQDN_MINION_ID" -a -z "$DISABLE_HOSTNAME_ID" ]; then
-			eval $(grep ^USE_FQDN_MINION_ID= /tmp/defaults)
-			eval $(grep ^DISABLE_HOSTNAME_ID= /tmp/defaults)
-		fi
-		[ -z "$DEFAULT_KERNEL_PARAMETERS" ] && eval $(grep ^DEFAULT_KERNEL_PARAMETERS= /tmp/defaults)
+		while IFS='=' read -r key value; do
+			case "$key" in
+			MINION_ID_PREFIX | DISABLE_ID_PREFIX | DISABLE_UNIQUE_SUFFIX | DEFAULT_KERNEL_PARAMETERS | USE_FQDN_MINION_ID | DISABLE_HOSTNAME_ID)
+				# Only assign if current value is empty
+				if [ -z "${!key}" ]; then
+					printf -v "$key" '%s' "$value"
+				fi
+				;;
+			esac
+		done </tmp/defaults
+		# saltboot state looks for if we have DEFAULT_KERNEL_PARAMETERS envvar
 		export DEFAULT_KERNEL_PARAMETERS
 	fi
 }
 
 generate_minion_id() {
-	DIG_OPTIONS="+short"
-	if dig -h | grep -q '\[no\]cookie'; then
-		DIG_OPTIONS="+nocookie +short"
-	fi
-
 	MINION_ID=""
 	if [ -n "$USE_MAC_MINION_ID" ]; then
 		# ip output has multiple hw addressed, we need the one beginning with ether
@@ -162,7 +162,7 @@ generate_minion_id() {
 	fi
 
 	if [ -z "$MINION_ID" ] && [ -z "$DISABLE_HOSTNAME_ID" ]; then
-		FQDN=$(dig $DIG_OPTIONS -x "${IPADDR%/*}" | sed -e 's|;;.*||' -e 's|\.$||')
+		FQDN=$(dig "${DIG_OPTIONS[@]}" -x "${IPADDR%/*}" | sed -e 's|;;.*||' -e 's|\.$||')
 		if [ -n "$USE_FQDN_MINION_ID" ]; then
 			MINION_ID="$FQDN"
 		else
@@ -173,13 +173,11 @@ generate_minion_id() {
 	if [ -z "$MINION_ID" ]; then
 		SMBIOS_MANUFACTURER=$($INITRD_SALT_CALL --local --out newline_values_only smbios.get system-manufacturer | tr -d -c 'A-Za-z0-9_-')
 		SMBIOS_PRODUCT=$($INITRD_SALT_CALL --local --out newline_values_only smbios.get system-product-name | tr -d -c 'A-Za-z0-9_-')
-		SMBIOS_SERIAL=-$($INITRD_SALT_CALL --local --out newline_values_only smbios.get system-serial-number | tr -d -c 'A-Za-z0-9_-')
+		SMBIOS_SERIAL=$($INITRD_SALT_CALL --local --out newline_values_only smbios.get system-serial-number | tr -d -c 'A-Za-z0-9_-')
 
-		if [ "x$SMBIOS_SERIAL" == "x-None" ]; then
-			SMBIOS_SERIAL=
-		fi
+		[ "$SMBIOS_SERIAL" == "None" ] && SMBIOS_SERIAL=""
 
-		MINION_ID="${SMBIOS_MANUFACTURER}-${SMBIOS_PRODUCT}${SMBIOS_SERIAL}"
+		MINION_ID="${SMBIOS_MANUFACTURER}-${SMBIOS_PRODUCT}${SMBIOS_SERIAL:+-${SMBIOS_SERIAL}}"
 	fi
 
 	UNIQUE_SUFFIX=""
@@ -235,11 +233,11 @@ EOT
 prepare_salt_config() {
 	CUR_MASTER=$($INITRD_SALT_CALL --local --out newline_values_only grains.get master)
 	# do we have master explicitly configured?
-	if [ -z "$CUR_MASTER" -o "salt" == "$CUR_MASTER" ]; then
+	if [ -z "$CUR_MASTER" ] || [ "salt" == "$CUR_MASTER" ]; then
 		# either we have MASTER set on commandline
 		# or we try to resolve the 'salt' alias
 		if [ -z "$MASTER" ]; then
-			MASTER=$(dig $DIG_OPTIONS -t CNAME salt.$DNSDOMAIN | sed -e 's|;;.*||' -e 's|\.$||')
+			MASTER=$(dig "${DIG_OPTIONS[@]}" -t CNAME "salt.$DNSDOMAIN" | sed -e 's|;;.*||' -e 's|\.$||')
 		fi
 	fi
 
@@ -343,10 +341,10 @@ EOT
 grains:
   machine_id: $MACHINE_ID
 EOT
-	echo $MACHINE_ID >/etc/machine-id
+	echo "$MACHINE_ID" >/etc/machine-id
 
-	fetch_terminal_defaults
 	if [ -z "$HAVE_MINION_ID" ]; then
+		fetch_terminal_defaults
 		generate_minion_id
 	fi
 	prepare_salt_config
@@ -389,12 +387,12 @@ EOT
 	while kill -0 "$SALT_PID" >/dev/null 2>&1; do
 		sleep 1
 		num=$((num + 1))
-		if [ "$num" == "$SALT_TIMEOUT" -a -n "$root" -a ! -f "$INITRD_SALT_CACHE/minion/extmods/states/saltboot.py" ] &&
-			! grep 'The Salt Master has cached the public key for this node' $INITRD_SALT_LOG &&
-			mount ${root#block:} $NEWROOT && [ -f $NEWROOT/etc/ImageVersion ]; then
-			export systemIntegrity=fine
-			export imageName=$(cat $NEWROOT/etc/ImageVersion)
-			Echo "Salt master did not respond, trying local boot to\\\n$imageName"
+		if [ "$num" == "$SALT_TIMEOUT" ] && [ -n "$root" ] && [ ! -f "$INITRD_SALT_CACHE/minion/extmods/states/saltboot.py" ] &&
+			! grep 'The Salt Master has cached the public key for this node' "$INITRD_SALT_LOG" &&
+			mount "${root#block:}" "$NEWROOT" && [ -f "${NEWROOT}/etc/ImageVersion" ]; then
+			systemIntegrity=fine
+			imageName=$(cat "${NEWROOT}/etc/ImageVersion")
+			Echo "Salt master did not respond, trying local boot to '$imageName'"
 			sleep 5
 			kill "$SALT_PID"
 			sleep 1
@@ -412,6 +410,7 @@ EOT
 
 	# load config status report from the saltboot state
 	if [ -f /salt_config ]; then
+		#shellcheck disable=SC1091
 		. /salt_config
 	fi
 
@@ -430,31 +429,31 @@ EOT
 	# cleanup auto sign grains so that they are not preserved in the system
 	rm -f "${INITRD_SALT_ETC}/minion.d/autosign-grains-onetime.conf"
 
-	if [ -e $NEWROOT/etc/venv-salt-minion ]; then
+	if [ -e "${NEWROOT}/etc/venv-salt-minion" ]; then
 		IMAGE_SALT_ETC=/etc/venv-salt-minion
 	else
 		IMAGE_SALT_ETC=/etc/salt
 	fi
 
 	# copy salt, wicked and system configurations to deployed system
-	mkdir -p "$NEWROOT/$IMAGE_SALT_ETC"
-	cp -pr $INITRD_SALT_ETC/* $NEWROOT/$IMAGE_SALT_ETC
+	mkdir -p "${NEWROOT}/$IMAGE_SALT_ETC"
+	cp -pr "$INITRD_SALT_ETC"/* "${NEWROOT}/$IMAGE_SALT_ETC"
 	#make sure we are not using venv config on normal minion
-	rm -f $NEWROOT/etc/salt/minion.d/00-venv.conf
+	rm -f "${NEWROOT}/etc/salt/minion.d/00-venv.conf"
 
-	echo $MACHINE_ID >$NEWROOT/etc/machine-id
+	echo "$MACHINE_ID" >"${NEWROOT}/etc/machine-id"
 
-    # preserver wicked lease so that we don't end up with another new IP address
-	mkdir -p $NEWROOT/var/lib/wicked
-	cp /var/lib/wicked/lease* $NEWROOT/var/lib/wicked/
+	# preserve wicked lease so that we don't end up with another new IP address
+	mkdir -p "${NEWROOT}/var/lib/wicked"
+	cp /var/lib/wicked/lease* "${NEWROOT}/var/lib/wicked/"
 
 	# copy salt log files
-	mkdir -p $NEWROOT/var/log/saltboot
+	mkdir -p "${NEWROOT}/var/log/saltboot"
 	num=1
-	while [ -e $NEWROOT/var/log/saltboot/saltboot_$num ]; do
+	while [ -e "${NEWROOT}/var/log/saltboot/saltboot_$num" ]; do
 		num=$((num + 1))
 	done
-	cp -pr $INITRD_SALT_LOG $NEWROOT/var/log/saltboot/saltboot_$num
+	cp -pr "$INITRD_SALT_LOG" "${NEWROOT}/var/log/saltboot/saltboot_$num"
 
 	if [ -n "$kernelAction" ]; then
 		umount -a
