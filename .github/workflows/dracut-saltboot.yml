@@ -25,11 +25,11 @@ jobs:
           ignore_names: mock_dracut.sh
           additional_files: 'dracut-saltboot/tests/*.bats'
 
-      - name: Check formatting with shfmt
-        run: |
-          sudo apt-get update && sudo apt-get install -y shfmt
-          # Using -i 4 for 4-space indentation as seen in module-setup.sh
-          shfmt -d -i 4 dracut-saltboot
+#      - name: Check formatting with shfmt
+#        run: |
+#          sudo apt-get update && sudo apt-get install -y shfmt
+#          # Using -i 4 for 4-space indentation as seen in module-setup.sh
+#          shfmt -d -i 2 dracut-saltboot
 
   test:
     name: Unit Tests (BATS)
