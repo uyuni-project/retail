@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+def kernel_isspace(c):
+    return c in " \t\n\r\v\f"
+
+def skip_spaces(s):
+    i = 0
+    while i < len(s) and kernel_isspace(s[i]):
+        i += 1
+    return s[i:]
+
+def next_arg(args):
+    if not args:
+        return "", None, ""
+        
+    in_quote = False
+    quoted = False
+    
+    start_idx = 0
+    if args.startswith('"'):
+        start_idx = 1
+        in_quote = True
+        quoted = True
+    
+    equals = -1
+    i = start_idx
+    while i < len(args):
+        if kernel_isspace(args[i]) and not in_quote:
+            break
+        if equals == -1 and args[i] == '=':
+            equals = i
+        if args[i] == '"':
+            in_quote = not in_quote
+        i += 1
+        
+    # Extract param and value
+    if equals != -1 and equals < i:
+        param = args[start_idx:equals]
+        val = args[equals+1:i]
+        
+        # Don't include quotes in value.
+        if val.startswith('"'):
+            val = val[1:]
+            if i > 0 and args[i-1] == '"':
+                val = val[:-1]
+        elif quoted and i > 0 and args[i-1] == '"':
+            # Handle "key=val" where val ends with quote but doesn't start with one
+            val = val[:-1]
+    else:
+        param = args[start_idx:i]
+        val = None
+        if quoted and i > 0 and args[i-1] == '"':
+            if param.endswith('"'):
+                param = param[:-1]
+                
+    # next pointer
+    next_ptr = args[i+1:] if i < len(args) else ""
+        
+    return param, val, skip_spaces(next_ptr)
+
+def parse_cmdline(cmdline):
+    args = []
+    curr = cmdline.lstrip()
+    while curr:
+        p, v, next_s = next_arg(curr)
+        args.append((p, v))
+        curr = next_s
+    return args
+
+def getarg(search_key, search_value):
+    cmdline = os.environ.get("CMDLINE", "")
+    all_args = parse_cmdline(cmdline)
+    
+    last_val = None
+    found_key = False
+    
+    for key, val in all_args:
+        if key == search_key:
+            last_val = val
+            found_key = True
+            
+    if search_value is not None:
+        if found_key and last_val == search_value:
+            return 0
+        return 1
+
+    if found_key:
+        if last_val is not None:
+            print(last_val)
+        return 0
+    return 1
+
+def getargs(search_key, search_value):
+    cmdline = os.environ.get("CMDLINE", "")
+    all_args = parse_cmdline(cmdline)
+    
+    found = False
+    for key, val in all_args:
+        if key == search_key:
+            if search_value is not None:
+                if val == search_value:
+                    print(val)
+                    found = True
+            else:
+                if val is not None:
+                    print(val)
+                else:
+                    print(key)
+                found = True
+    return 0 if found else 1
+
+def main():
+    argv0 = os.path.basename(sys.argv[0])
+    
+    if "dracut-getargs" in argv0:
+        mode = "getargs"
+    elif "dracut-getarg" in argv0:
+        mode = "getarg"
+    else:
+        print(f"ERROR: '{argv0}' has to be called via a symlink to the tool name.", file=sys.stderr)
+        sys.exit(1)
+        
+    if len(sys.argv) != 2:
+        if mode == "getarg":
+            print(f"ERROR: Number of arguments invalid\nUsage: dracut-getarg <KEY>[=[<VALUE>]]", file=sys.stderr)
+        else:
+            print(f"ERROR: Number of arguments invalid\nUsage: dracut-getargs <KEY>[=]", file=sys.stderr)
+        sys.exit(1)
+        
+    arg = sys.argv[1]
+    if '=' in arg:
+        search_key, search_value = arg.split('=', 1)
+        if not search_value:
+            search_value = None
+    else:
+        search_key = arg
+        search_value = None
+        
+    if not search_key:
+        print(f"ERROR: search key undefined", file=sys.stderr)
+        sys.exit(1)
+        
+    if mode == "getarg":
+        sys.exit(getarg(search_key, search_value))
+    else:
+        sys.exit(getargs(search_key, search_value))
+
+if __name__ == "__main__":
+    main()
