@@ -20,14 +20,15 @@ setup() {
     }
     export -f umount
 
-    export INITRD_SALT_ETC=$(mktemp -d)
+    INITRD_SALT_ETC_TMP=$(mktemp -d)
+    export INITRD_SALT_ETC="$INITRD_SALT_ETC_TMP"
     export NEWROOT=$(mktemp -d)
     export SALT_DEVICE="/dev/sda1"
 }
 
 teardown() {
-    rm -rf "$INITRD_SALT_ETC"
     rm -rf "$NEWROOT"
+    rm -rf "$INITRD_SALT_ETC"
 }
 
 @test "configure_salt_vars: venv-salt-call" {
@@ -45,7 +46,6 @@ teardown() {
 }
 
 @test "load_existing_salt_config: finds config in etc/venv-salt-minion" {
-    export INITRD_SALT_ETC=$(mktemp -d)
     mkdir -p "$NEWROOT/etc/venv-salt-minion/minion.d"
     touch "$NEWROOT/etc/venv-salt-minion/minion_id"
     touch "$NEWROOT/etc/venv-salt-minion/minion.d/kiwi_activation_key.conf"
