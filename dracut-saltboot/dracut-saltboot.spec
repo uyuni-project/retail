@@ -39,6 +39,10 @@ Requires:       parted
 Requires:       xz
 Recommends:     kiwi-tools
 
+%if 0%{?suse_version} != 1500
+ExclusiveArch:  do_not_build
+%endif
+
 %description
 dracut module for booting SALT-based PXE images.
 
