@@ -966,10 +966,11 @@ def device_formatted(name, partitioning):
 
     fs_type = devmap[name]['format']
     if fs_type == 'swap':
-        ret = __states__['cmd.run']("mkswap -f {0}".format(opened_device))
-
-        __salt__['cmd.run_all']("swapon {0}".format(opened_device))
-        return ret
+        blkid_info = __salt__['disk.blkid'](opened_device).get(opened_device, {})
+        if blkid_info.get('TYPE') == 'swap':
+            ret['comment'] = "Device {0} is already swap, skipping mkswap.".format(opened_device)
+            return ret
+        return __states__['cmd.run']("mkswap -f {0}".format(opened_device))
     return __states__['blockdev.formatted'](opened_device, fs_type, force=True)
 
 # get image version and hash written to filesystem
