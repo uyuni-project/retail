@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct 29 12:56:03 UTC 2025 - Ondrej Holecek <oholecek@suse.com>
+
+- Update template file to kiwi schema version 7.4
+
+-------------------------------------------------------------------
 Tue Apr 16 12:50:02 UTC 2024 - Vladimir Nadvornik <nadvornik@suse.cz>
 
 - do not specify keytable
