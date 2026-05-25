@@ -62,6 +62,8 @@ class Branch:
             self.hwAddress = None
         self.terminals = []
         self.exclude_formulas = []
+        self.containerized = True
+        self.foreign = False
 
     def configure_dedicated_nic(self, nic, ip='192.168.1.1', netmask='255.255.255.0', configure_firewall=True, firewall=None):
         """ configure branch network for dedicated NIC """
@@ -435,7 +437,7 @@ class Branch:
         """
         connect to SUSE Manager API and fetch branch server data used for dynamic defaults
         return True on success
-               False if the system does not exist
+               False in case of failure
         """
         self.client = client
         self.key = key
@@ -448,6 +450,9 @@ class Branch:
             self.bs_system_id = None
             self.bs_net_devices = []
 
+            # System does not exists, assume containerized
+            self.containerized = True
+            self.exclude_formulas += ["pxe", "tftpd", "vsftpd"]
             return True
 
 

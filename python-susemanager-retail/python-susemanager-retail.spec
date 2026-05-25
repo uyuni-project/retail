@@ -28,9 +28,9 @@
 %define libname susemanager-retail
 
 Name:           python-%{libname}
-Version:        1.2.0
+Version:        1.3.0
 Release:        0
-License:        GPL-2.0
+License:        GPL-2.0-Only
 Summary:        Python library for SUSE Multi-Linux Manager for Retail automation
 Url:            https://github.com/uyuni-project/retail
 Group:          Development/Languages/Python
