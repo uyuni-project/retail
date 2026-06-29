@@ -1,0 +1,48 @@
+name: Dracut Saltboot CI
+
+on:
+  push:
+    paths:
+      - 'dracut-saltboot/**'
+  pull_request:
+    paths:
+      - 'dracut-saltboot/**'
+
+jobs:
+  lint:
+    name: Lint Scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@00b27aa7cb85167568cb48a3838b75f4265f2bca
+        env:
+          SHELLCHECK_OPTS: -e SC1091
+        with:
+          scandir: 'dracut-saltboot'
+          ignore_names: mock_dracut.sh
+          additional_files: 'dracut-saltboot/tests/*.bats'
+
+#      - name: Check formatting with shfmt
+#        run: |
+#          sudo apt-get update && sudo apt-get install -y shfmt
+#          # Using -i 4 for 4-space indentation as seen in module-setup.sh
+#          shfmt -d -i 2 dracut-saltboot
+
+  test:
+    name: Unit Tests (BATS)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
+
+      - name: Setup BATS
+        uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 #4.0.0
+
+      - name: Run BATS tests
+        working-directory: dracut-saltboot
+        run: |
+          chmod +x tests/mocks/*
+          bats tests/
