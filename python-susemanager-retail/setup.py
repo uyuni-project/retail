@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="python-susemanager-retail",
-    version="1.0",
+    version="1.2.1",
     description="SUSE Manager for Retail tools",
     url="https://www.suse.com/",
     packages=find_packages(),
