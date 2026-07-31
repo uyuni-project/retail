@@ -14,11 +14,18 @@
 
 # Please submit bugfixes or comments via https://bugs.opensuse.org/
 
+%if 0%{?suse_version} >= 1600
+# SLE16
+%define skip_python2 1
+%define pythons python313
+%else
 %if 0%{?suse_version} >= 1320
 # SLE15
 %define skip_python2 1
 %define pythons python3
-%else %if 0%{?suse_version} == 1315
+%endif
+%endif
+%if 0%{?suse_version} == 1315
 # SLE12
 %define skip_python3 1
 %define pythons python2
@@ -28,7 +35,7 @@
 %define libname susemanager-retail
 
 Name:           python-%{libname}
-Version:        1.2.0
+Version:        1.2.1
 Release:        0
 License:        GPL-2.0
 Summary:        Python library for SUSE Multi-Linux Manager for Retail automation
@@ -36,7 +43,7 @@ Url:            https://github.com/uyuni-project/retail
 Group:          Development/Languages/Python
 Source:         python-susemanager-retail-%{version}.tar.gz
 BuildRequires:  %{python_module setuptools}
-BuildRequires:  %{python_module rpm-macros}
+BuildRequires:  python-rpm-macros
 BuildRequires:  unzip
 BuildRequires:  fdupes
 BuildArch:      noarch
