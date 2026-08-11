@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<image schemaversion="6.1" name="POS_Image-RPi-Bootstrap">
+<image schemaversion="7.4" name="POS_Image-RPi-Bootstrap">
     <description type="system">
         <author>Admin User</author>
         <contact>noemail@example.com</contact>
@@ -11,27 +11,22 @@
         <packagemanager>zypper</packagemanager>
         <bootsplash-theme>SLE</bootsplash-theme>
         <bootloader-theme>SLE</bootloader-theme>
-
         <locale>en_US</locale>
         <timezone>Europe/Berlin</timezone>
-        <hwclock>utc</hwclock>
-
         <rpm-excludedocs>true</rpm-excludedocs>
-        <type filesystem="ext4" image="oem" initrd_system="dracut" firmware="efi" bootpartition="false" efipartsize="64" editbootinstall="editbootinstall_rpi.sh" kernelcmdline="splash" >
+        <type filesystem="ext4" image="oem" initrd_system="dracut" firmware="efi" bootpartition="false" efipartsize="64" editbootinstall="editbootinstall_rpi.sh" kernelcmdline="splash">
+            <bootloader name="grub2"/>
             <oemconfig>
                 <oem-resize>false</oem-resize>
             </oemconfig>
         </type>
-
     </preferences>
     <repository type="rpm-md">
-      <source path="obsrepositories:/"/>
+        <source path="obsrepositories:/"/>
     </repository>
-
     <packages type="image" patternType="onlyRequired">
         <package name="curl"/>
         <package name="dracut"/>
-
         <package name="grub2-branding-SLE" bootinclude="true"/>
         <package name="grub2"/>
         <package name="grub2-arm64-efi" arch="aarch64"/>
@@ -39,46 +34,38 @@
         <package name="haveged"/>
         <package name="parted"/>
         <package name="wicked"/>
-
         <package name="kernel-default"/>
-	<package name="venv-salt-minion"/>
-
-	<package name="dracut-saltboot"/>
+        <package name="venv-salt-minion"/>
+        <package name="dracut-saltboot"/>
         <package name="e2fsprogs"/>
         <package name="mdadm"/>
         <package name="cryptsetup"/>
         <package name="device-mapper"/>
         <package name="kexec-tools"/>
-
         <package name="tar"/>
         <package name="plymouth"/>
         <package name="plymouth-dracut"/>
         <package name="plymouth-branding-SLE"/>
         <package name="plymouth-plugin-label-ft"/>
-
         <package name="fontconfig"/>
         <package name="fonts-config"/>
         <package name="cantarell-fonts"/>
-
-        <package name="busybox"/>               <!-- this is needed if tftp is used for background image downloading -->
+        <package name="busybox"/>
+<!-- this is needed if tftp is used for background image downloading -->
         <package name="bind-utils"/>
         <package name="kiwi-tools"/>
         <package name="dosfstools"/>
-
         <package name="dmidecode"/>
-
-        <!-- RPi support -->
+<!-- RPi support -->
         <package name="raspberrypi-firmware" arch="aarch64"/>
         <package name="raspberrypi-firmware-config" arch="aarch64"/>
         <package name="raspberrypi-firmware-dt" arch="aarch64"/>
         <package name="u-boot-rpiarm64" arch="aarch64"/>
-
-        <!-- uncomment here to enable wireless boot
+<!-- uncomment here to enable wireless boot
         <package name="dracut-wireless"/>
         <package name="wpa_supplicant"/>
         <package name="bcm43xx-firmware"/>
         -->
-
     </packages>
     <packages type="bootstrap">
         <package name="udev"/>
