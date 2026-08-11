@@ -1,7 +1,7 @@
 #
 # spec file for package kiwi-desc-saltboot
 #
-# Copyright (c) 2020 SUSE LLC.
+# Copyright (c) 2024 SUSE LLC.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -24,9 +24,15 @@ Summary:        SALT-based PXE network boot template
 License:        GPL-2.0
 Group:          System/Packages
 BuildArch:      noarch
+%if 0%{?sle_version} >= 150100
+BuildRequires:  python3-kiwi > 9.24
+BuildRequires:  kiwi-boot-descriptions
+Requires:       kiwi-boot-descriptions
+%else
 BuildRequires:  kiwi > 4.0
 BuildRequires:  kiwi-desc-netboot
 Requires:       kiwi-desc-netboot
+%endif
 Provides:       kiwi-boot:saltboot
 Provides:       kiwi-image:cpio
 Provides:       kiwi-image:pxe
@@ -37,20 +43,30 @@ ExclusiveArch:  x86_64 noarch
 ExclusiveArch:  i586 x86_64 noarch
 %endif
 
+%if 0%{?sle_version} >= 150100
+%define kiwi_image_dir /usr/share/kiwi/custom_boot
+%define linuxrc_include /usr/share/kiwi/custom_boot/functions.sh
+%else
+%define kiwi_image_dir /usr/share/kiwi/image
+%define linuxrc_include /usr/share/kiwi/modules/KIWILinuxRC.sh
+%endif
+
 %description
 kiwi boot (initrd) image for booting SALT-based PXE images.
 
 %prep
 %setup -q
+ln -s %{linuxrc_include} saltboot/suse-SLES11/root/include
+ln -s %{linuxrc_include} saltboot/suse-SLES12/root/include
 
 %build
 
 %install
-mkdir -p %{buildroot}/usr/share/kiwi/image
-cp -R saltboot %{buildroot}/usr/share/kiwi/image
+mkdir -p %{buildroot}%{kiwi_image_dir}
+cp -R saltboot %{buildroot}%{kiwi_image_dir}
 
 %files
 %defattr(-,root,root,-)
-/usr/share/kiwi/image
+%{kiwi_image_dir}/saltboot
 
 %changelog
