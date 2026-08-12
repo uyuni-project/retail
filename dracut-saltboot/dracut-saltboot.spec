@@ -17,7 +17,7 @@
 
 
 Name:           dracut-saltboot
-Version:        1.2.0
+Version:        1.3.0
 Release:        0
 Source:         dracut-saltboot-%{version}.tar.gz
 Summary:        Salt-based PXE network boot dracut module
@@ -37,6 +37,7 @@ Requires:       e2fsprogs
 Requires:       gzip
 Requires:       parted
 Requires:       xz
+Requires:       coreutils
 Recommends:     kiwi-tools
 
 %if 0%{?suse_version} != 1500

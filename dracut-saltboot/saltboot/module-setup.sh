@@ -78,8 +78,8 @@ install() {
     inst_multiple -o /usr/lib64/libffi.so.7 # dracut dependency solver does not see this
 
     if ! inst_multiple grep dig ldconfig date dbus-uuidgen systemd-machine-id-setup dmidecode seq parted \
-                     lsblk partprobe mdadm dcounter mkswap curl head md5sum resize2fs \
-                     sync cryptsetup busybox swapon tail wipefs xz gzip xargs chroot; then
+                     lsblk partprobe mdadm dcounter mkswap curl head md5sum sha256sum resize2fs \
+                     sync cryptsetup swapon tail wipefs xz gzip xargs chroot; then
         dfatal "Some of the required packages are missing"
         exit 1
     fi

@@ -1080,7 +1080,7 @@ def _get_image_for_part(images, part):
     return image_id, image_version, image_dict
 
 def _mangle_url(url):
-    supported_protocols = [ 'http', 'https', 'ftp', 'tftp' ]
+    supported_protocols = [ 'http', 'https', 'ftp' ]
 
     url_p = urlparse(url)
     download_server = __salt__['pillar.get']('saltboot_download_server', __salt__['pillar.get']('saltboot:download_server'))
@@ -1115,7 +1115,6 @@ def _download_url_cmd(url, local_path):
         'http' : 'curl -f -L {0} > {11}',
         'https': 'curl -k -f -L {0} > {11}',
         'ftp'  : 'curl -P - -f -L {0} > {11}',
-        'tftp' : 'busybox tftp -b 65464 -g -l {11} -r {3} {9} ',
     }
     url_p = _mangle_url(url)
     cmd_template = download_cmd.get(url_p.scheme, 'curl -f -L {0} > {11}')
@@ -1131,7 +1130,6 @@ def _deploy_cmd(url):
         'http' : 'set -o pipefail;curl -f -L {0} ',
         'https': 'set -o pipefail;curl -k -f -L {0} ',
         'ftp'  : 'set -o pipefail;curl -P - -f -L {0} ',
-        'tftp' : 'set -o pipefail;busybox tftp -b 65464 -g -l /dev/stdout -r {3} {9} ',
     }
 
     url_p = _mangle_url(url)
@@ -1220,7 +1218,13 @@ def image_downloaded(name, partitioning, images, service_mountpoint=None, mode='
         }
         l = len(h)
         try:
-            return cmd_by_length[l]
+            # In transision period until images have sha256sum, let's fallback to use busybox.
+            # Note that new images on the other hand does not have busybox.
+            command = os.path.join("/usr/bin/", cmd_by_length[l])
+            if os.access(command, os.X_OK):
+                return command
+            else:
+                return "busybox {0}".format(cmd_by_length[l])
         except:
             raise salt.exceptions.SaltException("unsupported hash '{0}', len {1}".format(h, l))
 
