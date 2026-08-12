@@ -120,10 +120,7 @@ EOT
 
 echo $MACHINE_ID > /etc/machine-id
 
-curl -s "http://${MASTER:-$BOOTSERVERADDR}/saltboot/defaults" > /tmp/defaults
-if [ ! -s /tmp/defaults ] ; then
-    busybox tftp -g -l /tmp/defaults -r defaults "${MASTER:-$BOOTSERVERADDR}"
-fi
+curl -k -L -s "https://${MASTER:-$BOOTSERVERADDR}/saltboot/defaults" > /tmp/defaults
 
 if [ -s /tmp/defaults ] ; then
     [ -z "$MINION_ID_PREFIX" ] && eval `grep ^MINION_ID_PREFIX= /tmp/defaults`
